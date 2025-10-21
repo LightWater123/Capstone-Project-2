@@ -66,6 +66,7 @@ Route::middleware(['auth:service'])->group(function () {
 Route::prefix('service')->group(function () {
     Route::get('inventory',                    [MaintenanceController::class, 'serviceIndex']);
     Route::get('inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
+    Route::get('/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
 })->middleware(['auth:service']);
 
 // EMAIL

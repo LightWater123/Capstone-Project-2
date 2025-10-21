@@ -1,28 +1,30 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
 const AuthContext = createContext(null);
 
+// redirects an unauthorized user to the login trying to access a page
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
+  const Navigate = useNavigate();
 
-  // useEffect(() => {
-  //   async function run() {
-  //     if (user === undefined) {
-  //       const res = await api.get("/api/verifyUser");
-  //       if (res.data.user) {
-  //         setUser(res.data.user);
-  //       } else {
-  //         throw new Error("no user data");
-  //       }
-  //     }
-  //   }
-  //   run().catch(() => {
-  //     setUser(null);
-  //     redirect("/");
-  //   });
-  // }, [user]);
+  useEffect(() => {
+    async function run() {
+      if (user === undefined) {
+        const res = await api.get("/api/verifyUser");
+        if (res.data.user) {
+          setUser(res.data.user);
+        } else {
+          throw new Error("no user data");
+        }
+      }
+    }
+    run().catch(() => {
+      setUser(null);
+      Navigate("/");
+    });
+  }, [user]);
 
   const login = async (user, password) => {
     const response = await api.post("/api/login", {

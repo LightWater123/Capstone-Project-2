@@ -215,6 +215,7 @@ export default function InventoryDashboard() {
           {[
             { name: "PPE", Icon: Car },
             { name: "RPCSP", Icon: Keyboard },
+            {name: "Due soon", Icon: Calendar},
           ].map((type) => {
             const isActive = category === type.name;
             return (

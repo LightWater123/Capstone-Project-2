@@ -217,80 +217,54 @@ class MaintenanceController extends Controller
 
     public function predictiveMaintenance(Request $request)
     {
-        // 1. Define maintenance intervals in MONTHS for each equipment type.
-        // The keys should match the words you want to find in the 'description' field.
-        $maintenanceIntervals = [
-            'airconditioner' => 6, // Checked every 6 months
-            'generator' => 3,      // Checked quarterly
-            'transformer' => 12,   // Checked annually
-            'computer' => 12,
-            'pc set' => 12,
-            'notebook' => 12,
-            'refrigerator' => 6,
-            'motor vehicle' => 7, // checked every 7 months
-        ];
+        $request->validate([
+        'install_date' => 'required|date',
+        'daily_usage_hours' => 'required|numeric|min:0',
+        'operating_days' => 'required|array', // e.g., [1, 2, 3, 4, 5]
+        ]);
 
-        // 2. Get the keywords to search for.
-        $keywords = array_keys($maintenanceIntervals);
+        $equipment = Equipment::findOrFail($id);
+        $startDate = Carbon::parse($request->install_date);
+        $today = Carbon::today();
+        $dailyUsage = $request->daily_usage_hours;
+        $operatingDays = $request->operating_days; // [1, 2, 3, 4, 5]
 
-        // 3. Query the MongoDB collection for equipment whose 'description' contains any of our keywords.
-        $trackedEquipment = Equipment::where(function (Builder $query) use ($keywords) {
-            foreach ($keywords as $keyword) {
-                // Using 'regex' for case-insensitive search in MongoDB
-                $query->orWhere('description', 'regex', new \MongoDB\BSON\Regex($keyword, 'i'));
-                $query->orWhere('article', 'regex', new \MongoDB\BSON\Regex($keyword, 'i'));
-            }
-        })->get();
+        // --- THIS IS THE INITIAL ALGORITHM ---
+        // 1. Calculate the initial run-hours from install_date until today
+        $initialRunHours = 0;
+        
+        // Create a period of all days from the start date until yesterday
+        $period = CarbonPeriod::create($startDate, $today->copy()->subDay());
 
-        $maintenanceSchedule = [];
-
-        // 4. Loop through each piece of equipment to calculate and update its next maintenance date.
-        foreach ($trackedEquipment as $equipment) {
-            $interval = 0;
-
-            // Find the matching keyword and its interval for the current equipment's description.
-            foreach ($maintenanceIntervals as $keyword => $months) {
-                if (stripos($equipment->description, $keyword) !== false) {
-                    $interval = $months;
-                    break; // Stop after finding the first match
-                } else if (stripos($equipment->article, $keyword) !== false) {
-                    $interval = $months;
-                    break; }
-            }
-
-            // If a matching type was found and it requires maintenance (interval > 0), proceed.
-            if ($interval > 0) {
-                // Use the most recent date: 'end_date' (completion) is best, otherwise 'start_date'.
-                $lastMaintenanceDate = $equipment->end_date ?: $equipment->start_date;
-                $nextMaintenanceDate = null;
-
-                // We can only calculate if we have a valid starting date.
-                if ($lastMaintenanceDate) {
-                    // Ensure the date is a Carbon instance for calculations.
-                    $lastMaintenanceDate = Carbon::parse($lastMaintenanceDate);
-                    // Calculate the next due date by adding the interval in months.
-                    $nextMaintenanceDate = (clone $lastMaintenanceDate)->addMonths($interval);
-
-                    // **IMPORTANT: Save the calculated date back to the database for future use.**
-                    $equipment->next_due_date = $nextMaintenanceDate;
-                    $equipment->save();
-                }else
-                {
-                    Log::info('No end and start dates found.');
-                }
-
-                // Prepare the data for our view, formatting the date exactly as requested.
-                $maintenanceSchedule[] = [
-                    'id' => $equipment->id,
-                    'article' => $equipment->article,
-                    'description' => $equipment->description,
-                    'next_maintenance_checkup' => $nextMaintenanceDate ? $nextMaintenanceDate->format('m/d/Y') : 'N/A',
-                ];
+        foreach ($period as $day) {
+            // Check if the day of the week (1=Mon, 7=Sun) is in the operating_days array
+            if (in_array($day->dayOfWeekIso, $operatingDays)) {
+                $initialRunHours += $dailyUsage;
             }
         }
+        // --- End of Algorithm ---
 
-        // 5. Return the schedule to a view for rendering.
-        // We will create this view file next.
-        return $maintenanceSchedule;
+        // 2. Save the user's inputs AND the calculated "odometer"
+        $equipment->install_date = $startDate;
+        $equipment->daily_usage_hours = $dailyUsage;
+        $equipment->operating_days = $operatingDays;
+        
+        // Set the "odometer"
+        $equipment->total_run_hours = $initialRunHours; 
+        
+        // Set the update flag so the cron job doesn't run again today
+        $equipment->last_run_update = Carbon::now(); 
+        
+        $equipment->save();
+
+        return response()->json([
+            'message' => 'Predictive maintenance activated!',
+            'calculated_initial_hours' => $initialRunHours,
+        ]);
+    }
+
+    public function setPickupDetails(Request $request, $id)
+    {
+
     }
 }

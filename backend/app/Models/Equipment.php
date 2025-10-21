@@ -32,7 +32,9 @@ class Equipment extends Model
         'date_added', // optional, can be null
         'start_date', // optional, can be null
         'end_date', // optional, can be null
-        'next_due_date' // predictive maintenance
+        'next_due_date', // predictive maintenance
+        'pickup_date', 
+        'pickup_location'
     ];
 
     protected $appends =[
