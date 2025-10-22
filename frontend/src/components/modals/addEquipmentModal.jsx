@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export default function AddEquipmentModal({
   isOpen,
@@ -9,11 +9,35 @@ export default function AddEquipmentModal({
   onSubmit,
   onUploadPDF
 }) {
+  // NEW: State to manage the visibility of predictive maintenance fields
+  const [isPredictiveActive, setIsPredictiveActive] = useState(false);
+
   useEffect(() => {
-    // Reset logic if needed when modal closes
+    // When the modal opens or closes, reset the toggle state
+    setIsPredictiveActive(false);
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  // NEW: Handler for the operating days checkboxes
+  const handleDayChange = (dayValue) => {
+    const currentDays = newItem.operating_days || [];
+    const updatedDays = currentDays.includes(dayValue)
+      ? currentDays.filter(d => d !== dayValue) // Uncheck: remove the day
+      : [...currentDays, dayValue]; // Check: add the day
+
+    setNewItem({ ...newItem, operating_days: updatedDays.sort((a, b) => a - b) });
+  };
+  
+  const daysOfWeek = [
+    { label: 'Mon', value: 1 },
+    { label: 'Tue', value: 2 },
+    { label: 'Wed', value: 3 },
+    { label: 'Thu', value: 4 },
+    { label: 'Fri', value: 5 },
+    { label: 'Sat', value: 6 },
+    { label: 'Sun', value: 7 },
+  ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
@@ -40,7 +64,7 @@ export default function AddEquipmentModal({
             <input
               type="text"
               placeholder="Article"
-              value={newItem.article}
+              value={newItem.article || ''}
               onChange={(e) =>
                 setNewItem({ ...newItem, article: e.target.value })
               }
@@ -50,7 +74,7 @@ export default function AddEquipmentModal({
             <input
               type="text"
               placeholder="Description"
-              value={newItem.description}
+              value={newItem.description || ''}
               onChange={(e) =>
                 setNewItem({ ...newItem, description: e.target.value })
               }
@@ -61,7 +85,7 @@ export default function AddEquipmentModal({
                 <input
                   type="text"
                   placeholder="Property RO"
-                  value={newItem.property_ro}
+                  value={newItem.property_ro || ''}
                   onChange={(e) =>
                     setNewItem({ ...newItem, property_ro: e.target.value })
                   }
@@ -71,7 +95,7 @@ export default function AddEquipmentModal({
                 <input
                   type="text"
                   placeholder="Property CO"
-                  value={newItem.property_co}
+                  value={newItem.property_co || ''}
                   onChange={(e) =>
                     setNewItem({ ...newItem, property_co: e.target.value })
                   }
@@ -82,7 +106,7 @@ export default function AddEquipmentModal({
               <input
                 type="text"
                 placeholder="Semi-Expendable Property No"
-                value={newItem.semi_expendable_property_no}
+                value={newItem.semi_expendable_property_no || ''}
                 onChange={(e) =>
                   setNewItem({
                     ...newItem,
@@ -96,7 +120,7 @@ export default function AddEquipmentModal({
             <input
               type="text"
               placeholder="Unit of Measure"
-              value={newItem.unit}
+              value={newItem.unit || ''}
               onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
               className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
@@ -105,53 +129,32 @@ export default function AddEquipmentModal({
               type="number"
               placeholder="Unit Value"
               min="0"
-              value={newItem.unit_value === 0 ? "" : newItem.unit_value}
-              onKeyDown={(e) => {
-                if (
-                  e.key === "-" ||
-                  e.key === "+" ||
-                  e.key === "e" ||
-                  e.key === "E"
-                ) {
-                  e.preventDefault();
-                }
-              }}
-              onChange={(e) => {
-                const numericValue = Number(e.target.value);
-                const value = isNaN(numericValue)
-                  ? 0
-                  : Math.max(0, numericValue);
-                setNewItem({ ...newItem, unit_value: value });
-              }}
+              step="0.01"
+              value={newItem.unit_value || ''}
+              onChange={(e) => setNewItem({ ...newItem, unit_value: parseFloat(e.target.value) || 0 })}
               className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
               type="number"
               placeholder="Quantity per Property Card"
-              value={newItem.recorded_count === 0 ? "" : newItem.recorded_count}
-              onChange={(e) => {
-                const value =
-                  e.target.value === "" ? 0 : Number(e.target.value);
-                setNewItem({ ...newItem, recorded_count: value });
-              }}
+              min="0"
+              value={newItem.recorded_count || ''}
+              onChange={(e) => setNewItem({ ...newItem, recorded_count: parseInt(e.target.value) || 0 })}
               className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
               type="number"
               placeholder="Quantity per Physical Count"
-              value={newItem.actual_count === 0 ? "" : newItem.actual_count}
-              onChange={(e) => {
-                const value =
-                  e.target.value === "" ? 0 : Number(e.target.value);
-                setNewItem({ ...newItem, actual_count: value });
-              }}
+              min="0"
+              value={newItem.actual_count || ''}
+              onChange={(e) => setNewItem({ ...newItem, actual_count: parseInt(e.target.value) || 0 })}
               className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <select
-              value={newItem.location}
+              value={newItem.location || ''}
               onChange={(e) =>
                 setNewItem({ ...newItem, location: e.target.value })
               }
@@ -172,14 +175,13 @@ export default function AddEquipmentModal({
             <input
               type="text"
               placeholder="Remarks"
-              value={newItem.remarks}
+              value={newItem.remarks || ''}
               onChange={(e) =>
                 setNewItem({ ...newItem, remarks: e.target.value })
               }
               className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
             />
           </div>
-
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-end gap-4 pt-6">
             <button

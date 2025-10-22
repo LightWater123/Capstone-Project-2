@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useInventory } from "../hooks/useInventory";
 import { useMaintenance } from "../hooks/useMaintenance";
@@ -8,7 +8,7 @@ import api from "../api/api";
 import { toast } from "react-toastify";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
-import { ArrowUpAZ, Icon, Plus } from "lucide-react";
+import { ArrowUpAZ, Icon, Plus, Wrench } from "lucide-react";
 import { Monitor } from "lucide-react";
 import { Calendar } from "lucide-react";
 import { Car } from "lucide-react";
@@ -25,6 +25,7 @@ import UploadPDFModal from "../components/modals/uploadPDFModal.jsx";
 import ViewFullDetailModal from "../components/modals/fullDetailModal.jsx";
 import EditItemModal from "../components/modals/editItemModal.jsx";
 import ViewHistory from "../components/modals/viewHistoryModal.jsx";
+import PredictiveModal from "../components/modals/predictiveModal.jsx"
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -79,6 +80,7 @@ export default function InventoryDashboard() {
   const [showSentModal, setShowSentModal] = useState(false);
   const [lastSent, setLastSent] = useState(null);
   const [showViewHistory, setShowViewHistory] = useState(false);
+  const [showPredictive, setShowPredictive] = useState(false);
 
   // Selected items
   const [selectedItem, setSelectedItem] = useState(null);
@@ -203,6 +205,62 @@ export default function InventoryDashboard() {
     setShowScheduleModal(true);
   };
 
+  // Get the full item objects for all selected IDs
+  const selectedItems = useMemo(
+    () => inventoryData.filter(item => selectedEquipmentIds.includes(item.id)), // <-- THE FIX IS HERE
+    [selectedEquipmentIds, inventoryData]
+  );
+
+  // Find the first selected item to use as a template for the modal
+  const currentTemplateItem = useMemo(
+    () => selectedItems[0] || null,
+    [selectedItems]
+  );
+
+  // Check if the "Predictive Maintenance" button should be disabled
+  const isPredictiveButtonDisabled = useMemo(() => {
+    if (selectedItems.length === 0) {
+      return true; // Disabled if no items are selected
+    }
+    const firstArticle = selectedItems[0].article;
+    // Disabled if not all selected items share the same article
+    return !selectedItems.every(item => item.article === firstArticle);
+  }, [selectedItems])
+
+  // open predictive modal
+  const handleOpenPredictiveModal = () => {
+    if (isPredictiveButtonDisabled) return; // Guard clause
+    setShowPredictive(true);
+  };
+
+  // handle predictive submit
+  const handlePredictiveSubmit = async (formData) => {
+    console.log("Applying data to all selected IDs:", selectedEquipmentIds, formData);
+    
+    try {
+      // Create an array of API post requests
+      const updatePromises = selectedEquipmentIds.map(id => {
+        // 'id' here comes from your selectedEquipmentIds array (item.id)
+        return api.post(`/api/equipment/${id}/predictive-maintenance`, formData);
+      });
+      
+      // Wait for all API calls to complete
+      await Promise.all(updatePromises);
+      
+      toast.success(`Successfully activated predictive maintenance for ${selectedEquipmentIds.length} items!`);
+      
+      // Close modal, clear selection, and refresh the inventory list
+      setShowPredictive(false); 
+      setSelectedEquipmentIds([]);
+      fetchInventory(); // Make sure fetchInventory is available here
+
+    } catch (error) {
+      console.error("Failed to update one or more items:", error);
+      toast.error("An error occurred. Please check the console and try again.");
+    }
+  };
+
+
   // render component UI
   return (
     <>
@@ -308,6 +366,23 @@ export default function InventoryDashboard() {
               >
                 <Monitor className="h-5 w-5 inline-block mr-2" />
                 Monitor Maintenance
+              </button>
+
+              <button
+                className="px-3 py-0.5 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                // This correctly calls your function
+                onClick={handleOpenPredictiveModal}
+                // This correctly uses your logic
+                disabled={isPredictiveButtonDisabled} 
+                // This correctly adds the helpful title
+                title={
+                  isPredictiveButtonDisabled
+                    ? "Please select one or more items of the SAME article type (e.g., all 'aircon')"
+                    : "Activate/Update Predictive Maintenance"
+                }
+              >
+                <Wrench className="h-5 w-5 inline-block mr-2" /> 
+                Predictive Maintenance
               </button>
             </div>
           </nav>
@@ -531,6 +606,14 @@ export default function InventoryDashboard() {
             await fetchInventory();
             setSelectedDetailItem(updatedItem);
           }}
+        />
+
+        <PredictiveModal
+          // open modal
+          isOpen={showPredictive}
+          item={currentTemplateItem}
+          onClose={() => setShowPredictive(false)}
+          onSubmit={handlePredictiveSubmit}
         />
       </div>
     </>

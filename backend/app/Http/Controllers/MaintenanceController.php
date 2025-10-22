@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectId;
 use Illuminate\Support\Facades\Log;
@@ -215,25 +216,25 @@ class MaintenanceController extends Controller
         ]);
     }
 
-    public function predictiveMaintenance(Request $request)
+    public function predictiveMaintenance(Request $request, $id)
     {
+        // VALIDATE MODAL INPUT
         $request->validate([
-        'install_date' => 'required|date',
-        'daily_usage_hours' => 'required|numeric|min:0',
-        'operating_days' => 'required|array', // e.g., [1, 2, 3, 4, 5]
+            'install_date' => 'required|date',
+            'daily_usage_hours' => 'required|numeric|min:0',
+            'operating_days' => 'required|array', // e.g., [1, 2, 3, 4, 5]
         ]);
 
+        // GET EQUIPMENT & INPUTS
         $equipment = Equipment::findOrFail($id);
         $startDate = Carbon::parse($request->install_date);
         $today = Carbon::today();
-        $dailyUsage = $request->daily_usage_hours;
-        $operatingDays = $request->operating_days; // [1, 2, 3, 4, 5]
+        $dailyUsage = (float) $request->daily_usage_hours;
+        $operatingDays = $request->operating_days;
 
-        // --- THIS IS THE INITIAL ALGORITHM ---
-        // 1. Calculate the initial run-hours from install_date until today
+        // CALCULATE INITIAL RUN-HOURS
         $initialRunHours = 0;
-        
-        // Create a period of all days from the start date until yesterday
+        // Create a period from the start date up to *yesterday*
         $period = CarbonPeriod::create($startDate, $today->copy()->subDay());
 
         foreach ($period as $day) {
@@ -242,24 +243,74 @@ class MaintenanceController extends Controller
                 $initialRunHours += $dailyUsage;
             }
         }
-        // --- End of Algorithm ---
 
-        // 2. Save the user's inputs AND the calculated "odometer"
+        // GET MAINTENANCE RULES (Dynamic Lookup)
+        
+        // Find the rules from the 'equipment_types' collection
+        // match its 'name' against the equipment's 'article' field
+        $rules = EquipmentType::where('name', strtolower($equipment->article))->first();
+
+        // Handle if no rules are found for this article type
+        if (!$rules) {
+            return response()->json(['message' => 'No maintenance rules found for article type: ' . $equipment->article], 400);
+        }
+
+        // Get thresholds. Check for item-specific overrides first, then use type defaults.
+        $maxUsageHours = $equipment->max_usage_hours ?? $rules->default_max_usage_hours;
+        $maxTimeDays = $equipment->max_time_days ?? $rules->default_max_time_days;
+
+        // Handle if rules are incomplete (e.g., no hours AND no days set)
+        if (is_null($maxUsageHours) && is_null($maxTimeDays)) {
+            return response()->json(['message' => 'Maintenance rules (thresholds) are incomplete for: ' . $equipment->article], 400);
+        }
+
+        // calculate maintenance date
+
+        // calculate average daily usage (spread over 7 days)
+        $daysPerWeek = count($operatingDays);
+        $totalWeeklyUsage = $dailyUsage * $daysPerWeek;
+        $averageDailyUsage = ($totalWeeklyUsage > 0) ? $totalWeeklyUsage / 7 : 0;
+
+        // calculate predicted date based on usage
+        $predictedUsageDate = Carbon::maxValue(); // Default to "never"
+        if (!is_null($maxUsageHours) && $averageDailyUsage > 0) {
+            $remainingUsageHours = $maxUsageHours - $initialRunHours;
+            // Calculate days left. If already overdue, set to 0.
+            $daysToHitUsageThreshold = ($remainingUsageHours > 0) ? $remainingUsageHours / $averageDailyUsage : 0;
+            // Add remaining days to *today*
+            $predictedUsageDate = $today->copy()->addDays(ceil($daysToHitUsageThreshold));
+        }
+
+        // calculate predicted date based on time
+        $predictedTimeDate = Carbon::maxValue(); // Default to "never"
+        if (!is_null($maxTimeDays)) {
+            // Add max days to the *install date*
+            $predictedTimeDate = $startDate->copy()->addDays($maxTimeDays);
+        }
+        
+        // find final date
+        $nextMaintenanceDate = $predictedTimeDate->min($predictedUsageDate);
+
+        // Handle case where item never needs maintenance (e.g., 0 usage and no time limit)
+        if ($nextMaintenanceDate->equalTo(Carbon::maxValue())) {
+            $nextMaintenanceDate = null; 
+        }
+
+        // save equipment details
         $equipment->install_date = $startDate;
         $equipment->daily_usage_hours = $dailyUsage;
         $equipment->operating_days = $operatingDays;
-        
-        // Set the "odometer"
-        $equipment->total_run_hours = $initialRunHours; 
-        
-        // Set the update flag so the cron job doesn't run again today
-        $equipment->last_run_update = Carbon::now(); 
+        $equipment->total_run_hours = $initialRunHours; // Set the "odometer"
+        $equipment->last_run_update = Carbon::now(); // Timestamp the activation/update
+        $equipment->next_maintenance_date = $nextMaintenanceDate; // The new predicted date!
         
         $equipment->save();
 
+        // return response
         return response()->json([
-            'message' => 'Predictive maintenance activated!',
-            'calculated_initial_hours' => $initialRunHours,
+            'message' => 'Predictive maintenance activated for: ' . $equipment->article,
+            'calculated_initial_hours' => round($initialRunHours, 2),
+            'next_maintenance_date' => $nextMaintenanceDate ? $nextMaintenanceDate->toDateString() : null,
         ]);
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model; // mongodb support for Eloquent
+use MongoDB\Laravel\Eloquent\Model; // You are correctly using the official package's model
 
 class Equipment extends Model
 {
@@ -16,25 +16,51 @@ class Equipment extends Model
     // Fields that can be mass-assigned through controller
     protected $fillable = [
         '_id',
-        'category',  // PPE or RPCSP
+        'category',
         'article',
         'description',
-        'property_ro',  // or semi-expandable property no (in RPCSP)
-        'property_co',  // PPE only, optional since it's likely blank
-        'semi_expendable_property_no', // rpcsp only
+        'property_ro',
+        'property_co',
+        'semi_expendable_property_no',
         'unit',
         'unit_value',
-        'recorded_count', // quantity listed in inventory
-        'actual_count', // actual count of items
+        'recorded_count',
+        'actual_count',
         'remarks',
         'location',
-        'condition', // optional, can be null   
-        'date_added', // optional, can be null
-        'start_date', // optional, can be null
-        'end_date', // optional, can be null
-        'next_due_date', // predictive maintenance
+        'condition',
+        'date_added',
+        'start_date',
+        'end_date',
         'pickup_date', 
-        'pickup_location'
+        'pickup_location',
+        
+        // fields for predictive maintenance
+        'install_date',          // The start date for our prediction calculations.
+        'daily_usage_hours',     // How many hours it runs on an active day.
+        'operating_days',        // The array of active days, e.g., [1, 2, 3, 4, 5].
+        'total_run_hours',       // The calculated "odometer" of the machine.
+        'last_run_update',       // A timestamp of when the prediction was last run.
+        'next_due_date',         // prediction result
+        'max_usage_hours',
+        'max_time_days',
+    ];
+
+    // handles the datatype for those fillable fields
+    protected $casts = [
+        'unit_value' => 'float',
+        'recorded_count' => 'integer',
+        'actual_count' => 'integer',
+        'date_added' => 'datetime',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'pickup_date' => 'datetime',
+        'install_date' => 'datetime',
+        'last_run_update' => 'datetime',
+        'next_due_date' => 'datetime',
+        'daily_usage_hours' => 'float',
+        'operating_days' => 'array',
+        'total_run_hours' => 'float',
     ];
 
     protected $appends =[
@@ -55,7 +81,6 @@ class Equipment extends Model
         return $this->shortage_or_overage_qty * $this->unit_value;
     }
 
-    // pwede na alisin
     public function getFormattedPropertyNumberAttribute()
     {
         // Format property number based on category
