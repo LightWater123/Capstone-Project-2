@@ -5,8 +5,8 @@ import btrlogo from "../assets/btrlogo.png";
 import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { Eye } from 'lucide-react';
-import { EyeClosed } from 'lucide-react';
+import { Eye } from "lucide-react";
+import { EyeClosed } from "lucide-react";
 import { useEffect } from "react";
 
 export default function Login() {
