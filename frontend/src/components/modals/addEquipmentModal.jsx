@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 export default function AddEquipmentModal({
   isOpen,
@@ -9,29 +9,9 @@ export default function AddEquipmentModal({
   onSubmit,
   onUploadPDF
 }) {
-  // const [uploadedImage, setUploadedImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // setUploadedImage(file)
-      setPreviewImage(URL.createObjectURL(file))
-
-      // const reader = new FileReader();
-      // reader.onloadend = () => {
-      //   setUploadedImage(reader.result);
-      // };
-      // reader.readAsDataURL(file);
-    }
-  };
-
-  // resets the img selected in the upload img
-  useEffect(()=>{
-    if(!isOpen){
-      setPreviewImage(null);
-    }
-  },[isOpen]); 
+  useEffect(() => {
+    // Reset logic if needed when modal closes
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -53,74 +33,10 @@ export default function AddEquipmentModal({
 
         <form
           onSubmit={onSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 text-black"
+          className="flex flex-col gap-6 text-black"
         >
-          {/* Left side – Drop files + Buttons */}
-          <div className="flex flex-col items-center justify-start overflow-y-auto">
-            <label
-              htmlFor="imageUpload"
-              className="w-72 h-72 border-2 border-dashed border-gray-400 rounded-md flex items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100 mb-4"
-            >
-              {previewImage ? (
-                <img
-                  src={previewImage}
-                  alt="Uploaded"
-                  className="w-full h-full object-contain rounded-md"
-                />
-              ) : (
-                <div className="text-center text-gray-500">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 mx-auto mb-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  <p className="text-sm">Drop or select files</p>
-                </div>
-              )}
-            </label>
-            <input
-              id="imageUpload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-
-            <div className="flex flex-wrap items-center gap-4 pt-6">
-              <button
-                type="submit"
-                className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:text-white"
-              >
-                Submit
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onUploadPDF}
-                className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:text-white"
-              >
-                Upload PPE/RPCSP PDF
-              </button>
-            </div>
-          </div>
-
-          {/* Right side – Form Fields */}
-          <div className="space-y-4">
+          {/* Form Fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <input
               type="text"
               placeholder="Article"
@@ -128,7 +44,7 @@ export default function AddEquipmentModal({
               onChange={(e) =>
                 setNewItem({ ...newItem, article: e.target.value })
               }
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
@@ -138,7 +54,7 @@ export default function AddEquipmentModal({
               onChange={(e) =>
                 setNewItem({ ...newItem, description: e.target.value })
               }
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
             />
             {category === "PPE" ? (
               <>
@@ -149,7 +65,7 @@ export default function AddEquipmentModal({
                   onChange={(e) =>
                     setNewItem({ ...newItem, property_ro: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+                  className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
                   required
                 />
                 <input
@@ -159,7 +75,7 @@ export default function AddEquipmentModal({
                   onChange={(e) =>
                     setNewItem({ ...newItem, property_co: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+                  className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
                 />
               </>
             ) : (
@@ -173,16 +89,16 @@ export default function AddEquipmentModal({
                     semi_expendable_property_no: e.target.value,
                   })
                 }
-                className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+                className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
                 required
               />
             )}
             <input
               type="text"
-              placeholder="Unit"
+              placeholder="Unit of Measure"
               value={newItem.unit}
               onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
@@ -191,7 +107,6 @@ export default function AddEquipmentModal({
               min="0"
               value={newItem.unit_value === 0 ? "" : newItem.unit_value}
               onKeyDown={(e) => {
-                // Prevent the minus key, plus key, and 'e'/'E' from being pressed.
                 if (
                   e.key === "-" ||
                   e.key === "+" ||
@@ -208,7 +123,7 @@ export default function AddEquipmentModal({
                   : Math.max(0, numericValue);
                 setNewItem({ ...newItem, unit_value: value });
               }}
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
@@ -220,7 +135,7 @@ export default function AddEquipmentModal({
                   e.target.value === "" ? 0 : Number(e.target.value);
                 setNewItem({ ...newItem, recorded_count: value });
               }}
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <input
@@ -232,7 +147,7 @@ export default function AddEquipmentModal({
                   e.target.value === "" ? 0 : Number(e.target.value);
                 setNewItem({ ...newItem, actual_count: value });
               }}
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
               required
             />
             <select
@@ -240,7 +155,7 @@ export default function AddEquipmentModal({
               onChange={(e) =>
                 setNewItem({ ...newItem, location: e.target.value })
               }
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 text-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white text-black"
               required
             >
               <option value="">Select Location</option>
@@ -261,10 +176,35 @@ export default function AddEquipmentModal({
               onChange={(e) =>
                 setNewItem({ ...newItem, remarks: e.target.value })
               }
-              className="w-full px-3 py-2 border border-black rounded bg-white-100 placeholder-black"
+              className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black"
             />
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap justify-end gap-4 pt-6">
+            <button
+              type="submit"
+              className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700"
+            >
+              Submit
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onUploadPDF}
+              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Upload PPE/RPCSP PDF
+            </button>
+          </div>
         </form>
+
       </div>
     </div>
   );

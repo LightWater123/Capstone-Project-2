@@ -16,7 +16,7 @@ class ServiceUser extends Authenticatable
     protected $keyType = 'string';
 
     protected $fillable = [
-        'username', 'email', 'password', 'mobile_number',
+        'name','company_name','username', 'email', 'password', 'mobile_number',
         'address', 'service_type',
     ];
 

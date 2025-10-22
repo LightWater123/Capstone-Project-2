@@ -13,7 +13,6 @@ export default function ViewItemDetailModal({
 
   const openScheduler = () => {
     onClose(); // close detail modal
-    onViewHistory(false);
     setShowSchedule(true); // open schedule modal
   };
 
@@ -109,25 +108,25 @@ export default function ViewItemDetailModal({
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={onEdit}
-                className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
               >
                 Edit
               </button>
               <button
                 onClick={() => onDelete(item.id)}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                className="px-3 py-1 bg-red-400 text-white rounded hover:bg-red-500 text-sm"
               >
                 Remove
               </button>
               <button
                 onClick={() => onViewHistory(true)}
-                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
               >
                 View History
               </button>
               <button
                 onClick={openScheduler}
-                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
               >
                 Schedule Maintenance
               </button>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import '../../styles/datepicker.css';
 
 export default function CalendarModal() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -14,8 +15,8 @@ export default function CalendarModal() {
     date1.getFullYear() === date2.getFullYear();
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 w-[378px] h-[350px]">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white rounded-xl shadow-md p-4 flex flex-col flex-1 ">
+      <div className="flex items-center justify-between mb-3 shrink-0">
         <h2 className="text-xl font-bold text-gray-700">Calendar</h2>
         <button
           onClick={() => navigate('/calendar-full')}
@@ -25,7 +26,7 @@ export default function CalendarModal() {
         </button>
       </div>
 
-      <div className='items-center justify-center flex'>
+      <div className='flex-1 w-full min-h-0 items-center justify-center flex'>
         <DatePicker
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}

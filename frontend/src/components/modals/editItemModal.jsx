@@ -3,7 +3,6 @@ import api from '../../api/api';
 
 export default function EditItemModal({ isOpen, item, onClose, onSave }) {
   const [form, setForm] = useState({});
-  const [uploadedImage, setUploadedImage] = useState(null);
 
   useEffect(() => {
     if (item) {
@@ -12,25 +11,12 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
         start_date: item.start_date ? item.start_date.substr(0, 10) : '',
         end_date: item.end_date ? item.end_date.substr(0, 10) : '',
       });
-
-      if (item.imageUrl) {
-        setUploadedImage(item.imageUrl);
-      }
     }
   }, [item]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setUploadedImage(imageUrl);
-      setForm((prev) => ({ ...prev, image: file }));
-    }
   };
 
   useEffect(() => {
@@ -54,10 +40,6 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
       Object.entries(form).forEach(([key, value]) => {
         formData.append(key, value);
       });
-
-      if (form.image) {
-        formData.append('image', form.image);
-      }
 
       await api.put(`/api/inventory/${item._id || item.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -85,35 +67,6 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 text-sm text-gray-700">
           {/* Left Column */}
           <div className="space-y-3">
-            <label
-              htmlFor="imageUpload"
-              className="w-full h-72 border-2 border-dashed border-gray-400 rounded-md flex items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100"
-            >
-              {uploadedImage ? (
-                <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-contain rounded-md" />
-              ) : (
-                <div className="text-center text-gray-500">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-12 w-12 mx-auto mb-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <p className="text-sm">Drop or select files</p>
-                </div>
-              )}
-            </label>
-            <input
-              id="imageUpload"
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-
             <input type="text" name="article" value={form.article || ''} onChange={handleChange} placeholder="Article" required className="w-full border border-black rounded px-3 py-2" />
             <input type="text" name="description" value={form.description || ''} onChange={handleChange} placeholder="Description" className="w-full border border-black rounded px-3 py-2" />
             {form.category === "PPE" ? (
@@ -166,6 +119,5 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
         </div>
       </div>
     </div>
-    
   );
 }

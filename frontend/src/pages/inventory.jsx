@@ -215,6 +215,7 @@ export default function InventoryDashboard() {
           {[
             { name: "PPE", Icon: Car },
             { name: "RPCSP", Icon: Keyboard },
+            {name: "Due soon", Icon: Calendar},
           ].map((type) => {
             const isActive = category === type.name;
             return (
@@ -459,7 +460,7 @@ export default function InventoryDashboard() {
               semi_expendable_property_no: "",
               recorded_count: 0,
               actual_count: 0,
-              unit: "pc",
+              unit: "",
               unit_value: 0,
               location: "",
               remarks: "",

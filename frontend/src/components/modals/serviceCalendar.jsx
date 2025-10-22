@@ -12,11 +12,11 @@ export default function Calendar() {
     date1.getFullYear() === date2.getFullYear();
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 w-[378px] h-[350px]">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white rounded-xl shadow-md p-4 flex flex-col flex-1 ">
+      <div className="flex items-center justify-between mb-3 shrink-0">
       <h2 className="text-xl font-bold text-gray-700 mb-3">Calendar</h2>
       </div>
-      <div className='items-center justify-center flex'>
+      <div className='flex-1 w-full min-h-0 items-center justify-center flex'>
         <DatePicker
           selected={selectedDate}
           onChange={(date) => setSelectedDate(date)}

@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -21,4 +22,31 @@ input[type="number"]::-webkit-inner-spin-button {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.react-datepicker,
+.react-datepicker__month-container,
+.react-datepicker__month,
+.react-datepicker__week {
+  height: 100% !important;
+}
+
+.react-datepicker__month {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.react-datepicker__week {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+}
+
+.react-datepicker__day {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
 }

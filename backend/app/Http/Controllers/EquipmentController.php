@@ -39,6 +39,7 @@ class EquipmentController extends Controller
         // 1. Define maintenance intervals in MONTHS for each equipment type.
         $maintenanceIntervals = [
             'airconditioner' => 6,
+            //'air con' => 6,
             'generator' => 3,
             'transformer' => 12,
             'computer' => 12,

@@ -5,7 +5,9 @@ import btrlogo from "../assets/btrlogo.png";
 import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { Eye } from 'lucide-react';
+import { EyeClosed } from 'lucide-react';
+import { useEffect } from "react";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState(""); // username or email
@@ -15,6 +17,12 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!showPassword) return; // nothing to do
+    const t = setTimeout(() => setShowPassword(false), 3000);
+    return () => clearTimeout(t); // clean up if user clicks again
+  }, [showPassword]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -31,7 +39,7 @@ export default function Login() {
       //   password,
       // });
       await login(identifier, password).then((e) => {
-        console.log("vals", e);
+        console.log("Current user logged-in:", identifier, e);
         if (e.redirect) {
           navigate(e.redirect);
         }
@@ -110,12 +118,12 @@ export default function Login() {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 top-2 focus:outline-none"
+            className="absolute right-3 inline-block top-1 focus:outline-none"
           >
             {showPassword ? (
-              <EyeSlashIcon className="h-5 w-5 text-gray-600 hover:text-gray-800" />
+              <Eye className="h-5 w-5 text-gray-600 hover:text-gray-800" />
             ) : (
-              <EyeIcon className="h-5 w-5 text-gray-600 hover:text-gray-800" />
+              <EyeClosed className="h-5 w-5 text-gray-600 hover:text-gray-800" />
             )}
           </button>
 
@@ -134,15 +142,15 @@ export default function Login() {
         </button>
 
         {/* register Link */}
-        <p className="text-center text-sm">
+        {/* <p className="text-center text-sm">
           Don’t have an account?{" "}
           <Link
             to="/register/admin"
             className="text-blue-600 hover:underline font-medium"
           >
-            Register
+            Register  
           </Link>
-        </p>
+        </p> */}
 
         {/* forgot password */}
         <div className="text-sm text-right -mt-2 mb-2">

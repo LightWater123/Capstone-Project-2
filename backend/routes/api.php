@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\EquipmentController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PdfParserController;
 use App\Http\Controllers\EmailController;
@@ -16,7 +17,7 @@ use Illuminate\Auth\Events\PasswordReset;
 Route::post('/login',    [AuthenticatedSessionController::class, 'store']);
 Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy']);
 Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify']);
-Route::post('/register', [RegisteredUserController::class, 'store']);
+Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/forgot-password',  fn(Request $r) => … );
 Route::post('/reset-password',   fn(Request $r) => … );
 
@@ -65,6 +66,7 @@ Route::middleware(['auth:service'])->group(function () {
 Route::prefix('service')->group(function () {
     Route::get('inventory',                    [MaintenanceController::class, 'serviceIndex']);
     Route::get('inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
+    Route::get('/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
 })->middleware(['auth:service']);
 
 // EMAIL

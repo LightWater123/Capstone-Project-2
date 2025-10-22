@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 
 const AuthContext = createContext(null);
 
+// redirects an unauthorized user to the login trying to access a page
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
+  const Navigate = useNavigate();
 
   useEffect(() => {
     async function run() {
@@ -20,7 +22,7 @@ export default function AuthProvider({ children }) {
     }
     run().catch(() => {
       setUser(null);
-      redirect("/");
+      Navigate("/");
     });
   }, [user]);
 

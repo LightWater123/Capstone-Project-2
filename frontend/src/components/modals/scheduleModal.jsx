@@ -100,7 +100,7 @@ export default function ScheduleModal({ asset, onClose, onScheduled }) {
         </div>
 
         <div className='flex flex-col items-start space-y-2'>
-          <label className='text-base font-medium text-gray-700'>Service-User Name (optional)</label>
+          <label className='text-base font-medium text-gray-700'>Service-User Name</label>
           <input
             type="text"
             className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"

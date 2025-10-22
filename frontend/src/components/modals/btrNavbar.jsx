@@ -13,6 +13,7 @@ export default function BTRNavbar() {
   const { user } = useAuth();
 
   const handleCreateServiceAccount = () => navigate("/register/service");
+  const handleCreateAdminAccount = () => navigate("/register/admin");
   const handleBack = () => navigate("/admin/dashboard");
 
   return (
@@ -72,6 +73,14 @@ export default function BTRNavbar() {
                 >
                   <UserPlus className="h-4 w-4 inline-block mr-2" />
                   Create Service User Account
+                </a>
+
+                <a href="#"
+                   onClick={handleCreateAdminAccount}
+                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  <UserPlus className="h-4 w-4 inline-block mr-2" />
+                  Create an Admin Account
                 </a>
                 <button
                   onClick={() => {
