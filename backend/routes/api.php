@@ -50,7 +50,10 @@ Route::middleware(['auth:admin'])->group(function () {
         Route::post('/schedule',     [MaintenanceController::class, 'store']);
         Route::get('/admin/messages',[MaintenanceController::class, 'sent']);
         Route::get('/due-for-maintenance', [MaintenanceController::class, 'getDueForMaintenance']);
-        Route::get('/predictive', [MaintenanceController::class, 'predictiveMaintenance']);
+        Route::post('/equipment/{id}/predictive-maintenance', [
+            MaintenanceController::class, 'predictiveMaintenance'
+        ]);
+        Route::get('/inventory/due-soon', [EquipmentController::class, 'dueSoon']);
     });
 });
 

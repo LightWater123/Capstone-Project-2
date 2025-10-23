@@ -80,7 +80,7 @@ export default function PredictiveMaintenanceModal({
     // The parent is responsible for knowing which equipment IDs to apply this to.
     onSubmit(formData);
   };
-  // -------------------------------
+  
 
   if (!isOpen) return null;
 

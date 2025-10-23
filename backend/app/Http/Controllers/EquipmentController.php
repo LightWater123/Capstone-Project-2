@@ -307,4 +307,39 @@ class EquipmentController extends Controller
             }),
         ]);
     }
+
+    public function dueSoon(Request $request)
+    {
+        // Start a new query on the Equipment model
+        $query = Equipment::query();
+
+        $query->whereNotNull('next_maintenance_date');
+            
+            // We sort them by that date in ascending order ('asc').
+            // This puts the SOONEST dates (including overdue ones) at the TOP.
+            $query->orderBy('next_maintenance_date', 'asc');
+
+        // --- THIS IS THE NEW LOGIC ---
+        
+        // // Check if the ?due_soon=true parameter exists in the URL
+        // if ($request->has('due_soon') && $request->due_soon == 'true') {
+            
+        //     // If "Due soon" is clicked, we ignore category.
+        //     // Instead, we find all items that have a predictive date set.
+        //     $query->whereNotNull('next_maintenance_date');
+            
+        //     // We sort them by that date in ascending order ('asc').
+        //     // This puts the SOONEST dates (including overdue ones) at the TOP.
+        //     $query->orderBy('next_maintenance_date', 'asc');
+
+        // } else if ($request->has('category')) {
+        //     // This is your original logic for "PPE" and "RPCSP"
+        //     // It will run if 'due_soon' is not in the URL.
+        //     $query->where('category', $request->category);
+        // }
+        
+
+        // Execute the query and return the results
+        return $query->get();
+    }
 }
