@@ -46,7 +46,7 @@ export default function MaintenanceList() {
     <div className="min-h-screen bg-gray-50 relative">
       <BTRheader />
       <BTRNavbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-gray-400">Monitor Maintenance</h1>

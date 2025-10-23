@@ -17,31 +17,14 @@ export default function SettingsPage() {
       <BTRheader />
       <BTRNavbar />
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 flex justify-between items-center">
-      
-        <div className="flex items-center gap-4 justify-start">
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-500 justify-end"
-        >
-          <ChevronLeftCircle className="h-5 w-5 inline-block mr-2" />
-          Back to Dashboard
-        </button>
-      </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
-        <h1 className="text-2xl font-semibold mb-6">
+      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
+        <h2 className="text-2xl font-semibold mb-6  border-b pb-4">
           <Settings className="h-6 w-6 inline-block mr-2" />
           Settings
-        </h1>
-      </div>
-      {/* Security card */}
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+        </h2>
+       {/* Security card */}
         <div className="bg-white shadow-sm rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-4">Security</h2>
-
         {/* Change Password button opens modal */}
         <button
           onClick={() => setShowModal(true)}
@@ -59,10 +42,11 @@ export default function SettingsPage() {
           Reset via Email
         </button>
       </div>
+      </div>
 
       {/* Render modal */}
       {showModal && <ChangePasswordModal onClose={() => setShowModal(false)} />}
     </div>
-    </div>
+
   );
 }

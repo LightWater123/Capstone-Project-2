@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       <BTRheader />
       <BTRNavbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-[88rem] mx-auto px-6 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-2">
             <button

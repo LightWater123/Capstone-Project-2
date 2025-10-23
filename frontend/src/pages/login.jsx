@@ -6,8 +6,9 @@ import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Eye } from "lucide-react";
-import { EyeClosed } from "lucide-react";
+import { EyeClosed, User, Lock, LogIn} from "lucide-react";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState(""); // username or email
@@ -79,67 +80,76 @@ export default function Login() {
       ></div>
 
       {/* yellow overlay */}
-      <div className="absolute inset-0 bg-[#FCFC62] opacity-90"></div>
+      <div className="absolute inset-0 bg-blue-950/90 backdrop-blur-sm"></div>
 
       {/* login form */}
       <form
         onSubmit={handleLogin}
-        className="relative p-6 space-y-4 w-full max-w-sm rounded-lg bg-white"
-        style={{ boxShadow: "0 4px 50px rgba(0, 0, 0, 0.3)" }}
+        className="relative p-8 space-y-5 w-full max-w-sm
+             rounded-2xl
+             bg-white/10            
+             backdrop-blur-none     
+             border-collapse border-white/20
+             shadow-2xl shadow-black/30"
       >
         {/* logo and title */}
         <img src={btrlogo} alt="Logo" className="mx-auto w-24 h-24" />
-        <h2 className="text-xl font-bold text-gray-800 text-center">Login</h2>
+        <h2 className="text-xl font-bold text-white text-center">Login</h2>
 
-        {/* username */}
+        {/* Username */}
         <div className="flex flex-col items-start space-y-2">
-          <input
-            type="text"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="Username or Email"
-            required
-            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
-          />
+          <div className="relative w-full">
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="Username or Email"
+              required
+              className="text-white w-full pl-10 pr-4 py-2 border-b bg-transparent backdrop-blur-none"
+            />
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white opacity-40" />
+          </div>
         </div>
 
         {/* password */}
 
         <div className="flex flex-col items-start space-y-2 relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-            className="w-full px-4 py-2 pr-10 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-3 inline-block top-1 focus:outline-none"
-          >
-            {showPassword ? (
-              <Eye className="h-5 w-5 text-gray-600 hover:text-gray-800" />
-            ) : (
-              <EyeClosed className="h-5 w-5 text-gray-600 hover:text-gray-800" />
-            )}
-          </button>
-
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          <div className="relative w-full">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              required
+              className="text-white w-full pl-10 pr-10 py-2 border-b bg-transparent backdrop-blur-none"
+            />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white opacity-40" />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 inline-block top-1/2 transform -translate-y-1/2 focus:outline-none"
+            >
+              {showPassword ? (
+                <Eye className="h-5 w-5 text-white opacity-40 hover:text-gray-100" />
+              ) : (
+                <EyeClosed className="h-5 w-5 text-white opacity-40 hover:text-gray-100" />
+              )}
+            </button>
+          </div>
+          {error && <p className="text-red-600 text-sm p-2">{error}</p>}{" "}
         </div>
 
         {/* login button */}
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 text-white font-bold rounded ${
-            loading ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-500"
+          className={`w-full py-2 text-white bg-transparent font-bold rounded ${
+            loading ? "bg-white/30" : "bg-white/30 hover:bg-white/40"
           }`}
         >
+          <LogIn className="h-5 w-5 inline-block mr-1relative" />
           {loading ? "Logging in..." : "Login"}
-        </button>
+        </Button>
 
         {/* register Link */}
         {/* <p className="text-center text-sm">
@@ -154,7 +164,7 @@ export default function Login() {
 
         {/* forgot password */}
         <div className="text-sm text-right -mt-2 mb-2">
-          <Link to="/forgot-password" className="text-blue-600 hover:underline">
+          <Link to="/forgot-password" className="text-white hover:underline">
             Forgot password?
           </Link>
         </div>

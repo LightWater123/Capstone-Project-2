@@ -184,7 +184,7 @@ export default function ServiceInventory() {
       <BTRheader />
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+      <main className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
         {/* Header with tab switcher */}
         <div className="flex items-center justify-between mb-6">
           <div>

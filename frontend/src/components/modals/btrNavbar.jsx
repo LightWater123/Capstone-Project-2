@@ -6,6 +6,8 @@ import LogoutButton from "./LogoutButton";
 import { Settings } from "lucide-react";
 import { UserPlus } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
+import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
 
 export default function BTRNavbar() {
   const [isDropOpen, setIsDropOpen] = useState(false);
@@ -15,20 +17,37 @@ export default function BTRNavbar() {
   const handleCreateServiceAccount = () => navigate("/register/service");
   const handleCreateAdminAccount = () => navigate("/register/admin");
   const handleBack = () => navigate("/admin/dashboard");
+  const handleSettings = () => navigate("/settings");
+  const handleCalendar = () => navigate("/calendar-full");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
-      <nav className="w-full bg-white shadow-sm rounded-xl mb-4 flex items-center justify-between px-5 py-3 text-sm">
+    <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
+      <nav className="w-full border-b border-gray-300 px-5 py-3 text-sm flex items-center justify-between">
         {/* LEFT */}
-        <div className="flex items-center gap-3">
-          <button
+        <div className="flex justify-start gap-3">
+          <Button
             onClick={handleBack}
-            className="text-sm bg-white px-3 py-1 rounded"
+            variant="ghost"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 font-bold text-lg">
-              Dashboard
-            </span>
-          </button>
+            <span className="">Dashboard</span>
+          </Button>
+
+          <Button
+            onClick={handleSettings}
+            variant="ghost"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            <span className="">Settings</span>
+          </Button>
+
+          <Button
+            onClick={handleCalendar}
+            variant="ghost"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            <span className="">Calendar</span>
+          </Button>
         </div>
 
         {/* RIGHT */}
@@ -37,14 +56,10 @@ export default function BTRNavbar() {
           <div className="relative">
             <button
               onClick={() => setIsDropOpen((v) => !v)}
-              className="flex items-center gap-2 text-gray-700 hover:text-blue-700"
+              className="flex items-center gap-2 text-gray-700 hover:text-black"
             >
-              <img
-                src={profileuser}
-                alt="User"
-                className="h-7 w-7 rounded-full object-cover"
-              />
-              <span className="hidden sm:inline text-lg p-2">
+              <User className="h-5 w-5" />
+              <span className="hidden sm:inline text-base p-2">
                 {user ? user.name ?? user.username : "Username"}
               </span>
               <svg
