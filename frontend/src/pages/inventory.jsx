@@ -246,7 +246,7 @@ export default function InventoryDashboard() {
       const updatePromises = selectedEquipmentIds.map((id) => {
         // 'id' here comes from your selectedEquipmentIds array (item.id)
         return api.post(
-          `/api/equipment/${id}/predictive-maintenance`,
+          `/api/maintenance/equipment/${id}/predictive-maintenance`,
           formData
         );
       });
@@ -389,11 +389,8 @@ export default function InventoryDashboard() {
 
               <button
                 className="px-3 py-0.5 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                // This correctly calls your function
                 onClick={handleOpenPredictiveModal}
-                // This correctly uses your logic
                 disabled={isPredictiveButtonDisabled}
-                // This correctly adds the helpful title
                 title={
                   isPredictiveButtonDisabled
                     ? "Please select one or more items of the SAME article type (e.g., all 'aircon')"
@@ -412,7 +409,7 @@ export default function InventoryDashboard() {
           <div className="px-1 pt-3 pb-3 bg-transparent rounded-xl shadow-md">
             {filteredData.length === 0 ? (
               <p className="text-gray-500">No equipment found in {category}.</p>
-            ) : (
+            ) : category !== "Due soon" ? (
               <div className="overflow-x-auto w-full">
                 <table className="w-full table-auto border border-gray-300">
                   <thead className="bg-black-100">
@@ -517,6 +514,195 @@ export default function InventoryDashboard() {
                             title="Select for Maintenance"
                           />
                         </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto w-full">
+                <table className="w-full table-auto border border-gray-300">
+                  <thead className="bg-black-100">
+                    <tr>
+                      {/* --- NEW: Conditional Headers --- */}
+                      {category === "Due soon" ? (
+                        <>
+                          <th className="border px-2 py-1">Article</th>
+                          <th className="border px-2 py-1">Description</th>
+                          <th className="border px-2 py-1">Type</th>
+                          <th className="border px-2 py-1">Due Date</th>
+                          <th className="border px-2 py-1">Actions</th>
+                          <th className="border px-2 py-1 text-center">
+                            Select
+                          </th>
+                        </>
+                      ) : (
+                        // --- Original Headers ---
+                        <>
+                          <th className="border px-2 py-1">Article</th>
+                          <th className="border px-2 py-1">Description</th>
+                          {category === "PPE" ? (
+                            <>
+                              <th className="border px-2 py-1">
+                                Property Number (RO)
+                              </th>
+                              <th className="border px-2 py-1">
+                                Property Number (CO)
+                              </th>
+                            </>
+                          ) : (
+                            <th className="border px-2 py-1">
+                              Semi-Expendable Property No.
+                            </th>
+                          )}
+                          <th className="border px-2 py-1">Unit</th>
+                          <th className="border px-2 py-1">Unit Value</th>
+                          <th className="border px-2 py-1">Actions</th>
+                          <th className="border px-2 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              checked={
+                                filteredData.length > 0 &&
+                                selectedEquipmentIds.length ===
+                                  filteredData.length
+                              }
+                              onChange={(e) => {
+                                setSelectedEquipmentIds(
+                                  e.target.checked
+                                    ? filteredData.map((item) => item.id) // Using item.id as per your code
+                                    : []
+                                );
+                              }}
+                              className="accent-green-500 w-4 h-4"
+                              title="Select All"
+                            />
+                          </th>
+                        </>
+                      )}
+                      {/* --- End Conditional Headers --- */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((item, index) => (
+                      // Using item.id for the key as per your code
+                      <tr
+                        key={item.id}
+                        className="hover:bg-gray-100 transition"
+                      >
+                        {/* --- NEW: Conditional Cells --- */}
+                        {category === "Due soon" ? (
+                          <>
+                            <td className="border px-2 py-1 text-center">
+                              {item.article}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.description}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.category}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.next_maintenance_date ? (
+                                new Date(
+                                  item.next_maintenance_date
+                                ).toLocaleDateString() // Format the date
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </td>
+                            <td className="border px-2 py-1 text-center space-x-2">
+                              <button
+                                className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
+                                onClick={() => {
+                                  setSelectedDetailItem(item);
+                                  setShowDetailModal(true);
+                                }}
+                              >
+                                View Full Detail
+                              </button>
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedEquipmentIds.includes(item.id)}
+                                onChange={(e) => {
+                                  setSelectedEquipmentIds((prev) =>
+                                    e.target.checked
+                                      ? [...prev, item.id]
+                                      : prev.filter((id) => id !== item.id)
+                                  );
+                                }}
+                                className="accent-green-500 w-4 h-4"
+                                title="Select for Maintenance"
+                              />
+                            </td>
+                          </>
+                        ) : (
+                          // --- Original Cells ---
+                          <>
+                            <td className="border px-2 py-1 text-center">
+                              {item.article}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              {item.description}
+                            </td>
+                            {item.category === "PPE" ? (
+                              <>
+                                <td className="border px-2 py-1 text-center">
+                                  {item.property_ro}
+                                </td>
+                                <td className="border px-2 py-1 text-center">
+                                  {item.property_co || (
+                                    <span className="text-gray-400 italic">
+                                      —
+                                    </span>
+                                  )}
+                                </td>
+                              </>
+                            ) : (
+                              <td className="border px-2 py-1 text-center">
+                                {item.semi_expendable_property_no}
+                              </td>
+                            )}
+                            <td className="border px-2 py-1 text-center">
+                              {item.unit}
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              ₱
+                              {Number(item.unit_value).toLocaleString("en-PH", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </td>
+                            <td className="border px-2 py-1 text-center space-x-2">
+                              <button
+                                className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
+                                onClick={() => {
+                                  setSelectedDetailItem(item);
+                                  setShowDetailModal(true);
+                                }}
+                              >
+                                View Full Detail
+                              </button>
+                            </td>
+                            <td className="border px-2 py-1 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedEquipmentIds.includes(item.id)}
+                                onChange={(e) => {
+                                  setSelectedEquipmentIds((prev) =>
+                                    e.target.checked
+                                      ? [...prev, item.id]
+                                      : prev.filter((id) => id !== item.id)
+                                  );
+                                }}
+                                className="accent-green-500 w-4 h-4"
+                                title="Select for Maintenance"
+                              />
+                            </td>
+                          </>
+                        )}
+                        {/* --- End Conditional Cells --- */}
                       </tr>
                     ))}
                   </tbody>
