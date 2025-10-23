@@ -5,7 +5,6 @@ import { useMaintenance } from "../hooks/useMaintenance";
 import { parsePdf } from "../hooks/usePdfParser";
 import { useCsrf } from "../hooks/useCsrf";
 import api from "../api/api";
-import { toast } from "react-toastify";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
 import { ArrowUpAZ, Icon, Plus, Wrench } from "lucide-react";
@@ -14,8 +13,8 @@ import { Calendar } from "lucide-react";
 import { Car } from "lucide-react";
 import { Keyboard } from "lucide-react";
 import { Search } from "lucide-react";
-import { ArrowUpDown } from 'lucide-react';
-import { ArrowDownAZ } from 'lucide-react';
+import { ArrowUpDown } from "lucide-react";
+import { ArrowDownAZ } from "lucide-react";
 
 // Modals
 import ScheduleMaintenanceModal from "../components/modals/scheduleModal.jsx";
@@ -25,7 +24,9 @@ import UploadPDFModal from "../components/modals/uploadPDFModal.jsx";
 import ViewFullDetailModal from "../components/modals/fullDetailModal.jsx";
 import EditItemModal from "../components/modals/editItemModal.jsx";
 import ViewHistory from "../components/modals/viewHistoryModal.jsx";
-import PredictiveModal from "../components/modals/predictiveModal.jsx"
+import PredictiveModal from "../components/modals/predictiveModal.jsx";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -55,14 +56,12 @@ export default function InventoryDashboard() {
   //Sort Handler
   const handleSort = (type) => {
     //console.log("Sorting by:", type);
-    const sortFilter = sortBy.split(":")
-    if(sortFilter[0] === type) {
-      if(sortFilter[1] === "asc") {
-
+    const sortFilter = sortBy.split(":");
+    if (sortFilter[0] === type) {
+      if (sortFilter[1] === "asc") {
         setSortBy(`${type}:desc`);
       } else {
         setSortBy(`${type}:asc`);
-
       }
     } else {
       setSortBy(`${type}:asc`);
@@ -207,7 +206,8 @@ export default function InventoryDashboard() {
 
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
-    () => inventoryData.filter(item => selectedEquipmentIds.includes(item.id)), // <-- THE FIX IS HERE
+    () =>
+      inventoryData.filter((item) => selectedEquipmentIds.includes(item.id)), // <-- THE FIX IS HERE
     [selectedEquipmentIds, inventoryData]
   );
 
@@ -224,8 +224,8 @@ export default function InventoryDashboard() {
     }
     const firstArticle = selectedItems[0].article;
     // Disabled if not all selected items share the same article
-    return !selectedItems.every(item => item.article === firstArticle);
-  }, [selectedItems])
+    return !selectedItems.every((item) => item.article === firstArticle);
+  }, [selectedItems]);
 
   // open predictive modal
   const handleOpenPredictiveModal = () => {
@@ -235,31 +235,38 @@ export default function InventoryDashboard() {
 
   // handle predictive submit
   const handlePredictiveSubmit = async (formData) => {
-    console.log("Applying data to all selected IDs:", selectedEquipmentIds, formData);
-    
+    console.log(
+      "Applying data to all selected IDs:",
+      selectedEquipmentIds,
+      formData
+    );
+
     try {
       // Create an array of API post requests
-      const updatePromises = selectedEquipmentIds.map(id => {
+      const updatePromises = selectedEquipmentIds.map((id) => {
         // 'id' here comes from your selectedEquipmentIds array (item.id)
-        return api.post(`/api/equipment/${id}/predictive-maintenance`, formData);
+        return api.post(
+          `/api/equipment/${id}/predictive-maintenance`,
+          formData
+        );
       });
-      
+
       // Wait for all API calls to complete
       await Promise.all(updatePromises);
-      
-      toast.success(`Successfully activated predictive maintenance for ${selectedEquipmentIds.length} items!`);
-      
+
+      toast.success(
+        `Successfully activated predictive maintenance for ${selectedEquipmentIds.length} items!`
+      );
+
       // Close modal, clear selection, and refresh the inventory list
-      setShowPredictive(false); 
+      setShowPredictive(false);
       setSelectedEquipmentIds([]);
       fetchInventory(); // Make sure fetchInventory is available here
-
     } catch (error) {
       console.error("Failed to update one or more items:", error);
       toast.error("An error occurred. Please check the console and try again.");
     }
   };
-
 
   // render component UI
   return (
@@ -267,13 +274,20 @@ export default function InventoryDashboard() {
       <div className="min-h-screen bg-gray-50 relative">
         <BTRheader />
         <BTRNavbar />
+        <Button
+          onClick={() => {
+            toast.success("Hello");
+          }}
+        >
+          TEST
+        </Button>
 
         {/* Category Tabs */}
         <div className="flex gap-4 px-4 pt-4 justify-center ">
           {[
             { name: "PPE", Icon: Car },
             { name: "RPCSP", Icon: Keyboard },
-            {name: "Due soon", Icon: Calendar},
+            { name: "Due soon", Icon: Calendar },
           ].map((type) => {
             const isActive = category === type.name;
             return (
@@ -324,14 +338,19 @@ export default function InventoryDashboard() {
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     Name
-                    {sortBy.split(":")[0] === "name" && sortBy.split(":")[1] === "desc" ? <ArrowUpAZ className="h-5 w-5 inline-block ml-2"/> : <ArrowDownAZ className="h-5 w-5 inline-block ml-2"/>}
+                    {sortBy.split(":")[0] === "name" &&
+                    sortBy.split(":")[1] === "desc" ? (
+                      <ArrowUpAZ className="h-5 w-5 inline-block ml-2" />
+                    ) : (
+                      <ArrowDownAZ className="h-5 w-5 inline-block ml-2" />
+                    )}
                   </button>
                   <button
                     onClick={() => handleSort("price")}
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     Price
-                    <ArrowUpDown className="h-5 w-5 inline-block ml-2"/>
+                    <ArrowUpDown className="h-5 w-5 inline-block ml-2" />
                   </button>
                 </div>
               )}
@@ -373,7 +392,7 @@ export default function InventoryDashboard() {
                 // This correctly calls your function
                 onClick={handleOpenPredictiveModal}
                 // This correctly uses your logic
-                disabled={isPredictiveButtonDisabled} 
+                disabled={isPredictiveButtonDisabled}
                 // This correctly adds the helpful title
                 title={
                   isPredictiveButtonDisabled
@@ -381,7 +400,7 @@ export default function InventoryDashboard() {
                     : "Activate/Update Predictive Maintenance"
                 }
               >
-                <Wrench className="h-5 w-5 inline-block mr-2" /> 
+                <Wrench className="h-5 w-5 inline-block mr-2" />
                 Predictive Maintenance
               </button>
             </div>
