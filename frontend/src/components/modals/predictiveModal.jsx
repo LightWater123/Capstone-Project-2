@@ -26,6 +26,7 @@ export default function PredictiveMaintenanceModal({
   onSubmit,
   selectedEquipment,
 }) {
+  console.log(selectedEquipment);
   // ... (useState and useEffect for formData are unchanged) ...
   const [formData, setFormData] = useState({
     install_date: '',
@@ -148,6 +149,8 @@ export default function PredictiveMaintenanceModal({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black text-black"
                 required
+                min="0"
+                max="24"
             />
             </div>
 

@@ -207,7 +207,7 @@ export default function InventoryDashboard() {
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
     () =>
-      inventoryData.filter((item) => selectedEquipmentIds.includes(item.id)), // <-- THE FIX IS HERE
+      inventoryData.filter((item) => selectedEquipmentIds.includes(item.id)),
     [selectedEquipmentIds, inventoryData]
   );
 
@@ -816,7 +816,7 @@ export default function InventoryDashboard() {
         <PredictiveModal
           // open modal
           isOpen={showPredictive}
-          item={currentTemplateItem}
+          selectedEquipment={currentTemplateItem}
           onClose={() => setShowPredictive(false)}
           onSubmit={handlePredictiveSubmit}
         />

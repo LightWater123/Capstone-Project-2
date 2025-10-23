@@ -18,6 +18,8 @@ export default function ViewItemDetailModal({
 
   if (!isOpen && !showSchedule) return null;
 
+  console.log(item);
+
   return (
     <>
       {/* ----------  DETAIL MODAL  ---------- */}
@@ -88,8 +90,8 @@ export default function ViewItemDetailModal({
               </div>
               <div>
                 <strong>Date Added:</strong>{" "}
-                {item.date_added
-                  ? new Date(item.date_added).toLocaleDateString("en-PH", {
+                {item.created_at
+                  ? new Date(item.created_at).toLocaleDateString("en-PH", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
@@ -98,10 +100,6 @@ export default function ViewItemDetailModal({
               </div>
               <div>
                 <strong>Condition:</strong> {item.condition || "—"}
-              </div>
-              <div>
-                <strong>Duration before checking:</strong> {item.start_date} to{" "}
-                {item.end_date}
               </div>
             </div>
 
