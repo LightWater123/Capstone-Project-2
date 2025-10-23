@@ -121,9 +121,9 @@ export default function Login() {
             className="absolute right-3 inline-block top-1 focus:outline-none"
           >
             {showPassword ? (
-              <EyeClosed className="h-5 w-5 text-gray-600 hover:text-gray-800" />
-            ) : (
               <Eye className="h-5 w-5 text-gray-600 hover:text-gray-800" />
+            ) : (
+              <EyeClosed className="h-5 w-5 text-gray-600 hover:text-gray-800" />
             )}
           </button>
 
@@ -141,7 +141,7 @@ export default function Login() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* register Link */}
+        {/** register Link */}
         <p className="text-center text-sm">
           Don’t have an account?{" "}
           <Link
