@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import { queryClient } from "@/App";
 
 const AuthContext = createContext(null);
 
@@ -11,10 +12,19 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     async function run() {
-      if (user === undefined) {
-        const res = await api.get("/api/verifyUser");
-        if (res.data.user) {
-          setUser(res.data.user);
+      if (!user) {
+        const data = await queryClient.fetchQuery({
+          queryKey: ["verifyUser"],
+          queryFn: async () => {
+            const res = await api.get("/api/verifyUser");
+
+            return res.data;
+          },
+          staleTime: 15000,
+          retry: 3,
+        });
+        if (data.user) {
+          setUser(data.user);
         } else {
           throw new Error("no user data");
         }
@@ -33,6 +43,7 @@ export default function AuthProvider({ children }) {
     });
     if (response.data) {
       setUser(response.data.user);
+      queryClient.invalidateQueries({ queryKey: ["verifyUser"] });
       return response.data;
     } else {
       setUser(null);
@@ -43,6 +54,8 @@ export default function AuthProvider({ children }) {
   const logout = async (user, password) => {
     const response = await api.post("/api/logout");
     setUser(null);
+    queryClient.invalidateQueries({ queryKey: ["verifyUser"] });
+
     return null;
   };
 
