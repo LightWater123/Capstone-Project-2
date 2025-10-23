@@ -317,7 +317,7 @@ class EquipmentController extends Controller
             
             // We sort them by that date in ascending order ('asc').
             // This puts the SOONEST dates (including overdue ones) at the TOP.
-            $query->orderBy('next_maintenance_date', 'asc');
+            $query->orderBy('next_maintenance_date', 'desc');
 
         // --- THIS IS THE NEW LOGIC ---
         
