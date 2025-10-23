@@ -5,8 +5,8 @@ import btrlogo from "../assets/btrlogo.png";
 import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { Eye } from 'lucide-react';
-import { EyeClosed } from 'lucide-react';
+import { Eye } from "lucide-react";
+import { EyeClosed } from "lucide-react";
 import { useEffect } from "react";
 
 export default function Login() {
@@ -39,7 +39,7 @@ export default function Login() {
       //   password,
       // });
       await login(identifier, password).then((e) => {
-        console.log("vals", e);
+        console.log("Current user logged-in:", identifier, e);
         if (e.redirect) {
           navigate(e.redirect);
         }
@@ -141,16 +141,16 @@ export default function Login() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/** register Link */}
-        <p className="text-center text-sm">
+        {/* register Link */}
+        {/* <p className="text-center text-sm">
           Don’t have an account?{" "}
           <Link
             to="/register/admin"
             className="text-blue-600 hover:underline font-medium"
           >
-            Register
+            Register  
           </Link>
-        </p>
+        </p> */}
 
         {/* forgot password */}
         <div className="text-sm text-right -mt-2 mb-2">

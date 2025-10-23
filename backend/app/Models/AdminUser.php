@@ -15,7 +15,7 @@ class AdminUser extends Authenticatable
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = ['username', 'email', 'password', 'mobile_number'];
+    protected $fillable = ['name', 'username', 'email', 'password', 'mobile_number'];
     protected $hidden   = ['password', 'remember_token'];
     protected $appends  = ['role'];
 

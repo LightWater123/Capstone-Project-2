@@ -13,7 +13,6 @@ export default function ViewItemDetailModal({
 
   const openScheduler = () => {
     onClose(); // close detail modal
-    onViewHistory(false);
     setShowSchedule(true); // open schedule modal
   };
 

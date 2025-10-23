@@ -9,7 +9,9 @@ export function usePredictiveMaintenance() {
       return data; // ← should be an array of { asset_id, next_maintenance_checkup, … }
     },
     staleTime: 60_000, // 1 min cache
-    refetchInterval: 60_000,
+    refetchInterval: 10000, // 10 seconds refetch interval
+    refetchOnMount: "always",
+    refetchIntervalInBackground: false,
   });
 
   return { maintenanceDates, loading: isLoading, error };

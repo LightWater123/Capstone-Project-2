@@ -10,6 +10,7 @@ export default function ServiceRegister() {
   const [formData, setFormData] = useState({
     name: '',
     username: '',
+    company_name:'',
     email: '',
     password: '',
     confirm_password: '',
@@ -54,6 +55,7 @@ export default function ServiceRegister() {
       const response = await axios.post('/api/register', {
         name: formData.name,
         username: formData.username,
+        company_name:formData.company_name,
         email: formData.email,
         password: formData.password,
         mobile_number: formData.mobile_number,
@@ -62,7 +64,7 @@ export default function ServiceRegister() {
         role: 'service_user',
       });
 
-      //console.log("Registered user:", response.data.user);
+      console.log("Registered service user:", response.data.user);
       navigate('/');
     } catch (err) {
       console.error("Registration error:", err.response?.data);
@@ -108,14 +110,26 @@ export default function ServiceRegister() {
 
                 <div className="flex flex-col items-start space-y-2">
                   <input
-                    name="name"
+                    name="company_name"
                     placeholder="Company Name"
+                    value={formData.company_name}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    required
+                  />
+                </div>
+
+                <div className="flex flex-col items-start space-y-2">
+                  <input
+                    name="name"
+                    placeholder="Name"
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
                     required
                   />
                 </div>
+
                 <div className="flex flex-col items-start space-y-2">
                   <input
                     name="username"
