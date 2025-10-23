@@ -45,7 +45,7 @@ export default function BTRNavbar() {
                 className="h-7 w-7 rounded-full object-cover"
               />
               <span className="hidden sm:inline text-lg p-2">
-                {user ? user.username : "Username"}
+                {user ? user.name ?? user.username : "Username"}
               </span>
               <svg
                 className={`h-4 w-4 transition ${
@@ -75,9 +75,10 @@ export default function BTRNavbar() {
                   Create Service User Account
                 </a>
 
-                <a href="#"
-                   onClick={handleCreateAdminAccount}
-                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                <a
+                  href="#"
+                  onClick={handleCreateAdminAccount}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   <UserPlus className="h-4 w-4 inline-block mr-2" />
                   Create an Admin Account
