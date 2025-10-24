@@ -16,6 +16,7 @@ use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectId;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class MaintenanceController extends Controller
 {
@@ -324,4 +325,43 @@ class MaintenanceController extends Controller
     {
 
     }
+
+    public function uploadReport(Request $request)
+    {
+        $request->validate([
+            'report_file' => 'required|file|mimes:pdf|max:5120', // 5 MB
+        ]);
+
+        $file  = $request->file('report_file');
+        $fname = Str::random(20).'.pdf';
+
+        // store in storage/app/public/reports
+        $path = $file->storeAs('public/reports', $fname);
+
+        // public URL
+        $url = asset('storage/reports/'.$fname);
+
+        return response()->json(['url' => $url]);
+    }
+
+    public function updateReport(Request $request, $id)
+    {
+        $request->validate([
+            'remarks'     => 'nullable|string|max:5000',
+            'report_file' => 'nullable|url', // save the URL returned by upload
+        ]);
+
+        $doc = MaintenanceJob::find($id);
+        if (!$doc) return response()->json(['error' => 'Not found'], 404);
+
+        // only send the keys that really came
+        $update = [];
+        if ($request->exists('remarks'))     $update['remarks']     = $request->remarks;
+        if ($request->exists('report_file')) $update['report_file'] = $request->report_file;
+
+        $doc->update($update);
+
+        return response()->json(['message' => 'Report updated']);
+    }
+
 }

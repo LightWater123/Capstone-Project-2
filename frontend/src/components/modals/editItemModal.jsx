@@ -106,10 +106,6 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
               <option value="Needs Repair">Needs Repair</option>
               <option value="Unserviceable">Unserviceable</option>
             </select>
-            <div className="grid grid-cols-2 gap-4">
-              <input type="date" name="start_date" value={form.start_date || ''} onChange={handleChange} className="border border-black rounded px-3 py-2" />
-              <input type="date" name="end_date" value={form.end_date || ''} onChange={handleChange} className="border border-black rounded px-3 py-2" />
-            </div>
           </div>
         </form>
 

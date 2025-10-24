@@ -18,7 +18,7 @@ export default function ViewItemDetailModal({
 
   if (!isOpen && !showSchedule) return null;
 
-  console.log(item);
+  //console.log(item);
 
   return (
     <>

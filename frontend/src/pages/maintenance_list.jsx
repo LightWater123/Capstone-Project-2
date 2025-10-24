@@ -24,14 +24,14 @@ export default function MaintenanceList() {
     setSortBy
   } = useMonitorMaintenance();
 
-  const { maintenanceDates } = usePredictiveMaintenance();   // predictive data
-  /* -------------------------------------------------- */
+  //const { maintenanceDates } = usePredictiveMaintenance();   // predictive data
+  
 
   /* Helper – pick predicted next check-up for an asset */
-  const getNextCheckup = (assetId) => {
-    const item = maintenanceDates.find(md => md.id === assetId);
-    return item?.next_maintenance_checkup || null;
-  };
+  // const getNextCheckup = (assetId) => {
+  //   const item = maintenanceDates.find(md => md.id === assetId);
+  //   return item?.next_maintenance_checkup || null;
+  // };
 
   const formatDate = (d) => (d ? new Date(d).toLocaleString() : 'Not scheduled');
 
@@ -136,12 +136,12 @@ export default function MaintenanceList() {
                     </div>
 
                     {/* Predictive maintenance row */}
-                    <div className="sm:col-span-2">
+                    {/* <div className="sm:col-span-2">
                       <span className="text-gray-500">Predictive Next Check-up:</span>
                       <p className="font-medium text-blue-600">
                         {formatDate(getNextCheckup(s.asset_id))}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>

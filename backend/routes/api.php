@@ -63,6 +63,8 @@ Route::middleware(['auth:service'])->group(function () {
     Route::get('/my-messages', [MaintenanceController::class,'messages']);
     Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
     Route::post('/service/change-password', [PasswordController::class, 'change']);
+    Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
+    Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
 });
 
 // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)

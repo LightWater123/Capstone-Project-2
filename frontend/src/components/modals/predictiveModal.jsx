@@ -26,7 +26,7 @@ export default function PredictiveMaintenanceModal({
   onSubmit,
   selectedEquipment,
 }) {
-  console.log(selectedEquipment);
+  //console.log(selectedEquipment);
   // ... (useState and useEffect for formData are unchanged) ...
   const [formData, setFormData] = useState({
     install_date: '',
