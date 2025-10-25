@@ -20,9 +20,22 @@ import PredictiveModal from "../components/modals/predictiveModal.jsx";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 //Icons
 import {
@@ -41,8 +54,6 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-
-
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -317,7 +328,6 @@ export default function InventoryDashboard() {
 
         <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4 justify-start flex">
           <nav className="w-full border-b mb-4 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
-            {/* Search and Sort Row */}
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
               {/* Search */}
               <div className="relative w-full ">
@@ -334,7 +344,7 @@ export default function InventoryDashboard() {
               <div className="relative w-full sm:w-auto">
                 <Button
                   onClick={() => setShowSortOptions(!showSortOptions)}
-                  className="px-2 py-0.5 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 w-full sm:w-auto"
+                  className="px-2 py-0.2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 w-full sm:w-auto"
                 >
                   Sort by:
                   <ChevronDownIcon
@@ -418,34 +428,46 @@ export default function InventoryDashboard() {
           </nav>
         </div>
 
-        {/* Category Tabs */}
-        <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4 justify-start flex ">
-          {[
-            { name: "PPE", Icon: Car },
-            { name: "RPCSP", Icon: Keyboard },
-            { name: "Due soon", Icon: Calendar },
-          ].map((type) => {
-            const isActive = category === type.name;
-            return (
-              <Button
-                key={type.name}
-                onClick={() => setCategory(type.name)}
-                className={`px-4 py-2 rounded-md transition mr-3 ${
-                  isActive ? "bg-blue-900" : "bg-gray-600"
-                }`}
-              >
-                <type.Icon className="h-5 w-5 inline-block mr-2" />
-                {type.name}
-              </Button>
-            );
-          })}
-          <div className="mb-4 flex justify-end items-center ml-auto">
-            <Label className="mr-2">Items per page:</Label>
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 mt-4 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+          {/* Category Buttons */}
+          <div className="flex flex-wrap w-full md:w-auto gap-3">
+            {[
+              { name: "PPE", Icon: Car },
+              { name: "RPCSP", Icon: Keyboard },
+              { name: "Due soon", Icon: Calendar },
+            ].map((type) => {
+              const isActive = category === type.name;
+              return (
+                <Button
+                  key={type.name}
+                  onClick={() => setCategory(type.name)}
+                  variant="ghost"
+                  className={`relative flex-1 md:flex-none flex items-center justify-center gap-2 text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-950 
+                    after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+                    after:h-[3px] after:rounded-full after:-translate-x-1/2
+                    after:transition-all after:duration-300
+          ${
+            isActive
+              ? "after:w-full after:bg-blue-900 text-blue-900"
+              : "after:w-0 after:bg-blue-950 hover:after:w-full hover:text-blue-900"
+          }
+          focus:outline-none
+        `}
+                >
+                  <type.Icon className="h-4 w-4" />
+                  {type.name}
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Items per page selector */}
+          <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
+            <Label>Items per page:</Label>
             <select
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="px-2 py-1 border rounded"
-            >
+              className="w-full md:w-auto px-2 py-1 border rounded">
               <option value={20}>20</option>
               <option value={30}>30</option>
               <option value={40}>40</option>
@@ -464,7 +486,7 @@ export default function InventoryDashboard() {
                 <div className="overflow-x-auto w-full">
                   <Table className="w-full table-auto">
                     <TableHeader className="sticky top-0 bg-black-100">
-                      <TableRow >
+                      <TableRow>
                         <TableHead className="px-2 py-1">Article</TableHead>
                         <TableHead className="px-2 py-1">Description</TableHead>
                         {category === "PPE" ? (

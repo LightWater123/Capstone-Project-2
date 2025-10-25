@@ -1,5 +1,6 @@
 import { Car } from 'lucide-react';
 import { Keyboard } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function TypeSelectorModal({
   isOpen,
@@ -9,30 +10,31 @@ export default function TypeSelectorModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg border relative ">
-        <h2 className="text-xl font-bold text-yellow-500 mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-30">
+      <div className="bg-white/95 p-10 rounded-lg w-full max-w-md shadow-lg border-collapse relative">
+        <h2 className="text-xl font-bold text-gray-500 mb-4 text-center pb-3 border-b">
           Select Equipment Type
         </h2>
-                        <button
+        <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl leading-none"
+          className="absolute top-2 right-3 text-gray-500 hover:text-gray-700 text-2xl leading-none"
         >
           &times;
         </button>
-        <div className="flex gap-4 justify-center">
-          <button
-            className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500"
+
+        <div className="flex gap-7 justify-center">
+          <Button
+            className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-950"
             onClick={() => {
               onSelectType("PPE");
               onClose();
             }}
           >
-            <Car className="h-4 w-4 inline-block mr-2" />
+          <Car className="h-4 w-4 inline-block mr-2" />
             PPE
-          </button>
-          <button
-            className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-500"
+          </Button>
+          <Button
+            className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-950"
             onClick={() => {
               onSelectType("RPCSP");
               onClose();
@@ -40,7 +42,7 @@ export default function TypeSelectorModal({
           >
             <Keyboard className="h-4 w-4 inline-block mr-2" />
             RPCSP
-          </button>
+          </Button>
         </div>
       </div>
     </div>

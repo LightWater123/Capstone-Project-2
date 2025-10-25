@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import ChangePasswordModal from '../components/modals/changePasswordModal';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import ChangePasswordModal from "../components/modals/changePasswordModal";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
-import { ChevronLeftCircle } from "lucide-react"
-import { Mail } from 'lucide-react';
-import { Lock } from 'lucide-react';
-import { Settings } from 'lucide-react';
+import { ChevronLeftCircle } from "lucide-react";
+import { Mail } from "lucide-react";
+import { Lock } from "lucide-react";
+import { Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -17,36 +18,42 @@ export default function SettingsPage() {
       <BTRheader />
       <BTRNavbar />
       {/* Header */}
-      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
-        <h2 className="text-2xl font-semibold mb-6  border-b pb-4">
+      <div className="max-w-[84rem] mx-auto px-4 sm:px-6 mt-4">
+        <h2 className="text-2xl font-semibold mb-6 border-b pb-4 pt-2">
           <Settings className="h-6 w-6 inline-block mr-2" />
           Settings
         </h2>
-       {/* Security card */}
-        <div className="bg-white shadow-sm rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Security</h2>
-        {/* Change Password button opens modal */}
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-        >
-          <Lock className="h-5 w-5 inline-block mr-2" />
-          Change Password
-        </button>
+        {/* Security card */}
+        <div className="border-b pb-5 mb-6">
+          <h2 className="font-semibold mb-4">Security</h2>
+          <Button
+            onClick={() => setShowModal(true)}
+            variant="ghost"
+            className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-gray-800 
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            <Lock className="h-5 w-5 mr-2" />
+            Change Password
+          </Button>
 
-        <button
-          onClick={() => navigate("/forgot-password")}
-          className="px-4 py-2 bg-yellow-400 text-white rounded hover:bg-yellow-500 ml-4"
-        >
-          <Mail className="h-5 w-5 inline-block mr-2" />
-          Reset via Email
-        </button>
-      </div>
+          <Button
+            onClick={() => navigate("/forgot-password")}
+            variant="ghost"
+            className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-white-800 
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            <Mail className="h-5 w-5 mr-2" />
+            Reset via Email
+          </Button>
+        </div>
       </div>
 
       {/* Render modal */}
       {showModal && <ChangePasswordModal onClose={() => setShowModal(false)} />}
     </div>
-
   );
 }

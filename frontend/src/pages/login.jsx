@@ -6,7 +6,7 @@ import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { Eye } from "lucide-react";
-import { EyeClosed, User, Lock, LogIn} from "lucide-react";
+import { EyeClosed, User, Lock, LogIn } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -143,11 +143,12 @@ export default function Login() {
         <Button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 text-white bg-transparent font-bold rounded ${
-            loading ? "bg-white/30" : "bg-white/30 hover:bg-white/40"
-          }`}
+          className={`relative w-full py-2 px-4 text-lg font-bold rounded-md border-none overflow-hidden ${loading ? "cursor-not-allowed opacity-70" : "cursor-pointer"} 
+          text-white/90 bg-blue-950/70 transition-all duration-500 z-[1] before:content-[''] before:absolute before:inset-y-0 before:left-[-20%] before:right-[-20%] 
+          before:bg-white before:-skew-x-[45deg] before:scale-x-0 before:transition-transform before:duration-500 before:z-[-1]
+          hover:text-black hover:before:scale-x-100`}
         >
-          <LogIn className="h-5 w-5 inline-block mr-1relative" />
+          <LogIn className="h-5 w-5 inline-block mr-2 relative top-[-1px]" />
           {loading ? "Logging in..." : "Login"}
         </Button>
 

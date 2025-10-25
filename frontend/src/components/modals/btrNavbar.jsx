@@ -28,7 +28,7 @@ export default function BTRNavbar() {
           <Button
             onClick={handleBack}
             variant="ghost"
-            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
             <span className="">Dashboard</span>
           </Button>
@@ -36,7 +36,7 @@ export default function BTRNavbar() {
           <Button
             onClick={handleSettings}
             variant="ghost"
-            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
             <span className="">Settings</span>
           </Button>
@@ -44,7 +44,7 @@ export default function BTRNavbar() {
           <Button
             onClick={handleCalendar}
             variant="ghost"
-            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[4px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+            className="relative text-sm px-3 py-1bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
             <span className="">Calendar</span>
           </Button>
