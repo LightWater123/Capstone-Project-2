@@ -5,6 +5,7 @@ import Navbar from "../components/modals/serviceNavbar.jsx";
 import BTRNavbar from '../components/modals/btrNavbar.jsx';
 import { useMonitorMaintenance } from '../hooks/useMonitorMaintenance.js';
 import { usePredictiveMaintenance } from '../hooks/usePredictiveMaintenance.js';
+import { Button } from "@/components/ui/button";
 
 export default function MaintenanceList() {
   const navigate = useNavigate();
@@ -46,16 +47,16 @@ export default function MaintenanceList() {
     <div className="min-h-screen bg-gray-50 relative">
       <BTRheader />
       <BTRNavbar />
-      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
+      <div className="max-w-[84rem] mx-auto px-4 sm:px-6 mt-4 pt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-gray-400">Monitor Maintenance</h1>
-          <button
+          <h1 className="text-2xl font-semibold text-gray-500">Monitor Maintenance</h1>
+          <Button
             onClick={() => navigate('/inventory')}
-            className="px-4 py-2 bg-yellow-400 text-white rounded font-semibold hover:bg-yellow-500"
+            className="px-4 py-2 bg-blue-900 text-white rounded font-semibold hover:bg-blue-950"
           >
             Back to Inventory
-          </button>
+          </Button>
         </div>
 
         {/* Search / Sort */}
