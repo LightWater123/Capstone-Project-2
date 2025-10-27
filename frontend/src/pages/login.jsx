@@ -136,7 +136,7 @@ export default function Login() {
               )}
             </button>
           </div>
-          {error && <p className="text-red-600 text-sm p-2">{error}</p>}{" "}
+          {error && <p className="text-red-800 text-sm p-2">{error}</p>}{" "}
         </div>
 
         {/* login button */}
