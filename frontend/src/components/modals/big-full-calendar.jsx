@@ -38,20 +38,7 @@ const LandingPage = () => {
     setSelectedSlot(null);
   };
 
-<<<<<<< HEAD
-  const handleCreateEvent = (data) => {
-    const newEvent = {
-      title: data.title,
-      start: new Date(data.start),
-      end: new Date(data.end),
-      color: data.color || "#3b82f6",
-    };
-    setEvents([...events, newEvent]);
-    setSelectedSlot(null);
-  };
 
-  const handleDeleteEvent = () => {
-=======
   const { data: events = [] } = useQuery({
     queryKey: ["getCalendarEvents"],
     queryFn: async () => {
@@ -99,7 +86,7 @@ const LandingPage = () => {
   };
 
   const handleDeleteEvent = async () => {
->>>>>>> 9f8372184054da95e66d2880cfc70376a721444a
+
     if (selectedEvent) {
       console.log(selectedEvent);
       // setEvents(events.filter((e) => e !== selectedEvent));
@@ -220,5 +207,6 @@ const LandingPage = () => {
     </main>
   );
 };
+
 
 export default LandingPage;
