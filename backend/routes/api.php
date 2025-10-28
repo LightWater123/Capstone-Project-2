@@ -38,7 +38,13 @@ Route::middleware(['auth:admin'])->group(function () {
     
     Route::post('/admin/change-password', [PasswordController::class, 'change']);
 
+// calendar
+    Route::get('/events', [EventController::class, 'index']);
     Route::post('/events', [EventController::class, 'store']);
+    Route::delete('/events/{id}', [EventController::class, 'destroy']);
+    Route::put('/events/{id}', [EventController::class, 'update']);
+
+
 
     // inventory
     Route::apiResource('inventory', EquipmentController::class)
