@@ -17,7 +17,7 @@ export default function UploadPDFModal({
 }) {
   if (!isOpen) return null;
 
-  const maxSize = 100 * 1024 * 1024; //100 mb upload
+  const maxSize = 10 * 1024 * 1024; //10 mb upload
   const [
     { files, isDragging, errors },
     {

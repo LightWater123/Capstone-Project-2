@@ -23,7 +23,7 @@ export default function BTRNavbar() {
     <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
       {/* ===== Top Navbar ===== */}
       <nav className="w-full border-b border-gray-300 px-5 py-3 text-sm flex items-center justify-between">
-        {/* LEFT — Hidden on small screens */}
+        
         <div className="hidden md:flex justify-start gap-3">
           <Button
             onClick={handleBack}
@@ -126,7 +126,7 @@ export default function BTRNavbar() {
         </div>
       </nav>
 
-      {/* Sidebar ( mobile view) */}
+      {/* Sidebar */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div
