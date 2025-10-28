@@ -102,6 +102,8 @@ export default function InventoryDashboard() {
   }
 };
 
+
+
   //Sort Handler
   const handleSort = (type) => {
     //console.log("Sorting by:", type);
@@ -168,6 +170,7 @@ export default function InventoryDashboard() {
   const currentItems = filteredData.slice(startIndex, endIndex);
 
   // Function to handle page changes
+  
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -328,6 +331,7 @@ export default function InventoryDashboard() {
     (eq) => eq.id === selectedEquipmentIds[0]
   );
 
+  
   // opens the schedule modal for only 1 row
   const openScheduleModal = () => {
   if (isScheduleButtonDisabled) {
