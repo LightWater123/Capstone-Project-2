@@ -25,11 +25,38 @@ class EventController extends Controller
         return Event::all();
     }
 
-    public function destroy($id) {
-        $event = Event::findOrFail($id);
+    public function destroy($id)
+{
+    $event = Event::find($id);
 
-        $event->destroy();
+    if (!$event) {
+        return response()->json(['message' => 'Event not found'], 404);
+    }
 
-        return response()->json(['success' => true], 200);
-    } 
+    $event->delete();
+
+    return response()->json(['message' => 'Event deleted successfully'], 200);
+}
+
+public function update(Request $request, $id)
+{
+    $event = Event::find($id);
+
+    if (!$event) {
+        return response()->json(['message' => 'Event not found'], 404);
+    }
+
+    $event->update([
+        'title' => $request->title,
+        'start_date' => $request->startDate,
+        'end_date' => $request->endDate,
+        'color' => $request->color,
+    ]);
+
+    return response()->json(['message' => 'Event updated'], 200);
+}
+
+
+
+
 }

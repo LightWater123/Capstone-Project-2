@@ -39,22 +39,22 @@ const LandingPage = () => {
   };
 
 
-  const { data: events = [] } = useQuery({
-    queryKey: ["getCalendarEvents"],
-    queryFn: async () => {
-      const result = await api.get("/api/events");
-      const data = {
-        id: result.data.id,
-        title: result.data.title,
-        start: result.data.startDate,
-        end: result.data.endDate,
-        color: result.data.color,
-      };
-      return result.data;
-    },
-    staleTime: 5000,
-    refetchInterval: 5000,
-  });
+ const { data: events = [] } = useQuery({
+  queryKey: ["getCalendarEvents"],
+  queryFn: async () => {
+    const result = await api.get("/api/events");
+    return result.data.map((event) => ({
+      id: event.id,
+      title: event.title,
+      start: new Date(event.startDate),
+      end: new Date(event.endDate),
+      color: event.color || "#3b82f6",
+    }));
+  },
+  staleTime: 5000,
+  refetchInterval: 5000,
+});
+
 
   const handleCreateEvent = async (data) => {
     const newEvent = {
@@ -86,30 +86,58 @@ const LandingPage = () => {
   };
 
   const handleDeleteEvent = async () => {
+  if (!selectedEvent) return;
 
-    if (selectedEvent) {
-      console.log(selectedEvent);
-      // setEvents(events.filter((e) => e !== selectedEvent));
-      setSelectedEvent(null);
-      await api.delete(`/api/event/${selectedEvent.id}`).finally(() => {
-        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
-      });
+  try {
+    await api.delete(`/api/events/${selectedEvent.id}`);
+    toast.success("Event deleted!");
+  } catch (error) {
+    toast.error("Failed to delete event.");
+  } finally {
+    setSelectedEvent(null);
+    queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+  }
+};
+
+
+  const handleEventDrop = async ({ event, start, end }) => {
+  try {
+    const response = await api.put(`/api/events/${event.id}`, {
+      title: event.title,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      color: event.color,
+    });
+
+    if (response.status === 200) {
+      toast.success("Event updated!");
+      queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+    } else {
+      toast.error("Update failed: unexpected response");
     }
-  };
+  } catch (error) {
+    console.error("Update error:", error);
+    toast.error("Failed to update event.");
+  }
+};
 
-  const handleEventDrop = ({ event, start, end }) => {
-    const updatedEvents = events.map((existingEvent) =>
-      existingEvent === event ? { ...existingEvent, start, end } : existingEvent
-    );
-    // setEvents(updatedEvents);
-  };
 
-  const handleEventResize = ({ event, start, end }) => {
-    const updatedEvents = events.map((existingEvent) =>
-      existingEvent === event ? { ...existingEvent, start, end } : existingEvent
-    );
-    // setEvents(updatedEvents);
-  };
+const handleEventResize = async ({ event, start, end }) => {
+  try {
+    await api.put(`/api/events/${event.id}`, {
+      title: event.title,
+      startDate: start,
+      endDate: end,
+      color: event.color,
+    });
+    toast.success("Event resized!");
+  } catch (error) {
+    toast.error("Failed to resize event.");
+  } finally {
+    queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+  }
+};
+
 
   const eventStyleGetter = (event) => {
     return {
