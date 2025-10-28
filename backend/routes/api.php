@@ -21,6 +21,7 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/forgot-password',  fn(Request $r) => … );
 Route::post('/reset-password',   fn(Request $r) => … );
 
+
 // AUTHENTICATED - Unified user endpoint for all guards
 Route::middleware(['auth:admin'])->group(function () {
 
