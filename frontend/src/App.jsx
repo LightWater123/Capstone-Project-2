@@ -19,6 +19,7 @@ import ForgotPassword from "./pages/forgot_password";
 import ResetPassword from "./pages/reset_password";
 import AuthProvider from "./auth/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
+import ServiceSettings from "./pages/service_settings";
 
 export const queryClient = new QueryClient();
 
@@ -48,7 +49,7 @@ export default function App() {
             <Route path="/calendar-full" element={<CalendarFullPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/service/settings" element={<SettingsPage />} />
+            <Route path="/service/settings" element={<ServiceSettings />} />
           </Routes>
           <Toaster />
         </AuthProvider>

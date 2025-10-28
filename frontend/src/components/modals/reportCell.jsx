@@ -5,35 +5,28 @@ export default function ReportCell({ item, onUpdate }) {
   const [remarks, setRemarks] = useState(item.remarks || "");
   const [uploading, setUploading] = useState(false);
 
-  /* ---- save typed note ---- */
+  // save typed note
   const saveText = async (val) => {
     await api.patch(`/api/maintenance/${item.id}/report`, { remarks: val });
     onUpdate?.();
   };
 
-  /* ---- upload pdf ---- */
+  // upload pdf
   const uploadPdf = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || file.type !== "application/pdf") {
-      alert("Please select a PDF file.");
-      return;
-    }
+    if (!file || file.type !== "application/pdf") { alert("Please select a PDF file."); return; }
     setUploading(true);
     const body = new FormData();
     body.append("report_file", file);
+    body.append("job_id", item.id);
     try {
       const { data } = await api.post("/api/upload/report", body, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      await api.patch(`/api/maintenance/${item.id}/report`, {
-        report_file: data.url,
-      });
+      // save the base-64 string (not the url) to MongoDB
+      await api.patch(`/api/maintenance/${item.id}/report`, { report_pdf: data.b64 });
       onUpdate?.();
-    } catch (err) {
-      alert("Upload failed");
-    } finally {
-      setUploading(false);
-    }
+    } catch (err) { alert("Upload failed"); } finally { setUploading(false); }
   };
 
   /* -------- UI -------- */
@@ -54,8 +47,13 @@ export default function ReportCell({ item, onUpdate }) {
       </label>
 
       <div className="text-xs text-gray-500 mt-1">
-        {item.report_file ? (
-          <a href={item.report_file} target="_blank" rel="noreferrer" className="text-blue-600">
+        {item.report_pdf ? (
+          <a 
+          href={`/api/pdf/${item.id}`} 
+          target="_blank" 
+          rel="noreferrer" 
+          className="text-blue-600"
+          >
             View PDF
           </a>
         ) : remarks ? (

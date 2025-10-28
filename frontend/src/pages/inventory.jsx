@@ -158,6 +158,10 @@ export default function InventoryDashboard() {
   // PDF file
   const [pdfFile, setPdfFile] = useState(null);
 
+  // State for validation and loading
+  const [isParsing, setIsParsing] = useState(false);
+  const [parseError, setParseError] = useState("");
+
   //New item form
   const initialShape = (cat) => ({
     category: cat,
@@ -209,6 +213,27 @@ export default function InventoryDashboard() {
     }
   };
 
+  // PDF parse validation logic
+  const validatePdfData = (rows, category) => {
+    if (!rows || rows.length === 0) {
+      return {
+        isValid: false,
+        error: "This PDF contains no data rows. Please ensure the file has a table with inventory items."
+      };
+    }
+    const firstRow = rows[0];
+    if (category.toUpperCase() === 'RPCSP') {
+      if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
+        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the RPCSP format." };
+      }
+    } else if (category.toUpperCase() === 'PPE') {
+      if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
+        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the PPE format." };
+      }
+    }
+    return { isValid: true };
+  };
+
   // PDF upload and parse
   const handlePdfUpload = async (e) => {
     e.preventDefault();
@@ -217,37 +242,65 @@ export default function InventoryDashboard() {
       return;
     }
 
+    // Start loading and clear previous errors
+    setIsParsing(true);
+    setParseError("");
+
     try {
+      // Call the updated hook to parse the PDF
       const rows = await parsePdf(pdfFile, category);
 
+      // --- FRONTEND VALIDATION ---
+      // Check if the parsed data is empty
       if (!rows || rows.length === 0) {
-        alert("No data found in the PDF.");
-        return;
+        setParseError("This PDF contains no data rows. Please ensure the file has a table with inventory items.");
+        return; // Stop here
       }
 
+      // Check if the first row has the correct columns for the selected category
+      const firstRow = rows[0];
+      if (category.toUpperCase() === 'RPCSP') {
+        if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
+          setParseError("Invalid PDF: This file does not have the correct columns for the RPCSP format.");
+          return; // Stop here
+        }
+      } else if (category.toUpperCase() === 'PPE') {
+        if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
+          setParseError("Invalid PDF: This file does not have the correct columns for the PPE format.");
+          return; // Stop here
+        }
+      }
+
+      // --- SUCCESS: Format and update the inventory ---
       const formattedItems = rows.map((row, index) => ({
         id: Date.now() + index,
         category,
         article: row.article || "",
         description: row.description || "",
-        property_ro: row.property_RO || "",
-        property_co: row.property_CO || "",
+        // Corrected property names to match the Python script's output
+        property_ro: row.property_number_RO || "",
+        property_co: row.property_number_CO || "",
         semi_expendable_property_no: row.semi_expendable_property_no || "",
         unit: row.unit_of_measure || "",
         unit_value: Number(row.unit_value) || 0,
         recorded_count: Number(row.quantity_per_property_card) || 0,
         actual_count: Number(row.quantity_per_physical_count) || 0,
-        location: row.whereabouts || "",
-        remarks: row.remarks || "",
+        location: row.remarks_whereabouts || "", // Corrected property name
+        remarks: row.remarks_whereabouts || "",  // Corrected property name
       }));
 
       setInventoryData((prev) => [...prev, ...formattedItems]);
       setShowPdfModal(false);
       setShowModal(false);
       alert("PDF uploaded and inventory updated!");
+
     } catch (err) {
+      // This will now catch the specific error from the hook
       console.error("PDF parse failed:", err);
-      alert("Failed to parse PDF.");
+      setParseError(err.message || "An unknown error occurred.");
+    } finally {
+      // Stop loading, whether it succeeded or failed
+      setIsParsing(false);
     }
   };
 
@@ -757,6 +810,9 @@ export default function InventoryDashboard() {
           onClose={() => setShowPdfModal(false)}
           onSubmit={handlePdfUpload}
           setPdfFile={setPdfFile}
+          category={category}
+          isParsing={isParsing}
+          parseError={parseError}
         />
 
         {showScheduleModal && selectedEquipment && (
