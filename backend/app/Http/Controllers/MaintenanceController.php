@@ -164,12 +164,14 @@ class MaintenanceController extends Controller
 
         if($equipt && $request->status === 'in-progress') {
             $equipt->start_date = $now;
+            $equipt->save();
         } elseif ($equipt && $request->status === 'done') {
             $equipt->end_date = $now;
+            $equipt->save();
         }
         \Log::info("test", ['equipt' => $equipt]);
         
-        $equipt->save();
+        
 
         return response()->json($job);
     }
@@ -323,8 +325,35 @@ class MaintenanceController extends Controller
 
     public function setPickupDetails(Request $request, $id)
     {
+        $request->validate([
+        'remarks'       => 'required|string|max:5000',
+        'pickup_date'   => 'required|date',
+        'pickup_place'  => 'required|string|max:255',
+        ]);
 
-    }
+        $job = MaintenanceJob::findOrFail($id);
+
+        // optional authorisation – only the assigned service user may close
+        if ($job->user_email !== auth()->user()->email) {
+            abort(403, 'Not your job');
+        }
+
+        $asset = Equipment::findOrFail($job->asset_id);
+
+
+
+        $job->remarks      = $request->remarks;
+        $job->admin_email  = $asset->created_by;
+        $job->pickup_date  = Carbon::parse($request->pickup_date);
+        $job->pickup_place = $request->pickup_place;
+        $job->status       = 'done';
+        $job->save();
+
+        // notify admin (mail, broadcast, etc.)
+        // Mail::to($request->admin_email)->send(new JobCompleted($job));
+
+        return response()->json(['message' => 'Job closed & details saved']);
+        }
 
     public function uploadReport(Request $request)
     {

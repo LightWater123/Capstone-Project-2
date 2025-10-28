@@ -1,6 +1,6 @@
 // ServiceInventory.jsx - Service inventory page showing maintenance items and archive
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "../index.css";
 import BTRheader from "../components/modals/btrHeader";
 import Navbar from "../components/modals/serviceNavbar.jsx";
@@ -8,6 +8,7 @@ import ReportCell from "../components/modals/reportCell.jsx";
 import { useServiceInventory } from "../hooks/useServiceInventory";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import DoneModal from "../components/modals/doneModal.jsx"
 
 const StatusDropdown = ({
   itemId,
@@ -15,6 +16,7 @@ const StatusDropdown = ({
   updateStatus,
   refetchMaintenance,
   refetchArchived,
+  setDoneModal, 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState(currentStatus || "pending");
@@ -23,6 +25,12 @@ const StatusDropdown = ({
   const buttonRef = useRef(null);
 
   const handleStatusChange = async (newStatus) => {
+    if (newStatus === "done") {
+      setIsOpen(false);
+      setDoneModal(itemId);               // open modal instead
+      return;
+    }
+    // else keep old flow
     setStatus(newStatus);
     setIsOpen(false);
     await updateStatus(itemId, newStatus).then(() => {
@@ -128,9 +136,8 @@ const StatusDropdown = ({
 
 /* ----------  MAIN PAGE  ---------- */
 export default function ServiceInventory() {
-  const navigate = useNavigate();
   const [tab, setTab] = useState("inventory");
-  const [category, setCategory] = useState("PPE");
+  const [doneItem, setDoneItem] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
   const {
@@ -143,6 +150,7 @@ export default function ServiceInventory() {
     fetchMaintenanceDetails,
     setSearchQuery,
     searchQuery,
+    submitDoneDetails,
   } = useServiceInventory();
 
   const loadMaintenanceDetails = (id) => {
@@ -239,6 +247,7 @@ export default function ServiceInventory() {
                           updateStatus={updateStatus}
                           refetchArchived={refetchArchived}
                           refetchMaintenance={refetchMaintenance}
+                          setDoneModal={setDoneItem}
                         />
                       </td>
                       <td className="px-4 py-3">
@@ -269,27 +278,18 @@ export default function ServiceInventory() {
           <div className="bg-white rounded shadow overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-gray-100 text-sm uppercase text-gray-600">
-                <tr>
-                  <th className="px-4 py-3">Asset Name</th>
-                  <th className="px-4 py-3">Scheduled Date</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Report</th> {/*  was Message  */}
-                  <th className="px-4 py-3">Date Sent</th>
-                </tr>
+                <tr><th className="px-4 py-3">Asset Name</th><th className="px-4 py-3">Scheduled Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Report</th><th className="px-4 py-3">Date Sent</th></tr>
               </thead>
               <tbody>
                 {archivedItems.map((item, k) => (
                   <tr
                     key={item.job?.asset_id ?? k}
                     className="border-t hover:bg-gray-50"
-                  >
-                    <td className="px-4 py-3">{item.job?.asset_name || "—"}</td>
-                    <td className="px-4 py-3">
+                  ><td className="px-4 py-3">{item.job?.asset_name || "—"}</td><td className="px-4 py-3">
                       {item.job?.scheduled_at
                         ? new Date(item.job.scheduled_at).toLocaleDateString()
                         : "—"}
-                    </td>
-                    <td className="px-4 py-3">
+                    </td><td className="px-4 py-3">
                       <span
                         className={`px-2 py-1 rounded text-xs ${
                           item.job?.status === "done"
@@ -301,8 +301,7 @@ export default function ServiceInventory() {
                       >
                         {item.job?.status || "pending"}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">
+                    </td><td className="px-4 py-3">
                       <ReportCell
                         item={item.job}
                         onUpdate={() => {
@@ -310,13 +309,11 @@ export default function ServiceInventory() {
                           refetchArchived();
                         }}
                       />
-                    </td>
-                    <td className="px-4 py-3">
+                    </td><td className="px-4 py-3">
                       {item.created_at
                         ? new Date(item.created_at).toLocaleDateString()
                         : "—"}
-                    </td>
-                  </tr>
+                    </td></tr>
                 ))}
               </tbody>
             </table>
@@ -404,6 +401,20 @@ export default function ServiceInventory() {
             )}
           </section>
         )}
+
+        {/* DONE MODAL */}
+        {doneItem && (
+        <DoneModal
+          jobId={doneItem}
+          onClose={() => setDoneItem(null)}
+          onSubmit={async (id, payload) => {
+            await submitDoneDetails(id, payload);
+            refetchMaintenance();
+            refetchArchived();
+          }}
+        />
+      )}
+
       </main>
     </div>
   );
