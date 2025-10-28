@@ -44,6 +44,7 @@ class Equipment extends Model
         'next_due_date',         // prediction result
         'max_usage_hours',
         'max_time_days',
+        'created_by'
     ];
 
     // handles the datatype for those fillable fields

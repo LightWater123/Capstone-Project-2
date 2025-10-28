@@ -11,6 +11,7 @@ use App\Models\MaintenanceJob;
 use MongoDB\BSON\ObjectId;
 use Illuminate\Database\Eloquent\Builder; // Added for type-hinting
 use Carbon\Carbon; // Added for date manipulation
+use Illuminate\Support\Facades\Auth;
 
 class EquipmentController extends Controller
 {
@@ -52,7 +53,7 @@ class EquipmentController extends Controller
         // 2. Initialize the base query with the category filter
         $query = Equipment::query();
         if ($category) {
-            $query->where('category', $category);
+            $query->where('category', $category)->where('created_by', Auth::user()->email);
         }
 
         // 3. Get the equipment and then map over the collection to add the predictive date
@@ -136,6 +137,7 @@ class EquipmentController extends Controller
             $equipment = new Equipment();
             $equipment->fill($validated);
             $equipment->date_added = now(); // set date_added to current timestamp
+            $equipment->created_by = Auth::user()->email;
             $equipment->save();
             // return created item to frontend
             return response()->json($equipment, 201);

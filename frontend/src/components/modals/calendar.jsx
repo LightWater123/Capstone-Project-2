@@ -19,16 +19,17 @@ export default function CalendarModal() {
   const { data: events = [] } = useQuery({
     queryKey: ['getCalendarEvents'],
     queryFn: async () => {
-      const result = await api.get('/api/events');
-      return result.data.map((event) => ({
-        ...event,
-        start: new Date(event.startDate),
-        end: new Date(event.endDate),
-        color: event.color || '#3b82f6',
-      }));
+      const [norm, maint] = await Promise.all([
+        api.get('/api/events').then(r => r.data),
+        api.get('/api/events/maintenance').then(r => r.data),
+      ]);
+      return [
+        ...norm.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+        ...maint.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+      ];
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
+    staleTime: 5_000,
+    refetchInterval: 5_000,
   });
 
   const getEventColorForDate = (date) => {
@@ -51,43 +52,43 @@ export default function CalendarModal() {
       <div className="flex-1 w-full min-h-0 items-center justify-center flex">
        
        <DatePicker
-  selected={selectedDate}
-  onChange={(date) => setSelectedDate(date)}
-  inline
-  calendarClassName="custom-calendar"
-  renderDayContents={(day, date) => {
-  const event = events.find((e) => isSameDay(new Date(e.start), date));
-  const isToday = isSameDay(date, today);
-  const backgroundColor = isToday
-    ? '#facc15' // yellow for today
-    : event?.color || null;
+        selected={selectedDate}
+        onChange={(date) => setSelectedDate(date)}
+        inline
+        calendarClassName="custom-calendar"
+        renderDayContents={(day, date) => {
+        const event = events.find((e) => isSameDay(new Date(e.start), date));
+        const isToday = isSameDay(date, today);
+        const backgroundColor = isToday
+          ? '#facc15' // yellow for today
+          : event?.color || null;
 
-  return (
-    <div
-      className="relative group"
-      style={{
-        backgroundColor: backgroundColor || 'transparent',
-        color: backgroundColor ? 'white' : 'inherit',
-        borderRadius: '9999px',
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: event ? 'pointer' : 'default',
+        return (
+          <div
+            className="relative group"
+            style={{
+              backgroundColor: backgroundColor || 'transparent',
+              color: backgroundColor ? 'white' : 'inherit',
+              borderRadius: '9999px',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: event ? 'pointer' : 'default',
+            }}
+          >
+            {day}
+            {event && (
+              <span className="absolute bottom-full mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 whitespace-nowrap">
+                {event.title}
+              </span>
+            )}
+          </div>
+        );
       }}
-    >
-      {day}
-      {event && (
-        <span className="absolute bottom-full mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 whitespace-nowrap">
-          {event.title}
-        </span>
-      )}
-    </div>
-  );
-}}
 
-/>
+      />
 
 
       </div>
