@@ -111,6 +111,7 @@ export default function InventoryDashboard() {
   const [lastSent, setLastSent] = useState(null);
   const [showViewHistory, setShowViewHistory] = useState(false);
   const [showPredictive, setShowPredictive] = useState(false);
+  const [scheduleModalData, setScheduleModalData] = useState(null);
 
   // Selected items
   const [selectedItem, setSelectedItem] = useState(null);
