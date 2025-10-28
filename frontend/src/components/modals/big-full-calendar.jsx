@@ -1,4 +1,3 @@
-/*  LandingPage.jsx  –  events + maintenance + reminders  */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,8 @@ import ShadcnBigCalendar from "./big-calendar";
 import { toast } from "sonner";
 import api from "@/api/api";
 import { v4 as uuidv4 } from "uuid";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/App";
 
 const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
@@ -22,53 +21,12 @@ const localizer = momentLocalizer(moment);
 const LandingPage = () => {
   const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
+  // const [events, setEvents] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  /* ----------------------------------------------------------
-   *  merged events + maintenance + reminders
-   * ---------------------------------------------------------- */
-  const { data: events = [] } = useQuery({
-    queryKey: ["getCalendarEvents"],
-    queryFn: async () => {
-      const [norm, maint, rem] = await Promise.all([
-        api.get("/api/events").then((r) => r.data),
-        api.get("/api/events/maintenance").then((r) => r.data),
-        api.get("/api/events/reminders").then((r) => r.data), // <-- new
-      ]);
-      return [
-        ...norm.map((e) => ({
-          id: e.id,
-          title: e.title,
-          start: new Date(e.startDate),
-          end: new Date(e.endDate),
-          color: e.color || "#3b82f6",
-          resource: { type: "event" },
-        })),
-        ...maint.map((e) => ({
-          id: e.id,
-          title: e.title,
-          start: new Date(e.startDate),
-          end: new Date(e.endDate),
-          color: e.color || "#f59e0b",
-          resource: { type: "maintenance", ...e.extendedProps },
-        })),
-        ...rem.map((e) => ({ // <-- reminders
-          id: e.id,
-          title: e.title,
-          start: new Date(e.startDate),
-          end: new Date(e.endDate),
-          color: e.color || "#ef4444",
-          resource: { type: "reminder", ...e.extendedProps },
-        })),
-      ];
-    },
-    staleTime: 5000,
-    refetchInterval: 5000,
-  });
-
-  const handleNavigate = (d) => setDate(d);
-  const handleViewChange = (v) => setView(v);
+  const handleNavigate = (newDate) => setDate(newDate);
+  const handleViewChange = (newView) => setView(newView);
 
   const handleSelectSlot = (slotInfo) => {
     setSelectedSlot(slotInfo);
@@ -81,10 +39,47 @@ const LandingPage = () => {
   };
 
 
-  /* ----------------------------------------------------------
-   *  CRUD  (only regular events)
-   * ---------------------------------------------------------- */
+ const { data: events = [] } = useQuery({
+  queryKey: ["getCalendarEvents"],
+  queryFn: async () => {
+    const [resultData, dueSoonData, maintenanceDueData] = await Promise.all([
+      api.get("/api/events").then((r) => r.data.map((event) => ({
+      id: event.id,
+      type: "event",
+      title: event.title,
+      start: new Date(event.start_date),
+      end: new Date(event.end_date),
+      color: event.color || "red",
+    }))),
+      api.get("/api/maintenance/inventory/due-soon").then((r) => r.data.map((item) => ({
+      id: item.id,
+      type: "due-soon",
+      title: `Maintenance Due: ${item.category} - ${item.article}`,
+      start: new Date(item.next_maintenance_date),
+      end: new Date(item.next_maintenance_date),
+      color: "green", // red for due soon items
+    }))),
+    api.get("/api/maintenance/due-for-maintenance?days=2").then((r) => r.data.data.map((item) => ({
+      id: item.id,
+      type: "maintenance-due",
+      title: `Maintenance Due: ${item.asset_name}`,
+      start: new Date(item.scheduled_at),
+      end: new Date(item.scheduled_at),
+      color: "blue"
+    })))
+    ]);
+    return [...resultData, ...dueSoonData, ...maintenanceDueData];
+  },
+  staleTime: 5000,
+  refetchInterval: 5000,
+});
+
+
   const handleCreateEvent = async (data) => {
+    // setEvents([...events, newEvent]);
+    setSelectedSlot(null);
+
+    console.log(data);
     await api
       .post("/api/events", {
         title: data.title,
@@ -101,88 +96,76 @@ const LandingPage = () => {
       .finally(() => {
         queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
       });
-    toast.success("Event created");
-    setSelectedSlot(null);
+
   };
 
   const handleDeleteEvent = async () => {
-    if (!selectedEvent) return;
-    if (["maintenance", "reminder"].includes(selectedEvent.resource?.type)) {
-      toast.error("Read-only item");
-      return;
-    }
-    try {
-      await api.delete(`/api/events/${selectedEvent.id}`);
-      toast.success("Deleted");
-    } catch {
-      toast.error("Delete failed");
-    } finally {
-      setSelectedEvent(null);
-      queryClient.invalidateQueries(["getCalendarEvents"]);
-    }
-  };
+  if (!selectedEvent) return;
+
+  try {
+    await api.delete(`/api/events/${selectedEvent.id}`);
+    toast.success("Event deleted!");
+  } catch (error) {
+    toast.error("Failed to delete event.");
+  } finally {
+    setSelectedEvent(null);
+    queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+  }
+};
+
 
   const handleEventDrop = async ({ event, start, end }) => {
-    if (["maintenance", "reminder"].includes(event.resource?.type)) {
-      toast.error("Read-only item");
-      return;
-    }
-    try {
-      await api.put(`/api/events/${event.id}`, {
-        title: event.title,
-        start_date: start,
-        end_date: end,
-        color: event.color,
-      });
-      if (response.status === 200) {
+  try {
+    console.log(event, start, end)
+    const response = await api.put(`/api/events/${event.id}`, {
+      title: event.title,
+      start_date: start,
+      end_date: end,
+      color: event.color,
+    });
+
+    if (response.status === 200) {
       toast.success("Event updated!");
-        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
-      } else {
-        toast.error("Update failed: unexpected response");
-      }
-    } catch {
-      toast.error("Move failed");
-    } finally {
-      queryClient.invalidateQueries(["getCalendarEvents"]);
+      queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+    } else {
+      toast.error("Update failed: unexpected response");
     }
+  } catch (error) {
+    console.error("Update error:", error);
+    toast.error("Failed to update event.");
+  }
+};
+
+
+const handleEventResize = async ({ event, start, end }) => {
+  try {
+    await api.put(`/api/events/${event.id}`, {
+      title: event.title,
+      start_date: start,
+      end_date: end,
+      color: event.color,
+    });
+    toast.success("Event resized!");
+  } catch (error) {
+    toast.error("Failed to resize event.");
+  } finally {
+    queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+  }
+};
+
+
+  const eventStyleGetter = (event) => {
+    return {
+      style: {
+        backgroundColor: event.color || "#3b82f6",
+        borderRadius: "6px",
+        color: "white",
+        border: "none",
+        padding: "2px 6px",
+      },
+    };
   };
 
-  const handleEventResize = async ({ event, start, end }) => {
-    if (["maintenance", "reminder"].includes(event.resource?.type)) {
-      toast.error("Read-only item");
-      return;
-    }
-    try {
-      await api.put(`/api/events/${event.id}`, {
-        title: event.title,
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        color: event.color,
-      });
-      toast.success("Resized");
-    } catch {
-      toast.error("Resize failed");
-    } finally {
-      queryClient.invalidateQueries(["getCalendarEvents"]);
-    }
-  };
-
-  /* ----------------------------------------------------------
-   *  styling
-   * ---------------------------------------------------------- */
-  const eventStyleGetter = (event) => ({
-    style: {
-      backgroundColor: event.color,
-      borderRadius: "6px",
-      color: "#fff",
-      border: "none",
-      padding: "2px 6px",
-    },
-  });
-
-  /* ----------------------------------------------------------
-   *  render
-   * ---------------------------------------------------------- */
   return (
     <main className="w-full p-5">
       <div className="mb-4">
@@ -226,36 +209,20 @@ const LandingPage = () => {
 
           {selectedEvent && (
             <div className="space-y-4">
-              {selectedEvent.resource?.type === "maintenance" && (
-                <>
-                  <p><strong>Article:</strong> {selectedEvent.resource.article}</p>
-                  <p><strong>Description:</strong> {selectedEvent.resource.description}</p>
-                  <p><strong>Status:</strong> {selectedEvent.resource.status}</p>
-                  <p><strong>Assigned tech:</strong> {selectedEvent.resource.email}</p>
-                </>
-              )}
-              {selectedEvent.resource?.type === "reminder" && (
-                <>
-                  <p><strong>Asset:</strong> {selectedEvent.resource.article}</p>
-                  <p><strong>Description:</strong> {selectedEvent.resource.description}</p>
-                  <p><strong>Status:</strong> {selectedEvent.resource.status}</p>
-                  <p><strong>Assigned tech:</strong> {selectedEvent.resource.email}</p>
-                </>
-              )}
-              {selectedEvent.resource?.type === "event" && (
-                <>
-                  <p><strong>Title:</strong> {selectedEvent.title}</p>
-                  <p><strong>Start:</strong> {moment(selectedEvent.start).format("LLLL")}</p>
-                  <p><strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}</p>
-                </>
-              )}
-
-              {selectedEvent.resource?.type === "event" && (
-                <Button variant="destructive" onClick={handleDeleteEvent}>
-                  <Trash2 className="size-4 mr-2" />
-                  Delete Event
-                </Button>
-              )}
+              <p>
+                <strong>Title:</strong> {selectedEvent.title}
+              </p>
+              <p>
+                <strong>Start:</strong>{" "}
+                {moment(selectedEvent.start).format("LLLL")}
+              </p>
+              <p>
+                <strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}
+              </p>
+              <Button variant="destructive" onClick={handleDeleteEvent}>
+                <Trash2 className="size-4 mr-2" />
+                Delete Event
+              </Button>
             </div>
           )}
         </DialogContent>
@@ -283,5 +250,6 @@ const LandingPage = () => {
     </main>
   );
 };
+
 
 export default LandingPage;

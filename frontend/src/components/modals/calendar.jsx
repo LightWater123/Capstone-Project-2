@@ -17,20 +17,55 @@ export default function CalendarModal() {
     date1.getFullYear() === date2.getFullYear();
 
   const { data: events = [] } = useQuery({
-    queryKey: ['getCalendarEvents'],
-    queryFn: async () => {
-      const [norm, maint] = await Promise.all([
-        api.get('/api/events').then(r => r.data),
-        api.get('/api/events/maintenance').then(r => r.data),
-      ]);
-      return [
-        ...norm.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
-        ...maint.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
-      ];
-    },
-    staleTime: 5_000,
-    refetchInterval: 5_000,
-  });
+  queryKey: ["getCalendarEvents"],
+  queryFn: async () => {
+    const [resultData, dueSoonData, maintenanceDueData] = await Promise.all([
+      api.get("/api/events").then((r) => r.data.map((event) => ({
+      id: event.id,
+      type: "event",
+      title: event.title,
+      start: new Date(event.start_date),
+      end: new Date(event.end_date),
+      color: event.color || "red",
+    }))),
+      api.get("/api/maintenance/inventory/due-soon").then((r) => r.data.map((item) => ({
+      id: item.id,
+      type: "due-soon",
+      title: `Maintenance Due: ${item.category} - ${item.article}`,
+      start: new Date(item.next_maintenance_date),
+      end: new Date(item.next_maintenance_date),
+      color: "green", // red for due soon items
+    }))),
+    api.get("/api/maintenance/due-for-maintenance?days=2").then((r) => r.data.data.map((item) => ({
+      id: item.id,
+      type: "maintenance-due",
+      title: `Maintenance Due: ${item.asset_name}`,
+      start: new Date(item.scheduled_at),
+      end: new Date(item.scheduled_at),
+      color: "blue"
+    })))
+    ]);
+    return [...resultData, ...dueSoonData, ...maintenanceDueData];
+  },
+  staleTime: 5000,
+  refetchInterval: 5000,
+});
+
+  // const { data: events = [] } = useQuery({
+  //   queryKey: ['getCalendarEvents'],
+  //   queryFn: async () => {
+  //     const [norm, maint] = await Promise.all([
+  //       api.get('/api/events').then(r => r.data),
+  //       api.get('/api/events/maintenance').then(r => r.data),
+  //     ]);
+  //     return [
+  //       ...norm.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+  //       ...maint.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+  //     ];
+  //   },
+  //   staleTime: 5_000,
+  //   refetchInterval: 5_000,
+  // });
 
   const getEventColorForDate = (date) => {
     const match = events.find((event) => isSameDay(new Date(event.start), date));
