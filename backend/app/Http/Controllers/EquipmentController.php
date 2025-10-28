@@ -336,7 +336,8 @@ class EquipmentController extends Controller
         // Start a new query on the Equipment model
         $query = Equipment::query();
 
-        $query->whereNotNull('next_maintenance_date');
+
+        $query->whereNotNull('next_maintenance_date')->where("created_by", Auth::user()->email);
             
             // We sort them by that date in ascending order ('asc').
             // This puts the SOONEST dates (including overdue ones) at the TOP.

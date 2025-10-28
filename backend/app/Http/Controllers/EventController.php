@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Maintenance; 
 use App\Models\Equipment;
+use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
@@ -18,8 +19,7 @@ class EventController extends Controller
             'color' => 'required|string',
         ]);
 
-        \Log::info($request);
-        \Log::info($validated);
+        $validated["created_by"] = Auth::user()->email;
 
         $event = Event::create($validated);
 
@@ -27,7 +27,7 @@ class EventController extends Controller
     }
 
     public function index() {
-        return Event::all();
+        return Event::where("created_by", Auth::user()->email)->get();
     }
 
     public function destroy($id)
