@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
+use App\Http\Controllers\EventController;
 
 // PUBLIC   
 Route::post('/login',    [AuthenticatedSessionController::class, 'store']);
@@ -36,6 +37,8 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
     
     Route::post('/admin/change-password', [PasswordController::class, 'change']);
+
+    Route::post('/events', [EventController::class, 'store']);
 
     // inventory
     Route::apiResource('inventory', EquipmentController::class)
