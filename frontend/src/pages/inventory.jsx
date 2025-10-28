@@ -209,7 +209,7 @@ export default function InventoryDashboard() {
       await fetchInventory();
     } catch (err) {
       console.error("Add item failed:", err.response?.data || err);
-      alert("Failed to add item. Please check your input.");
+      toast.error("Failed to add item. Please check your input.");
     }
   };
 
@@ -238,7 +238,7 @@ export default function InventoryDashboard() {
   const handlePdfUpload = async (e) => {
     e.preventDefault();
     if (!pdfFile) {
-      alert("Please select a PDF file first.");
+      toast.warning("Please select a PDF file first.");
       return;
     }
 
@@ -292,7 +292,7 @@ export default function InventoryDashboard() {
       setInventoryData((prev) => [...prev, ...formattedItems]);
       setShowPdfModal(false);
       setShowModal(false);
-      alert("PDF uploaded and inventory updated!");
+      toast.success("PDF uploaded and inventory updated!");
 
     } catch (err) {
       // This will now catch the specific error from the hook
@@ -843,11 +843,11 @@ export default function InventoryDashboard() {
               return;
             try {
               await api.delete(`/api/inventory/${id}`);
-              alert("Item deleted successfully!");
+              toast.success("Item deleted successfully!");
               setInventoryData((prev) => prev.filter((item) => item.id !== id));
               setShowDetailModal(false);
             } catch (err) {
-              alert("Error deleting item. Please try again.");
+              toast.error("Error deleting item. Please try again.");
               console.error("Error deleting item:", err);
             }
           }}

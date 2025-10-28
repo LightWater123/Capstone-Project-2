@@ -2,21 +2,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/api";
 import BTRheader from "../components/modals/btrHeader";
-import { ChevronLeftCircle } from "lucide-react"
-
+import BTRNavbar from "../components/modals/btrNavbar.jsx";
+import { ChevronLeftCircle, User } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function ServiceRegister() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    company_name:'',
-    email: '',
-    password: '',
-    confirm_password: '',
-    mobile_number: '',
-    address: '',
-    service_type: '',
+    name: "",
+    username: "",
+    company_name: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    mobile_number: "",
+    address: "",
+    service_type: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -25,16 +28,16 @@ export default function ServiceRegister() {
   const handleBack = () => navigate("/admin/dashboard");
 
   const serviceTypes = [
-    { value: 'Vehicle', label: 'Vehicle' },
-    { value: 'Appliances', label: 'Appliances' },
-    { value: 'ICT Equipment', label: 'ICT Equipment' },
+    { value: "Vehicle", label: "Vehicle" },
+    { value: "Appliances", label: "Appliances" },
+    { value: "ICT Equipment", label: "ICT Equipment" },
   ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -44,34 +47,37 @@ export default function ServiceRegister() {
     setLoading(true);
 
     if (formData.password !== formData.confirm_password) {
-      setErrors(prev => ({ ...prev, confirm_password: 'Passwords do not match.' }));
+      setErrors((prev) => ({
+        ...prev,
+        confirm_password: "Passwords do not match.",
+      }));
       setLoading(false);
       return;
     }
 
     try {
-      await axios.get('/sanctum/csrf-cookie');
+      await axios.get("/sanctum/csrf-cookie");
 
-      const response = await axios.post('/api/register', {
+      const response = await axios.post("/api/register", {
         name: formData.name,
         username: formData.username,
-        company_name:formData.company_name,
+        company_name: formData.company_name,
         email: formData.email,
         password: formData.password,
         mobile_number: formData.mobile_number,
         address: formData.address,
         service_type: formData.service_type,
-        role: 'service_user',
+        role: "service_user",
       });
 
       //console.log("Registered service user:", response.data.user);
-      navigate('/');
+      navigate("/");
     } catch (err) {
       console.error("Registration error:", err.response?.data);
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        alert("Registration failed. Please try again.");
+        toast.error("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -82,23 +88,30 @@ export default function ServiceRegister() {
     <>
       <div className="min-h-screen bg-gray-50 relative">
         <BTRheader />
-        <div className="flex justify-center items-center w-dvw p-10">
-          <div className="flex flex-col items-center w-full max-w-sm">
-            <button
-              onClick={handleBack}
-              className="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white font-bold rounded mb-6"
-              style={{ boxShadow: "0 4px 50px rgba(255, 255, 255, 0.3)" }}
-            >
-              <ChevronLeftCircle className="h-5 w-5 inline-block mr-2" />
-              Back to Dashboard
-            </button>
-
+        <BTRNavbar/>
+        <div className="flex justify-center items-center w-dvw p-4">
+          <div className="flex flex-col items-start w-full max-w-sm ">
+            <div className="pb-2">
+              <Button
+                onClick={handleBack}
+                variant="ghost"
+                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+              after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+              after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+              after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+              >
+                <ChevronLeftCircle className="h-5 w-5 inline-block mr-2" />
+                Back to Dashboard
+              </Button>
+            </div>
             <div
-              className="relative p-6 space-y-4 w-full max-w-xl rounded-lg shadow-md bg-white"
-              style={{ boxShadow: "0 4px 50px rgba(0, 0, 0, 0.3)" }}
+              className="p-6 space-y-4 w-full max-w-sm rounded-2xl bg-white shadow-md"
             >
               <form onSubmit={handleRegister} className="space-y-4">
-                <h1 className="text-2xl font-bold mb-4 text-black text-center">
+
+
+                <User className="mx-auto w-24 h-24"/>
+                <h1 className="text-2xl font-bold mb-4 text-black text-center border-b pb-2">
                   Service User Registration
                 </h1>
 
@@ -109,52 +122,52 @@ export default function ServiceRegister() {
                 ))}
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="company_name"
                     placeholder="Company Name"
                     value={formData.company_name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="name"
                     placeholder="Name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="username"
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="email"
                     type="email"
                     placeholder="Email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded"
                     required
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="mobile_number"
                     type="tel"
                     placeholder="Mobile Number"
@@ -167,19 +180,19 @@ export default function ServiceRegister() {
                         target: { name: "mobile_number", value: digits },
                       });
                     }}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded"
                     required
                     pattern="\d{11}"
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="address"
                     placeholder="Address"
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded"
                     required
                   />
                 </div>
@@ -189,7 +202,7 @@ export default function ServiceRegister() {
                     name="service_type"
                     value={formData.service_type}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   >
                     <option value="">Select Service Type</option>
@@ -202,36 +215,36 @@ export default function ServiceRegister() {
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="password"
                     type="password"
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   />
                 </div>
 
                 <div className="flex flex-col items-start space-y-2">
-                  <input
+                  <Input
                     name="confirm_password"
                     type="password"
                     placeholder="Confirm Password"
                     value={formData.confirm_password}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded focus:outline-none focus:ring focus:ring-yellow-400"
+                    className="w-full px-4 py-2 border rounded "
                     required
                   />
                 </div>
 
-                <button
+                <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white font-bold rounded"
+                  className="w-full px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-semibold rounded-3xl"
                 >
                   {loading ? "Registering..." : "Register Account"}
-                </button>
+                </Button>
               </form>
             </div>
           </div>

@@ -2,9 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/api";
 import btrlogo from "../assets/btrlogo.png";
+import BTRheader from "../components/modals/btrHeader";
+import BTRNavbar from "../components/modals/btrNavbar.jsx";
 import btrlegpics from "../assets/btrlegpics.jpg";
 import { Link } from "react-router-dom";
-import { ChevronLeftCircle } from "lucide-react";
+import { ChevronLeftCircle, ShieldUser,  } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 
 export default function AdminRegister() {
   const navigate = useNavigate();
@@ -64,7 +70,7 @@ export default function AdminRegister() {
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
       } else {
-        alert("Registration failed. Please try again.");
+        toast.error("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -72,43 +78,32 @@ export default function AdminRegister() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative">
-      {/* background image */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(${btrlegpics})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      ></div>
-
-      {/* yellow overlay */}
-      <div className="absolute inset-0 bg-[#FCFC62] opacity-90"></div>
-
-      {/* This new wrapper div fixes the layout.
-        - 'relative' places it on top of the overlays.
-        - 'flex flex-col' stacks the button and form vertically.
-        - 'w-full max-w-sm' constraints the width.
-      */}
-      <div className="relative flex flex-col items-center w-full max-w-sm">
-        <button
-          onClick={handleBack}
-          className="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white font-bold rounded mb-6"
-          style={{ boxShadow: "0 4px 50px rgba(255, 255, 255, 0.3)" }}
-        >
-          <ChevronLeftCircle className="h-5 w-5 inline-block mr-2" />
-          Back to Dashboard
-        </button>
+    <>
+    <div className="min-h-screen bg-gray-50 relative">
+      <BTRheader />
+      <BTRNavbar/>
+      <div className="flex justify-center items-center w-dvw p-10">
+        <div className="flex flex-col items-center w-full max-w-sm ">
+        <div className="pb-3 relative">
+          <Button
+            onClick={handleBack}
+            variant="ghost"
+            className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+                after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+                after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+                after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            <ChevronLeftCircle className="h-5 w-5 inline-block mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
 
         <form
           onSubmit={handleRegister}
-          className="p-6 space-y-4 w-full max-w-sm rounded-lg bg-white"
-          style={{ boxShadow: "0 4px 50px rgba(0, 0, 0, 0.3)" }}
+          className="p-6 space-y-4 w-full max-w-sm rounded-2xl bg-white shadow-md"
         >
-          <img src={btrlogo} alt="Logo" className="mx-auto w-24 h-24" />
-          <h1 className="text-2xl font-bold text-center text-gray-800">
+          <ShieldUser className="mx-auto w-24 h-24" />
+          <h1 className="text-xl font-bold text-center text-gray-800 border-b pb-3">
             Admin Registration
           </h1>
 
@@ -119,7 +114,7 @@ export default function AdminRegister() {
           ))}
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="name"
               placeholder="Name"
               value={formData.name}
@@ -130,7 +125,7 @@ export default function AdminRegister() {
           </div>
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="username"
               placeholder="Username"
               value={formData.username}
@@ -141,7 +136,7 @@ export default function AdminRegister() {
           </div>
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="email"
               type="email"
               placeholder="Email"
@@ -153,7 +148,7 @@ export default function AdminRegister() {
           </div>
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="mobile_number"
               type="tel"
               placeholder="Mobile Number"
@@ -171,7 +166,7 @@ export default function AdminRegister() {
           </div>
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="password"
               type="password"
               placeholder="Password"
@@ -183,7 +178,7 @@ export default function AdminRegister() {
           </div>
 
           <div className="flex flex-col items-start space-y-2">
-            <input
+            <Input
               name="confirm_password"
               type="password"
               placeholder="Confirm Password"
@@ -194,23 +189,17 @@ export default function AdminRegister() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full py-2 text-white font-bold rounded bg-yellow-400 hover:bg-yellow-500"
+            className="w-full px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-semibold rounded-3xl"
           >
             {loading ? "Registering..." : "Register"}
-          </button>
-
-          {/* register Link */}
-          <p className="text-center text-sm">
-            Back To{" "}
-            <Link to="/" className="text-blue-600 hover:underline font-medium">
-              Login
-            </Link>
-          </p>
+          </Button>
         </form>
       </div>
     </div>
+    </div>
+    </>
   );
 }

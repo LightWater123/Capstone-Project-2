@@ -1,13 +1,14 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import api from "../api/api"; // centralized Axios instance
 import { useNavigate } from "react-router-dom";
 import btrlogo from "../assets/btrlogo.png";
 import btrlegpics from "../assets/btrlegpics.jpg";
+import sevenimage from "../assets/sevenimage.png";
+import siximage from "../assets/siximage.png";
+
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { Eye } from "lucide-react";
-import { EyeClosed, User, Lock, LogIn } from "lucide-react";
-import { useEffect } from "react";
+import { EyeClosed, Eye, User, Lock, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Login() {
@@ -18,6 +19,8 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
+  const images = [btrlegpics, siximage, sevenimage];
 
   useEffect(() => {
     if (!showPassword) return; // nothing to do
@@ -68,29 +71,36 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
-      {/* background image */}
+<div className="absolute inset-0 overflow-hidden">
+  <div
+    className="flex h-full animate-banner"
+    style={{ width: `${images.length * 100}vw` }}
+  >
+    {[...images, ...images].map((img, i) => (
       <div
-        className="absolute inset-0"
+        key={i}
+        className="w-screen h-screen flex-shrink-0"
         style={{
-          backgroundImage: `url(${btrlegpics})`,
+          backgroundImage: `url(${img})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
       ></div>
-
-      {/* yellow overlay */}
-      <div className="absolute inset-0 bg-blue-950/90 backdrop-blur-sm"></div>
-
+    ))}
+  </div>
+</div>
+      ={/* overlay */}
+      <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none"></div>
       {/* login form */}
       <form
         onSubmit={handleLogin}
         className="relative p-8 space-y-5 w-full max-w-sm
-             rounded-2xl
-             bg-white/10            
-             backdrop-blur-none     
-             border-collapse border-white/20
-             shadow-2xl shadow-black/30"
+              rounded-2xl
+              bg-blue-950/60          
+              backdrop-blur-md     
+              border-white/80
+              shadow-2xl shadow-black/30"
       >
         {/* logo and title */}
         <img src={btrlogo} alt="Logo" className="mx-auto w-24 h-24" />
@@ -143,10 +153,12 @@ export default function Login() {
         <Button
           type="submit"
           disabled={loading}
-          className={`relative w-full py-2 px-4 text-lg font-bold rounded-md border-none overflow-hidden ${loading ? "cursor-not-allowed opacity-70" : "cursor-pointer"} 
-          text-white/90 bg-blue-950/70 transition-all duration-500 z-[1] before:content-[''] before:absolute before:inset-y-0 before:left-[-20%] before:right-[-20%] 
-          before:bg-white before:-skew-x-[45deg] before:scale-x-0 before:transition-transform before:duration-500 before:z-[-1]
-          hover:text-black hover:before:scale-x-100`}
+          className={`relative w-full py-2 px-4 text-lg font-bold rounded-md border-none overflow-hidden ${
+            loading ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+          } 
+            text-white/90 bg-blue-950/70 transition-all duration-500 z-[1] before:content-[''] before:absolute before:inset-y-0 before:left-[-20%] before:right-[-20%] 
+            before:bg-white before:-skew-x-[45deg] before:scale-x-0 before:transition-transform before:duration-500 before:z-[-1]
+            hover:text-black hover:before:scale-x-100`}
         >
           <LogIn className="h-5 w-5 inline-block mr-2 relative top-[-1px]" />
           {loading ? "Logging in..." : "Login"}
@@ -154,14 +166,14 @@ export default function Login() {
 
         {/* register Link */}
         {/* <p className="text-center text-sm">
-          Don’t have an account?{" "}
-          <Link
-            to="/register/admin"
-            className="text-blue-600 hover:underline font-medium"
-          >
-            Register  
-          </Link>
-        </p> */}
+            Don’t have an account?{" "}
+            <Link
+              to="/register/admin"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Register  
+            </Link>
+          </p> */}
 
         {/* forgot password */}
         <div className="text-sm text-right -mt-2 mb-2">

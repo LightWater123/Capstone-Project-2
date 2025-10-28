@@ -117,3 +117,13 @@ code {
     @apply bg-background text-foreground;
   }
 }
+
+
+@keyframes banner-slide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }   /* 1/3 of 200 % wrapper */
+}
+
+.animate-banner {
+  animation: banner-slide 25s linear infinite;
+}
