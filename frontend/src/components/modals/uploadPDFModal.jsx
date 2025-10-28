@@ -20,12 +20,12 @@ export default function UploadPDFModal({
 }) {
   if (!isOpen) return null;
 
+  const maxSize = 10 * 1024 * 1024; //10 mb upload
+
   const handleFileChange = (e) => {
     setPdfFile(e.target.files[0]);
     // Note: parseError is cleared in the parent component's handlePdfUpload
   };
-
-  const maxSize = 100 * 1024 * 1024; //100 mb upload
   const [
     { files, isDragging, errors },
     {
