@@ -56,6 +56,7 @@ import {
   ChevronDownIcon,
   ChevronRight,
   ArrowDownAZ,
+  Trash2,
 } from "lucide-react";
 
 export default function InventoryDashboard() {
@@ -311,9 +312,16 @@ export default function InventoryDashboard() {
 
   // opens the schedule modal for only 1 row
   const openScheduleModal = () => {
-    if (selectedEquipmentIds.length !== 1) return;
-    setShowScheduleModal(true);
-  };
+  if (isScheduleButtonDisabled) {
+    toast.error("Please select exactly one item to schedule maintenance.");
+    return;
+  }
+
+  const selectedItem = selectedItems[0];
+  setScheduleModalData(selectedItem);
+  setShowScheduleModal(true);
+};
+
 
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
@@ -379,6 +387,11 @@ export default function InventoryDashboard() {
     }
   };
 
+  const isScheduleButtonDisabled = selectedItems.length !== 1;
+  const isTrashButtonDisabled = selectedItems.length === 0;
+
+
+
   // render component UI
   return (
     <>
@@ -406,6 +419,29 @@ export default function InventoryDashboard() {
                   className="w-full pl-10 py-2 text-base"
                 />
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              </div>
+              <div className="relative w-full sm:w-auto">
+
+            <Button
+  variant="outline"
+  size="icon"
+  disabled={isTrashButtonDisabled}
+  title={
+    isTrashButtonDisabled
+      ? "Select at least one item to delete"
+      : "Delete selected items"
+  }
+  className={isTrashButtonDisabled ? "cursor-not-allowed opacity-50" : ""}
+  onClick={() => {
+    if (!isTrashButtonDisabled) {
+      handleDeleteSelectedItems(); // Replace with your actual delete handler
+    }
+  }}
+>
+  <Trash2 />
+</Button>
+
+
               </div>
               {/* Sort Dropdown */}
               <div className="relative w-full sm:w-auto">
@@ -444,17 +480,21 @@ export default function InventoryDashboard() {
               </Button>
 
               <Button
-                disabled={selectedEquipmentIds.length === 0}
-                onClick={openScheduleModal}
-                className={`flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap bg-blue-900 hover:bg-blue-950 ${
-                  selectedEquipmentIds.length > 0
-                    ? "bg-blue-900 hover:bg-blue-950 text-white "
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                <Calendar className="h-5 w-5 inline-block mr-2" />
-                Schedule Maintenance
-              </Button>
+  className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
+  onClick={openScheduleModal}
+  disabled={isScheduleButtonDisabled}
+  title={
+    isScheduleButtonDisabled
+      ? selectedItems.length > 1
+        ? "Please select only one item"
+        : "Please select an item"
+      : "Schedule Maintenance"
+  }
+>
+  <Calendar className="h-5 w-5 inline-block mr-2" />
+  Schedule Maintenance
+</Button>
+
 
               <Button
                 className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"

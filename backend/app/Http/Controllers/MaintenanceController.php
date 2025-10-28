@@ -130,6 +130,7 @@ class MaintenanceController extends Controller
     public function index(Request $req)
     {
         return MaintenanceJob::query()
+                      ->where("user_email", Auth::user()->email)
                       ->orderBy('created_at', 'desc')
                       ->get();
     }
@@ -198,6 +199,7 @@ class MaintenanceController extends Controller
         // MongoDB-specific query with proper date handling
         // The UTCDateTime class is now correctly referenced
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
+                            ->where('user_email', Auth::user()->email)
                             ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
                             ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
                             ->orderBy('scheduled_at', 'asc')
