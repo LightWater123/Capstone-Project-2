@@ -7,6 +7,7 @@ import CreateEvent from '../components/modals/createEvent';
 import '../components/modals/calendar-full.css';
 import { CalendarPlus } from 'lucide-react';
 import { Binoculars } from 'lucide-react';
+import LandingPage from '@/components/modals/big-full-calendar';
 
 export default function CalendarFullPage() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -65,7 +66,9 @@ export default function CalendarFullPage() {
       <BTRheader />
       <BTRNavbar />
 
-      <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-6xl h-auto min-h-[400px] overflow-visible flex flex-col mx-auto">
+      <LandingPage />
+
+      {/* <div className="bg-white rounded-xl shadow-lg p-4 w-full max-w-6xl h-auto min-h-[400px] overflow-visible flex flex-col mx-auto">
         <div className="w-full h-full">
           <h2 className="text-2xl font-bold text-gray-700 mb-4">Calendar</h2>
 
@@ -265,7 +268,7 @@ export default function CalendarFullPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
