@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                 after:transition-all after:duration-300 hover:after:w-full 
                 focus:outline-none"
               >
-                View Full Details
+                View Inventory
                 <ChevronRight className="h-2 w-2" />
               </Button>
             </div>
