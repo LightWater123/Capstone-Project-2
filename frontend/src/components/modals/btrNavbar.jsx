@@ -3,49 +3,73 @@ import profileuser from "../../assets/profile-user.png";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
-import { Settings } from "lucide-react";
-import { UserPlus } from "lucide-react";
+import { User, Settings, UserPlus, Menu, X } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
+import { Button } from "@/components/ui/button";
 
 export default function BTRNavbar() {
   const [isDropOpen, setIsDropOpen] = useState(false);
   const navigate = useNavigate();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
 
   const handleCreateServiceAccount = () => navigate("/register/service");
   const handleCreateAdminAccount = () => navigate("/register/admin");
   const handleBack = () => navigate("/admin/dashboard");
+  const handleSettings = () => navigate("/settings");
+  const handleCalendar = () => navigate("/calendar-full");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
-      <nav className="w-full bg-white shadow-sm rounded-xl mb-4 flex items-center justify-between px-5 py-3 text-sm">
-        {/* LEFT */}
-        <div className="flex items-center gap-3">
-          <button
+    <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
+      {/* ===== Top Navbar ===== */}
+      <nav className="w-full border-b border-gray-300 px-5 py-3 text-sm flex items-center justify-between">
+        {/* LEFT — Hidden on small screens */}
+        <div className="hidden md:flex justify-start gap-3">
+          <Button
             onClick={handleBack}
-            className="text-sm bg-white px-3 py-1 rounded"
+            variant="ghost"
+            className="relative text-sm px-3 py-1 bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 font-bold text-lg">
-              Dashboard
-            </span>
+            Dashboard
+          </Button>
+
+          <Button
+            onClick={handleSettings}
+            variant="ghost"
+            className="relative text-sm px-3 py-1 bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            Settings
+          </Button>
+
+          <Button
+            onClick={handleCalendar}
+            variant="ghost"
+            className="relative text-sm px-3 py-1 bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >
+            Calendar
+          </Button>
+        </div>
+
+        {/* LEFT — Hamburger (mobile) */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="text-gray-700 hover:text-black"
+          >
+            <Menu className="h-6 w-6" />
           </button>
         </div>
 
         {/* RIGHT */}
         <div className="flex items-center gap-4">
-          {/* User dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsDropOpen((v) => !v)}
-              className="flex items-center gap-2 text-gray-700 hover:text-blue-700"
+              className="flex items-center gap-2 text-gray-700 hover:text-black"
             >
-              <img
-                src={profileuser}
-                alt="User"
-                className="h-7 w-7 rounded-full object-cover"
-              />
-              <span className="hidden sm:inline text-lg p-2">
-                {user ? user.username : "Username"}
+              <User className="h-5 w-5" />
+              <span className="hidden sm:inline text-base p-2">
+                {user ? user.name ?? user.username : "Username"}
               </span>
               <svg
                 className={`h-4 w-4 transition ${
@@ -65,23 +89,25 @@ export default function BTRNavbar() {
             </button>
 
             {isDropOpen && (
-              <div className="absolute right-0 top-full mt-2 w-40 rounded-lg border bg-white shadow-lg py-1 z-40">
+              <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border bg-white shadow-lg py-1 z-40">
                 <a
                   onClick={handleCreateServiceAccount}
                   href="#"
                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   <UserPlus className="h-4 w-4 inline-block mr-2" />
-                  Create Service User Account
+                  Create Service User
                 </a>
 
-                <a href="#"
-                   onClick={handleCreateAdminAccount}
-                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                <a
+                  href="#"
+                  onClick={handleCreateAdminAccount}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                 >
                   <UserPlus className="h-4 w-4 inline-block mr-2" />
-                  Create an Admin Account
+                  Create Admin Account
                 </a>
+
                 <button
                   onClick={() => {
                     setIsDropOpen(false);
@@ -93,12 +119,52 @@ export default function BTRNavbar() {
                   Settings
                 </button>
 
-                <LogoutButton className=" w-full text-left px-4 py-2 hover:bg-gray-100" />
+                <LogoutButton className="block w-full text-left px-4 py-2 hover:bg-gray-100" />
               </div>
             )}
           </div>
         </div>
       </nav>
+
+      {/* Sidebar ( mobile view) */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div
+            onClick={() => setIsSidebarOpen(false)}
+            className="bg-black/50 w-full"
+          ></div>
+          <div className="bg-white w-64 h-full shadow-lg p-4 flex flex-col gap-4 animate-slideIn">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold">Menu</h2>
+              <button onClick={() => setIsSidebarOpen(false)}>
+                <X className="h-6 w-6 text-gray-700" />
+              </button>
+            </div>
+
+            <Button onClick={handleBack} variant="ghost" className="text-left">
+              Dashboard
+            </Button>
+            <Button
+              onClick={handleSettings}
+              variant="ghost"
+              className="text-left"
+            >
+              Settings
+            </Button>
+            <Button
+              onClick={handleCalendar}
+              variant="ghost"
+              className="text-left"
+            >
+              Calendar
+            </Button>
+
+            <hr className="my-2" />
+
+            <LogoutButton className="text-left" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

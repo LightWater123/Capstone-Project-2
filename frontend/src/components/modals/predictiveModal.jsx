@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
 
 //(daysOfWeek array is unchanged)
 const daysOfWeek = [
@@ -26,6 +27,7 @@ export default function PredictiveMaintenanceModal({
   onSubmit,
   selectedEquipment,
 }) {
+  //console.log(selectedEquipment);
   // ... (useState and useEffect for formData are unchanged) ...
   const [formData, setFormData] = useState({
     install_date: '',
@@ -80,13 +82,13 @@ export default function PredictiveMaintenanceModal({
     // The parent is responsible for knowing which equipment IDs to apply this to.
     onSubmit(formData);
   };
-  // -------------------------------
+  
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-2xl shadow-lg border border-yellow-400 relative">
+      <div className="bg-white p-6 rounded-lg w-full max-w-2xl shadow-lg border border-collapse relative">
         <button
           type="button"
           onClick={onClose}
@@ -96,7 +98,7 @@ export default function PredictiveMaintenanceModal({
           &times;
         </button>
 
-        <h2 className="text-xl font-bold text-yellow-700 mb-2">
+        <h2 className="text-xl font-bold text-gray-500 mb-2">
           Predictive Maintenance
         </h2>
         <p className="text-gray-600 mb-6">
@@ -148,6 +150,8 @@ export default function PredictiveMaintenanceModal({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-black rounded bg-white placeholder-black text-black"
                 required
+                min="0"
+                max="24"
             />
             </div>
 
@@ -177,19 +181,27 @@ export default function PredictiveMaintenanceModal({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap justify-end gap-4 pt-6">
-            <button
+            <Button
               type="submit"
-              className="bg-yellow-400 text-white px-4 py-2 rounded hover:bg-yellow-700"
+              variant="ghost"
+              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
             >
               Activate / Update
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="ghost"
               onClick={onClose}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-600"
+              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-red-90 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       </div>

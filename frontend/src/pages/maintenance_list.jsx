@@ -5,6 +5,7 @@ import Navbar from "../components/modals/serviceNavbar.jsx";
 import BTRNavbar from '../components/modals/btrNavbar.jsx';
 import { useMonitorMaintenance } from '../hooks/useMonitorMaintenance.js';
 import { usePredictiveMaintenance } from '../hooks/usePredictiveMaintenance.js';
+import { Button } from "@/components/ui/button";
 
 export default function MaintenanceList() {
   const navigate = useNavigate();
@@ -24,14 +25,14 @@ export default function MaintenanceList() {
     setSortBy
   } = useMonitorMaintenance();
 
-  const { maintenanceDates } = usePredictiveMaintenance();   // predictive data
-  /* -------------------------------------------------- */
+  //const { maintenanceDates } = usePredictiveMaintenance();   // predictive data
+  
 
   /* Helper – pick predicted next check-up for an asset */
-  const getNextCheckup = (assetId) => {
-    const item = maintenanceDates.find(md => md.id === assetId);
-    return item?.next_maintenance_checkup || null;
-  };
+  // const getNextCheckup = (assetId) => {
+  //   const item = maintenanceDates.find(md => md.id === assetId);
+  //   return item?.next_maintenance_checkup || null;
+  // };
 
   const formatDate = (d) => (d ? new Date(d).toLocaleString() : 'Not scheduled');
 
@@ -46,16 +47,16 @@ export default function MaintenanceList() {
     <div className="min-h-screen bg-gray-50 relative">
       <BTRheader />
       <BTRNavbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+      <div className="max-w-[84rem] mx-auto px-4 sm:px-6 mt-4 pt-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-gray-400">Monitor Maintenance</h1>
-          <button
+          <h1 className="text-2xl font-semibold text-gray-500">Monitor Maintenance</h1>
+          <Button
             onClick={() => navigate('/inventory')}
-            className="px-4 py-2 bg-yellow-400 text-white rounded font-semibold hover:bg-yellow-500"
+            className="px-4 py-2 bg-blue-900 text-white rounded font-semibold hover:bg-blue-950"
           >
             Back to Inventory
-          </button>
+          </Button>
         </div>
 
         {/* Search / Sort */}
@@ -136,12 +137,12 @@ export default function MaintenanceList() {
                     </div>
 
                     {/* Predictive maintenance row */}
-                    <div className="sm:col-span-2">
+                    {/* <div className="sm:col-span-2">
                       <span className="text-gray-500">Predictive Next Check-up:</span>
                       <p className="font-medium text-blue-600">
                         {formatDate(getNextCheckup(s.asset_id))}
                       </p>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>

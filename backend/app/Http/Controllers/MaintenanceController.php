@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Equipment;
 use App\Models\MaintenanceJob;
+use App\Models\EquipmentType;
 use App\Models\Message;
 use App\Jobs\SendMaintenanceEmail;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,6 +16,7 @@ use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\ObjectId;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class MaintenanceController extends Controller
 {
@@ -252,7 +254,12 @@ class MaintenanceController extends Controller
 
         // Handle if no rules are found for this article type
         if (!$rules) {
-            return response()->json(['message' => 'No maintenance rules found for article type: ' . $equipment->article], 400);
+            $rules = EquipmentType::create([
+                'name' => strtolower($equipment->article),
+                'default_max_usage_hours' => 1000, // Default: 1000 hours
+                'default_max_time_days' => 365,    // Default: 1 year
+            ]);
+            // return response()->json(['message' => 'No maintenance rules found for article type: ' . $equipment->article, 'error' => ''], 400);
         }
 
         // Get thresholds. Check for item-specific overrides first, then use type defaults.
@@ -272,7 +279,7 @@ class MaintenanceController extends Controller
         $averageDailyUsage = ($totalWeeklyUsage > 0) ? $totalWeeklyUsage / 7 : 0;
 
         // calculate predicted date based on usage
-        $predictedUsageDate = Carbon::maxValue(); // Default to "never"
+        $predictedUsageDate = Carbon::create(9999, 12, 31, 0, 0, 0); // Default to "never"
         if (!is_null($maxUsageHours) && $averageDailyUsage > 0) {
             $remainingUsageHours = $maxUsageHours - $initialRunHours;
             // Calculate days left. If already overdue, set to 0.
@@ -282,7 +289,7 @@ class MaintenanceController extends Controller
         }
 
         // calculate predicted date based on time
-        $predictedTimeDate = Carbon::maxValue(); // Default to "never"
+        $predictedTimeDate = Carbon::create(9999, 12, 31, 0, 0, 0); // Default to "never"
         if (!is_null($maxTimeDays)) {
             // Add max days to the *install date*
             $predictedTimeDate = $startDate->copy()->addDays($maxTimeDays);
@@ -292,7 +299,7 @@ class MaintenanceController extends Controller
         $nextMaintenanceDate = $predictedTimeDate->min($predictedUsageDate);
 
         // Handle case where item never needs maintenance (e.g., 0 usage and no time limit)
-        if ($nextMaintenanceDate->equalTo(Carbon::maxValue())) {
+        if ($nextMaintenanceDate->equalTo(Carbon::create(9999, 12, 31, 0, 0, 0))) {
             $nextMaintenanceDate = null; 
         }
 
@@ -318,4 +325,43 @@ class MaintenanceController extends Controller
     {
 
     }
+
+    public function uploadReport(Request $request)
+    {
+        $request->validate([
+            'report_file' => 'required|file|mimes:pdf|max:5120', // 5 MB
+        ]);
+
+        $file  = $request->file('report_file');
+        $fname = Str::random(20).'.pdf';
+
+        // store in storage/app/public/reports
+        $path = $file->storeAs('public/reports', $fname);
+
+        // public URL
+        $url = asset('storage/reports/'.$fname);
+
+        return response()->json(['url' => $url]);
+    }
+
+    public function updateReport(Request $request, $id)
+    {
+        $request->validate([
+            'remarks'     => 'nullable|string|max:5000',
+            'report_file' => 'nullable|url', // save the URL returned by upload
+        ]);
+
+        $doc = MaintenanceJob::find($id);
+        if (!$doc) return response()->json(['error' => 'Not found'], 404);
+
+        // only send the keys that really came
+        $update = [];
+        if ($request->exists('remarks'))     $update['remarks']     = $request->remarks;
+        if ($request->exists('report_file')) $update['report_file'] = $request->report_file;
+
+        $doc->update($update);
+
+        return response()->json(['message' => 'Report updated']);
+    }
+
 }

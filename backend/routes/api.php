@@ -51,7 +51,10 @@ Route::middleware(['auth:admin'])->group(function () {
         Route::post('/schedule',     [MaintenanceController::class, 'store']);
         Route::get('/admin/messages',[MaintenanceController::class, 'sent']);
         Route::get('/due-for-maintenance', [MaintenanceController::class, 'getDueForMaintenance']);
-        Route::get('/predictive', [MaintenanceController::class, 'predictiveMaintenance']);
+        Route::post('/equipment/{id}/predictive-maintenance', [
+            MaintenanceController::class, 'predictiveMaintenance'
+        ]);
+        Route::get('/inventory/due-soon', [EquipmentController::class, 'dueSoon']);
     });
 });
 
@@ -61,6 +64,8 @@ Route::middleware(['auth:service'])->group(function () {
     Route::get('/my-messages', [MaintenanceController::class,'messages']);
     Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
     Route::post('/service/change-password', [PasswordController::class, 'change']);
+    Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
+    Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
 });
 
 // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)

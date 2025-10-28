@@ -5,17 +5,9 @@ import { useMaintenance } from "../hooks/useMaintenance";
 import { parsePdf } from "../hooks/usePdfParser";
 import { useCsrf } from "../hooks/useCsrf";
 import api from "../api/api";
-import { toast } from "react-toastify";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
-import { ArrowUpAZ, Icon, Plus, Wrench } from "lucide-react";
-import { Monitor } from "lucide-react";
-import { Calendar } from "lucide-react";
-import { Car } from "lucide-react";
-import { Keyboard } from "lucide-react";
-import { Search } from "lucide-react";
-import { ArrowUpDown } from 'lucide-react';
-import { ArrowDownAZ } from 'lucide-react';
+import * as React from "react";
 
 // Modals
 import ScheduleMaintenanceModal from "../components/modals/scheduleModal.jsx";
@@ -25,7 +17,46 @@ import UploadPDFModal from "../components/modals/uploadPDFModal.jsx";
 import ViewFullDetailModal from "../components/modals/fullDetailModal.jsx";
 import EditItemModal from "../components/modals/editItemModal.jsx";
 import ViewHistory from "../components/modals/viewHistoryModal.jsx";
-import PredictiveModal from "../components/modals/predictiveModal.jsx"
+import PredictiveModal from "../components/modals/predictiveModal.jsx";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import PaginationBar from "@/components/paginationBar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+//Icons
+import {
+  ArrowUpAZ,
+  Icon,
+  Plus,
+  Wrench,
+  Monitor,
+  Calendar,
+  Car,
+  Keyboard,
+  Search,
+  ArrowUpDown,
+  ChevronDownIcon,
+  ChevronRight,
+  ArrowDownAZ,
+} from "lucide-react";
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -55,14 +86,12 @@ export default function InventoryDashboard() {
   //Sort Handler
   const handleSort = (type) => {
     //console.log("Sorting by:", type);
-    const sortFilter = sortBy.split(":")
-    if(sortFilter[0] === type) {
-      if(sortFilter[1] === "asc") {
-
+    const sortFilter = sortBy.split(":");
+    if (sortFilter[0] === type) {
+      if (sortFilter[1] === "asc") {
         setSortBy(`${type}:desc`);
       } else {
         setSortBy(`${type}:asc`);
-
       }
     } else {
       setSortBy(`${type}:asc`);
@@ -87,6 +116,17 @@ export default function InventoryDashboard() {
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState([]);
 
+  //sort map
+  const SORT_MAP = {
+    "name:asc": "Name A-Z",
+    "name:desc": "Name Z-A",
+    "price:asc": "Price ↑",
+    "price:desc": "Price ↓",
+  };
+
+  //sort text placeholder
+  const sortText = SORT_MAP[sortBy] ?? "Sort by:";
+
   // back function
   const navigate = useNavigate();
   const handleBack = () => navigate("/admin/dashboard");
@@ -96,6 +136,23 @@ export default function InventoryDashboard() {
     toast.success("Maintenance scheduled & mail sent!");
     setLastSent(job); // the record we just created
     setShowSentModal(true); // pop the mini receipt
+  };
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // derive paginated data
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredData.slice(startIndex, endIndex);
+
+  // Function to handle page changes
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   // PDF file
@@ -207,7 +264,8 @@ export default function InventoryDashboard() {
 
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
-    () => inventoryData.filter(item => selectedEquipmentIds.includes(item.id)), // <-- THE FIX IS HERE
+    () =>
+      inventoryData.filter((item) => selectedEquipmentIds.includes(item.id)),
     [selectedEquipmentIds, inventoryData]
   );
 
@@ -224,8 +282,8 @@ export default function InventoryDashboard() {
     }
     const firstArticle = selectedItems[0].article;
     // Disabled if not all selected items share the same article
-    return !selectedItems.every(item => item.article === firstArticle);
-  }, [selectedItems])
+    return !selectedItems.every((item) => item.article === firstArticle);
+  }, [selectedItems]);
 
   // open predictive modal
   const handleOpenPredictiveModal = () => {
@@ -235,31 +293,38 @@ export default function InventoryDashboard() {
 
   // handle predictive submit
   const handlePredictiveSubmit = async (formData) => {
-    console.log("Applying data to all selected IDs:", selectedEquipmentIds, formData);
-    
+    console.log(
+      "Applying data to all selected IDs:",
+      selectedEquipmentIds,
+      formData
+    );
+
     try {
       // Create an array of API post requests
-      const updatePromises = selectedEquipmentIds.map(id => {
+      const updatePromises = selectedEquipmentIds.map((id) => {
         // 'id' here comes from your selectedEquipmentIds array (item.id)
-        return api.post(`/api/equipment/${id}/predictive-maintenance`, formData);
+        return api.post(
+          `/api/maintenance/equipment/${id}/predictive-maintenance`,
+          formData
+        );
       });
-      
+
       // Wait for all API calls to complete
       await Promise.all(updatePromises);
-      
-      toast.success(`Successfully activated predictive maintenance for ${selectedEquipmentIds.length} items!`);
-      
+
+      toast.success(
+        `Successfully activated predictive maintenance for ${selectedEquipmentIds.length} items!`
+      );
+
       // Close modal, clear selection, and refresh the inventory list
-      setShowPredictive(false); 
+      setShowPredictive(false);
       setSelectedEquipmentIds([]);
       fetchInventory(); // Make sure fetchInventory is available here
-
     } catch (error) {
       console.error("Failed to update one or more items:", error);
       toast.error("An error occurred. Please check the console and try again.");
     }
   };
-
 
   // render component UI
   return (
@@ -267,244 +332,386 @@ export default function InventoryDashboard() {
       <div className="min-h-screen bg-gray-50 relative">
         <BTRheader />
         <BTRNavbar />
+        {/* <Button
+          onClick={() => {
+            toast.success("Hello");
+          }}
+        >
+          TEST
+        </Button> */}
 
-        {/* Category Tabs */}
-        <div className="flex gap-4 px-4 pt-4 justify-center ">
-          {[
-            { name: "PPE", Icon: Car },
-            { name: "RPCSP", Icon: Keyboard },
-            {name: "Due soon", Icon: Calendar},
-          ].map((type) => {
-            const isActive = category === type.name;
-            return (
-              <button
-                key={type.name}
-                onClick={() => setCategory(type.name)}
-                className={`px-4 py-2 rounded-md transition ${
-                  isActive
-                    ? "bg-yellow-400 text-white"
-                    : "bg-gray-200 text-black hover:bg-yellow-400"
-                }`}
-              >
-                <type.Icon className="h-5 w-5 inline-block mr-2" />
-                {type.name}
-              </button>
-            );
-          })}
-        </div>
+        <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4 justify-start flex">
+          <nav className="w-full border-b mb-2 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
+              {/* Search */}
+              <div className="relative w-full ">
+                <Input
+                  type="text"
+                  placeholder={`Search ${category} items...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 py-2 text-base"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+              </div>
+              {/* Sort Dropdown */}
+              <div className="relative w-full sm:w-auto">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full md:w-[100px]">
+                    {/* 👇  this line shows “Sort : Name A-Z” etc. */}
+                    {`${sortText}`}
+                  </SelectTrigger>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
-          <nav className="w-full bg-white shadow-md rounded-xl mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 py-4 px-4 sm:px-6 relative">
-            {/* Search */}
-            <div className="w-full sm:w-1/2 relative">
-              <input
-                type="text"
-                placeholder={`Search ${category} items...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                style={{ paddingLeft: "2.5rem" }}
-              />
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSortOptions(!showSortOptions)}
-                className="px-2 py-0.5 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300"
-              >
-                Sort by:
-              </button>
-
-              {showSortOptions && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                  <button
-                    onClick={() => handleSort("name")}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Name
-                    {sortBy.split(":")[0] === "name" && sortBy.split(":")[1] === "desc" ? <ArrowUpAZ className="h-5 w-5 inline-block ml-2"/> : <ArrowDownAZ className="h-5 w-5 inline-block ml-2"/>}
-                  </button>
-                  <button
-                    onClick={() => handleSort("price")}
-                    className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                  >
-                    Price
-                    <ArrowUpDown className="h-5 w-5 inline-block ml-2"/>
-                  </button>
-                </div>
-              )}
+                  <SelectContent>
+                    <SelectItem value="name:asc">Name A-Z</SelectItem>
+                    <SelectItem value="name:desc">Name Z-A</SelectItem>
+                    <SelectItem value="price:asc">Price ↑</SelectItem>
+                    <SelectItem value="price:desc">Price ↓</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-              <button
-                className="bg-yellow-400 text-white px-3 py-0.5 rounded-md font-semibold hover:bg-yellow-500"
+            <div className="flex flex-wrap gap-2 sm:gap-3 w-full">
+              <Button
+                className="flex-1 text-white px-2 sm:px-3 py-1 rounded-md font-semiboldtext-xs sm:text-sm leading-tight whitespace-nowrap bg-blue-900 hover:bg-blue-950"
                 onClick={() => setShowTypeSelector(true)}
               >
                 <Plus className="h-5 w-5 inline-block mr-2" />
                 Add Equipment
-              </button>
+              </Button>
 
-              <button
+              <Button
+                onClick={() => navigate("/admin/maintenance-list")}
+                className="flex-1 px-3 py-0.5  text-white rounded-md font-semibold bg-blue-900 hover:bg-blue-950 "
+              >
+                <Monitor className="h-5 w-5 inline-block mr-2" />
+                Monitor Maintenance
+              </Button>
+
+              <Button
                 disabled={selectedEquipmentIds.length === 0}
                 onClick={openScheduleModal}
-                className={`px-3 py-0.5 rounded-md font-semibold ${
+                className={`flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap bg-blue-900 hover:bg-blue-950 ${
                   selectedEquipmentIds.length > 0
-                    ? "bg-yellow-400 text-white hover:bg-yellow-500"
+                    ? "bg-blue-900 hover:bg-blue-950 text-white "
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 <Calendar className="h-5 w-5 inline-block mr-2" />
                 Schedule Maintenance
-              </button>
+              </Button>
 
-              <button
-                onClick={() => navigate("/admin/maintenance-list")}
-                className="px-3 py-0.5 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500"
-              >
-                <Monitor className="h-5 w-5 inline-block mr-2" />
-                Monitor Maintenance
-              </button>
-
-              <button
-                className="px-3 py-0.5 bg-yellow-400 text-white rounded-md font-semibold hover:bg-yellow-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                // This correctly calls your function
+              <Button
+                className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
                 onClick={handleOpenPredictiveModal}
-                // This correctly uses your logic
-                disabled={isPredictiveButtonDisabled} 
-                // This correctly adds the helpful title
+                disabled={isPredictiveButtonDisabled}
                 title={
                   isPredictiveButtonDisabled
                     ? "Please select one or more items of the SAME article type (e.g., all 'aircon')"
                     : "Activate/Update Predictive Maintenance"
                 }
               >
-                <Wrench className="h-5 w-5 inline-block mr-2" /> 
+                <Wrench className="h-5 w-5 inline-block mr-2" />
                 Predictive Maintenance
-              </button>
+              </Button>
             </div>
           </nav>
         </div>
 
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 mt-4 flex flex-wrap items-center justify-between gap-3 pb-3">
+          {/* Category Buttons */}
+          <div className="flex flex-wrap w-full md:w-auto gap-3 ">
+            {[
+              { name: "PPE", Icon: Car },
+              { name: "RPCSP", Icon: Keyboard },
+              { name: "Due soon", Icon: Calendar },
+            ].map((type) => {
+              const isActive = category === type.name;
+              return (
+                <Button
+                  key={type.name}
+                  onClick={() => setCategory(type.name)}
+                  variant="ghost"
+                  className={`relative flex-1 md:flex-none flex items-center justify-center gap-2 text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-950 
+                    after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+                    after:h-[3px] after:rounded-full after:-translate-x-1/2
+                    after:transition-all after:duration-300
+          ${
+            isActive
+              ? "after:w-full after:bg-blue-900 text-blue-900"
+              : "after:w-0 after:bg-blue-950 hover:after:w-full hover:text-blue-900"
+          }
+          focus:outline-none
+        `}
+                >
+                  <type.Icon className="h-4 w-4" />
+                  {type.name}
+                </Button>
+              );
+            })}
+          </div>
+
+          {/* Items per page selector */}
+          <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
+            <Label>Items per page:</Label>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => setItemsPerPage(Number(v))}
+            >
+              <SelectTrigger className="w-full md:w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Items per page</SelectLabel>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="40">40</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Equipment Table */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="px-1 pt-3 pb-3 bg-transparent rounded-xl shadow-md">
+        <div className="max-w-[88rem] mx-auto px-4 sm:px-6">
+          <div className="px-1 pt-3 pb-3 rounded-md border mt-4 mb-5">
             {filteredData.length === 0 ? (
               <p className="text-gray-500">No equipment found in {category}.</p>
-            ) : (
-              <div className="overflow-x-auto w-full">
-                <table className="w-full table-auto border border-gray-300">
-                  <thead className="bg-black-100">
-                    <tr>
-                      <th className="border px-2 py-1">Article</th>
-                      <th className="border px-2 py-1">Description</th>
-                      {category === "PPE" ? (
-                        <>
-                          <th className="border px-2 py-1">
-                            Property Number (RO)
-                          </th>
-                          <th className="border px-2 py-1">
-                            Property Number (CO)
-                          </th>
-                        </>
-                      ) : (
-                        <th className="border px-2 py-1">
-                          Semi-Expendable Property No.
-                        </th>
-                      )}
-                      <th className="border px-2 py-1">Unit</th>
-                      <th className="border px-2 py-1">Unit Value</th>
-                      <th className="border px-2 py-1">Actions</th>
-                      <th className="border px-2 py-1 text-center">
-                        <input
-                          type="checkbox"
-                          checked={
-                            filteredData.length > 0 &&
-                            selectedEquipmentIds.length === filteredData.length
-                          }
-                          onChange={(e) => {
-                            setSelectedEquipmentIds(
-                              e.target.checked
-                                ? filteredData.map((item) => item.id)
-                                : []
-                            );
-                          }}
-                          className="accent-green-500 w-4 h-4"
-                          title="Select All"
-                        />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.map((item, index) => (
-                      <tr key={index} className="hover:bg-gray-100 transition">
-                        <td className="border px-2 py-1 text-center">
-                          {item.article}
-                        </td>
-                        <td className="border px-2 py-1 text-center">
-                          {item.description}
-                        </td>
-                        {item.category === "PPE" ? (
+            ) : category !== "Due soon" ? (
+              <>
+                <div className="overflow-x-auto w-full">
+                  <Table className="w-full table-auto">
+                    <TableHeader className="sticky top-0 bg-black-100">
+                      <TableRow>
+                        <TableHead className="px-2 py-1">Article</TableHead>
+                        <TableHead className="px-2 py-1">Description</TableHead>
+                        {category === "PPE" ? (
                           <>
-                            <td className="border px-2 py-1 text-center">
-                              {item.property_ro}
-                            </td>
-                            <td className="border px-2 py-1 text-center">
-                              {item.property_co || (
-                                <span className="text-gray-400 italic">—</span>
-                              )}
-                            </td>
+                            <TableHead className="px-2 py-1">
+                              Property Number (RO)
+                            </TableHead>
+                            <TableHead className="px-2 py-1">
+                              Property Number (CO)
+                            </TableHead>
                           </>
                         ) : (
-                          <td className="border px-2 py-1 text-center">
-                            {item.semi_expendable_property_no}
-                          </td>
+                          <TableHead className="px-2 py-1">
+                            Semi-Expendable Property No.
+                          </TableHead>
                         )}
-                        <td className="border px-2 py-1 text-center">
-                          {item.unit}
-                        </td>
-                        <td className="border px-2 py-1 text-center">
-                          ₱
-                          {Number(item.unit_value).toLocaleString("en-PH", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </td>
-                        <td className="border px-2 py-1 text-center space-x-2">
-                          <button
-                            className="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500"
-                            onClick={() => {
-                              setSelectedDetailItem(item);
-                              setShowDetailModal(true);
-                            }}
-                          >
-                            View Full Detail
-                          </button>
-                        </td>
-                        <td className="border px-2 py-1 text-center">
+                        <TableHead className="px-2 py-1">Unit</TableHead>
+                        <TableHead className="px-2 py-1">Unit Value</TableHead>
+                        <TableHead className="px-5 py-1">Actions</TableHead>
+                        <TableHead className="px-2 py-1 text-center">
                           <input
                             type="checkbox"
-                            checked={selectedEquipmentIds.includes(item.id)}
+                            checked={
+                              currentItems.length > 0 &&
+                              selectedEquipmentIds.length ===
+                                currentItems.length &&
+                              currentItems.every((item) =>
+                                selectedEquipmentIds.includes(item.id)
+                              )
+                            }
                             onChange={(e) => {
-                              setSelectedEquipmentIds((prev) =>
-                                e.target.checked
-                                  ? [...prev, item.id]
-                                  : prev.filter((id) => id !== item.id)
+                              const currentIds = currentItems.map(
+                                (item) => item.id
+                              );
+                              setSelectedEquipmentIds(
+                                (prev) =>
+                                  e.target.checked
+                                    ? [...new Set([...prev, ...currentIds])] // Add current page's IDs
+                                    : prev.filter(
+                                        (id) => !currentIds.includes(id)
+                                      ) // Remove current page's IDs
                               );
                             }}
                             className="accent-green-500 w-4 h-4"
-                            title="Select for Maintenance"
+                            title="Select All on This Page"
                           />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {currentItems.map((item, index) => (
+                        <TableRow
+                          key={index}
+                          className="hover:bg-gray-100 transition"
+                        >
+                          <TableCell className="px-2 py-1 min-w-[128px] max-w-[192px] truncate">
+                            {item.article}
+                          </TableCell>
+                          <TableCell className="px-2 py-1 min-w-[160px] max-w-[288px] truncate">
+                            {item.description}
+                          </TableCell>
+                          {item.category === "PPE" ? (
+                            <>
+                              <TableCell className="px-2 py-1 min-w-[128px] max-w-[176px] truncate">
+                                {item.property_ro}
+                              </TableCell>
+                              <TableCell className="px-2 py-1 min-w-[128px] max-w-[176px] truncate">
+                                {item.property_co || (
+                                  <span className="text-gray-400 italic">
+                                    —
+                                  </span>
+                                )}
+                              </TableCell>
+                            </>
+                          ) : (
+                            <TableCell className="px-2 py-1 min-w-[128px] max-w-[176px] truncate">
+                              {item.semi_expendable_property_no}
+                            </TableCell>
+                          )}
+                          <TableCell className="px-2 py-1 min-w-[96px] max-w-[120px] truncate">
+                            {item.unit}
+                          </TableCell>
+                          <TableCell className="px-2 py-1 min-w-[96px] max-w-[128px] truncate">
+                            ₱
+                            {Number(item.unit_value).toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </TableCell>
+                          <TableCell className="px-2 py-1 space-x-2 min-w-[112px] max-w-[144px]">
+                            <Button
+                              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+                              onClick={() => {
+                                setSelectedDetailItem(item);
+                                setShowDetailModal(true);
+                              }}
+                              variant="ghost"
+                            >
+                              View Full Detail
+                              <ChevronRight className="h-5 w-5 inline-block" />
+                            </Button>
+                          </TableCell>
+                          <TableCell className="px-2 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedEquipmentIds.includes(item.id)}
+                              onChange={(e) => {
+                                setSelectedEquipmentIds((prev) =>
+                                  e.target.checked
+                                    ? [...prev, item.id]
+                                    : prev.filter((id) => id !== item.id)
+                                );
+                              }}
+                              className="accent-blue-900 w-4 h-4"
+                              title="Select for Maintenance"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="overflow-x-auto w-full">
+                  <Table className="w-full table-auto">
+                    <TableHeader className="bg-black-100">
+                      <TableRow>
+                        <TableHead className="px-2 py-1">Article</TableHead>
+                        <TableHead className="px-2 py-1">Description</TableHead>
+                        <TableHead className="px-2 py-1">Type</TableHead>
+                        <TableHead className="px-2 py-1">Due Date</TableHead>
+                        <TableHead className="px-5 py-1">Actions</TableHead>
+                        <TableHead className="px-2 py-1 text-center">
+                          Select
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...currentItems]
+                        .sort((a, b) => {
+                          const dateA = a.next_maintenance_date
+                            ? new Date(a.next_maintenance_date)
+                            : Infinity;
+                          const dateB = b.next_maintenance_date
+                            ? new Date(b.next_maintenance_date)
+                            : Infinity;
+                          return dateA - dateB; // nearest due date
+                        })
+                        .map((item) => (
+                          <TableRow
+                            key={item.id}
+                            className="hover:bg-gray-100 transition"
+                          >
+                            <TableCell className="px-2 py-1">
+                              {item.article}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.description}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.category}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.next_maintenance_date ? (
+                                new Date(
+                                  item.next_maintenance_date
+                                ).toLocaleDateString()
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="px-2 py-1 text-center space-x-2">
+                              <Button
+                                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+                                onClick={() => {
+                                  setSelectedDetailItem(item);
+                                  setShowDetailModal(true);
+                                }}
+                                variant="ghost"
+                              >
+                                View Full Detail
+                                <ChevronRight className="h-5 w-5 inline-block" />
+                              </Button>
+                            </TableCell>
+                            <TableCell className="px-2 py-1 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedEquipmentIds.includes(item.id)}
+                                onChange={(e) => {
+                                  setSelectedEquipmentIds((prev) =>
+                                    e.target.checked
+                                      ? [...prev, item.id]
+                                      : prev.filter((id) => id !== item.id)
+                                  );
+                                }}
+                                className="accent-blue-900 w-4 h-4"
+                                title="Select for Maintenance"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-4 mb-4">
+              <PaginationBar
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
         </div>
 
         {/* Modals */}
@@ -611,7 +818,7 @@ export default function InventoryDashboard() {
         <PredictiveModal
           // open modal
           isOpen={showPredictive}
-          item={currentTemplateItem}
+          selectedEquipment={currentTemplateItem}
           onClose={() => setShowPredictive(false)}
           onSubmit={handlePredictiveSubmit}
         />

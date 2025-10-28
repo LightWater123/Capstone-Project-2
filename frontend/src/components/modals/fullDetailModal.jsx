@@ -1,5 +1,7 @@
 import { useState } from "react";
 import ScheduleModal from "./scheduleModal";
+import { Button } from "@/components/ui/button";
+import { Album } from "lucide-react";
 
 export default function ViewItemDetailModal({
   isOpen,
@@ -18,14 +20,16 @@ export default function ViewItemDetailModal({
 
   if (!isOpen && !showSchedule) return null;
 
+  //console.log(item);
+
   return (
     <>
       {/* ----------  DETAIL MODAL  ---------- */}
       {isOpen && item && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-4 p-6 border-collapse max-h-[90vh] overflow-y-auto ">
+            <div className="flex justify-between items-center mb-4 border-b pb-2">
+              <h2 className="text-xl font-bold text-gray-800 ">
                 Equipment Details
               </h2>
               <button
@@ -36,100 +40,190 @@ export default function ViewItemDetailModal({
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-              <div>
-                <strong>Article:</strong> {item.article}
+            <div className="grid grid-cols-6 auto-rows-min gap-x-12 gap-y-6 text-sm text-gray-700 bg-gray-50 p-6 rounded-xl border border-gray-200 overflow-x-auto">
+              {/* article */}
+              <div className="col-span-6 flex flex-col items-center border-b pb-2">
+                <div className="flex items-center space-x-2">
+                  <Album className="h-6 w-6 text-gray-800" />
+                  <strong className="text-gray-800 text-xl">Article</strong>
+                </div>
+                <span className="text-gray-600 break-words text-xl mt-2 text-center">
+                  {item.article}
+                </span>
               </div>
-              <div>
-                <strong>Description:</strong> {item.description}
+
+              {/* descrip */}
+              <div className="col-span-3 row-start-2 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Description:</strong>
+                <span className="text-gray-600 break-words whitespace-pre-wrap">
+                  {item.description}
+                </span>
               </div>
+
               {item.category === "PPE" ? (
-                <>
-                  <div>
-                    <strong>Property No. (RO):</strong> {item.property_ro}
-                  </div>
-                  <div>
-                    <strong>Property No. (CO):</strong>{" "}
-                    {item.property_co || "—"}
-                  </div>
-                </>
+                //property ro
+                <div className="col-span-3 col-start-4 row-start-2 flex flex-col items-start space-y-1">
+                  <strong className="text-gray-800">Property No. (RO):</strong>
+                  <span className="text-gray-600 break-words">
+                    {item.property_ro}
+                  </span>
+                </div>
               ) : (
-                <div>
-                  <strong>Semi-Expendable Property No.:</strong>{" "}
-                  {item.semi_expendable_property_no}
+                // sepn
+                <div className="col-span-3 col-start-4 row-start-2 flex flex-col items-start space-y-1">
+                  <strong className="text-gray-800">
+                    Semi-Expendable Property No.:
+                  </strong>
+                  <span className="text-gray-600 break-words">
+                    {item.semi_expendable_property_no}
+                  </span>
                 </div>
               )}
-              <div>
-                <strong>Unit:</strong> {item.unit}
+
+              {/* property co*/}
+              <div className="col-span-3 row-start-3 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Property No. (CO):</strong>
+                <span className="text-gray-600 break-words">
+                  {item.property_co || "—"}
+                </span>
               </div>
-              <div>
-                <strong>Unit Value:</strong> ₱
-                {Number(item.unit_value).toLocaleString()}
+
+              {/* unit */}
+              <div className="col-span-3 col-start-4 row-start-3 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Unit:</strong>
+                <span className="text-gray-600 break-words">{item.unit}</span>
               </div>
-              <div>
-                <strong>Balance per Card:</strong> {item.recorded_count}
+
+              {/* unit val*/}
+              <div className="col-span-3 row-start-4 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Unit Value:</strong>
+                <span className="text-gray-600 break-words">
+                  ₱{Number(item.unit_value).toLocaleString()}
+                </span>
               </div>
-              <div>
-                <strong>On-hand Count:</strong> {item.actual_count}
+
+              {/* balance per card*/}
+              <div className="col-span-3 col-start-4 row-start-4 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Balance per Card:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.recorded_count}
+                </span>
               </div>
-              <div>
-                <strong>Shortage/Overage Qty:</strong>{" "}
-                {item.shortage_or_overage_qty}
+
+              {/* on hand count */}
+              <div className="col-span-3 row-start-5 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">On-hand Count:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.actual_count}
+                </span>
               </div>
-              <div>
-                <strong>Shortage/Overage Value:</strong> ₱
-                {item.shortage_or_overage_val}
+
+              {/* shortage/overage qty */}
+              <div className="col-span-3 col-start-4 row-start-5 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Shortage/Overage Qty:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.shortage_or_overage_qty}
+                </span>
               </div>
-              <div>
-                <strong>Location:</strong> {item.location}
+
+              {/* shortage/overage value */}
+              <div className="col-span-3 row-start-6 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">
+                  Shortage/Overage Value:
+                </strong>
+                <span className="text-gray-600 break-words">
+                  ₱{item.shortage_or_overage_val}
+                </span>
               </div>
-              <div>
-                <strong>Remarks:</strong> {item.remarks}
+
+              {/* loc */}
+              <div className="col-span-3 col-start-4 row-start-6 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Location:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.location}
+                </span>
               </div>
-              <div>
-                <strong>Date Added:</strong>{" "}
-                {item.date_added
-                  ? new Date(item.date_added).toLocaleDateString("en-PH", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "—"}
+
+              {/* remarks */}
+              <div className="col-span-3 row-start-7 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Remarks:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.remarks}
+                </span>
               </div>
-              <div>
-                <strong>Condition:</strong> {item.condition || "—"}
+
+              {/* added date*/}
+              <div className="col-span-3 col-start-4 row-start-7 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Date Added:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.created_at
+                    ? new Date(item.created_at).toLocaleDateString("en-PH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "—"}
+                </span>
               </div>
-              <div>
-                <strong>Duration before checking:</strong> {item.start_date} to{" "}
-                {item.end_date}
+
+              {/* condi */}
+              <div className="col-span-3 row-start-8 flex flex-col items-start space-y-1">
+                <strong className="text-gray-800">Condition:</strong>
+                <span className="text-gray-600 break-words">
+                  {item.condition || "—"}
+                </span>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
+            {/* buttons */}
+            <div className="flex flex-col md:flex-row justify-end md:justify-end gap-3 mt-6 md:items-start items-end">
+              {/* edit button */}
+              <Button
                 onClick={onEdit}
-                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
+                variant="ghost"
+                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 Edit
-              </button>
-              <button
+              </Button>
+
+              {/* remove */}
+              <Button
                 onClick={() => onDelete(item.id)}
-                className="px-3 py-1 bg-red-400 text-white rounded hover:bg-red-500 text-sm"
+                variant="ghost"
+                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-red-900 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 Remove
-              </button>
-              <button
+              </Button>
+
+              {/* view h */}
+              <Button
                 onClick={() => onViewHistory(true)}
-                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
+                variant="ghost"
+                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 View History
-              </button>
-              <button
+              </Button>
+
+              {/* sched */}
+              <Button
                 onClick={openScheduler}
-                className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500 text-sm"
+                variant="ghost"
+                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 Schedule Maintenance
-              </button>
+              </Button>
             </div>
           </div>
         </div>

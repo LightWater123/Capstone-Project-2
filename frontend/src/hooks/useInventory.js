@@ -12,7 +12,11 @@ export function useInventory(category) {
     queryKey: ['inventory', category],
     queryFn: async () => {
       try {
-        const res = await axios.get(`/api/inventory?category=${category}`);
+        let url = `/api/inventory?category=${category}`
+        if(category.toLowerCase() === "due soon"){
+          url = '/api/maintenance/inventory/due-soon';
+        }
+        const res = await axios.get(url);
         return res.data;
       } catch (err) {
         console.error("Inventory fetch failed:", err);

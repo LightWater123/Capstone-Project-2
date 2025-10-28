@@ -17,7 +17,7 @@ export default function ServiceSettings() {
       <BTRheader />
       <Navbar/>
       {/* Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4 flex justify-between items-center">
+      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4 flex justify-between items-center">
       
         <div className="flex items-center gap-4 justify-start">
         <button
@@ -30,7 +30,7 @@ export default function ServiceSettings() {
       </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
         <h1 className="text-2xl font-semibold mb-6">
           <Settings className="h-6 w-6 inline-block mr-2" />
           Settings
@@ -38,7 +38,7 @@ export default function ServiceSettings() {
       </div>
       
       {/* Security card */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-4">
+      <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4">
         <div className="bg-white shadow-sm rounded-xl p-6">
           <h2 className="text-xl font-semibold mb-4">Security</h2>
 

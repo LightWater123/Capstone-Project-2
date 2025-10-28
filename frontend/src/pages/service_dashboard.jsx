@@ -11,10 +11,13 @@ export default function ServiceDashboard() {
  const navigate = useNavigate();
 
  const handleCreateServiceAccount = () => navigate("/register/service");
- const handleInventoryList = () => navigate("/service/inventory");
+ const handleInventoryList = (assetId = null) => {
+  const path = assetId ? `/service/inventory?highlight=${assetId}` : `/service/inventory`;
+  navigate(path);
+};
   
   // Added from your admin dashboard logic, path adjusted for service
- const handleMaintenanceList = (e) => navigate(`/service/maintenance-list?id=${e}`);
+ //const handleMaintenanceList = (e) => navigate(`/service/maintenance-list?id=${e}`);
 
  // State for data, loading, and errors
  const [dueItems, setDueItems] = useState([]);
@@ -52,7 +55,7 @@ export default function ServiceDashboard() {
    <Navbar />
   
 
-   <div className="max-w-7xl mx-auto px-6 py-6">
+   <div className="max-w-[88rem] mx-auto px-6 py-6">
        {/* Preventive Maintenance */}
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Preventive Maintenance */}
@@ -87,7 +90,7 @@ export default function ServiceDashboard() {
            <li 
             key={item.id} 
             className="bg-white p-3 rounded shadow-sm border-l-4 border-yellow-500 cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={()=>handleMaintenanceList(item.asset_id)}
+            onClick={()=>handleInventoryList(item.asset_id)}
            >
              <div className="font-semibold text-gray-800">{item.asset_name}</div>
             <div className="text-sm text-gray-600 mt-1">

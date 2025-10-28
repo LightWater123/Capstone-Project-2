@@ -64,7 +64,7 @@ export default function ServiceRegister() {
         role: 'service_user',
       });
 
-      console.log("Registered service user:", response.data.user);
+      //console.log("Registered service user:", response.data.user);
       navigate('/');
     } catch (err) {
       console.error("Registration error:", err.response?.data);
