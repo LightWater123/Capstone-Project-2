@@ -16,7 +16,7 @@ export default function BTRNavbar() {
   const handleCreateServiceAccount = () => navigate("/register/service");
   const handleCreateAdminAccount = () => navigate("/register/admin");
   const handleBack = () => navigate("/admin/dashboard");
-  const handleSettings = () => navigate("/settings");
+  // const handleSettings = () => navigate("/settings");
   const handleCalendar = () => navigate("/calendar-full");
 
   return (
@@ -33,13 +33,13 @@ export default function BTRNavbar() {
             Dashboard
           </Button>
 
-          <Button
+          {/* <Button
             onClick={handleSettings}
             variant="ghost"
             className="relative text-sm px-3 py-1 bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
             Settings
-          </Button>
+          </Button> */}
 
           <Button
             onClick={handleCalendar}
@@ -108,7 +108,7 @@ export default function BTRNavbar() {
                   Create Admin Account
                 </a>
 
-                <button
+                {/* <button
                   onClick={() => {
                     setIsDropOpen(false);
                     navigate("/settings");
@@ -117,7 +117,7 @@ export default function BTRNavbar() {
                 >
                   <Settings className="h-4 w-4 inline-block mr-2" />
                   Settings
-                </button>
+                </button> */}
 
                 <LogoutButton className="block w-full text-left px-4 py-2 hover:bg-gray-100" />
               </div>
@@ -144,13 +144,13 @@ export default function BTRNavbar() {
             <Button onClick={handleBack} variant="ghost" className="text-left">
               Dashboard
             </Button>
-            <Button
+            {/* <Button
               onClick={handleSettings}
               variant="ghost"
               className="text-left"
             >
               Settings
-            </Button>
+            </Button> */}
             <Button
               onClick={handleCalendar}
               variant="ghost"

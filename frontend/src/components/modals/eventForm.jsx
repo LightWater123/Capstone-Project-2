@@ -127,10 +127,24 @@ export function EventForm({ start, end, onSubmit, onCancel }) {
           )}
         />
         <div className="flex justify-end space-x-2">
-          <Button variant="outline" type="button" onClick={onCancel}>
+          <Button 
+          variant="ghost" 
+          type="button"
+          className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-red-900 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">Create Event</Button>
+          <Button 
+          type="submit"
+          variant="ghost"
+          className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+          >Create Event</Button>
         </div>
       </form>
     </Form>

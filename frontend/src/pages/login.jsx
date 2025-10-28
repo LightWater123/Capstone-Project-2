@@ -177,11 +177,11 @@ export default function Login() {
           </p> */}
 
         {/* forgot password */}
-        <div className="text-sm text-right -mt-2 mb-2">
+        {/* <div className="text-sm text-right -mt-2 mb-2">
           <Link to="/forgot-password" className="text-white hover:underline">
             Forgot password?
           </Link>
-        </div>
+        </div> */}
       </form>
     </div>
   );

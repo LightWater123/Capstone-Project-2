@@ -7,6 +7,7 @@ import { ChevronLeftCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Eye, EyeClosed } from "lucide-react";
 
 export default function ServiceRegister() {
   const navigate = useNavigate();
@@ -26,6 +27,9 @@ export default function ServiceRegister() {
   const [loading, setLoading] = useState(false);
 
   const handleBack = () => navigate("/admin/dashboard");
+
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const serviceTypes = [
     { value: "Vehicle", label: "Vehicle" },
@@ -71,7 +75,7 @@ export default function ServiceRegister() {
       });
 
       //console.log("Registered service user:", response.data.user);
-      navigate("/");
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error("Registration error:", err.response?.data);
       if (err.response?.data?.errors) {
@@ -88,7 +92,7 @@ export default function ServiceRegister() {
     <>
       <div className="min-h-screen bg-gray-50 relative">
         <BTRheader />
-        <BTRNavbar/>
+        <BTRNavbar />
         <div className="flex justify-center items-center w-dvw p-4">
           <div className="flex flex-col items-start w-full max-w-sm ">
             <div className="pb-2">
@@ -104,13 +108,9 @@ export default function ServiceRegister() {
                 Back to Dashboard
               </Button>
             </div>
-            <div
-              className="p-6 space-y-4 w-full max-w-sm rounded-2xl bg-white shadow-md"
-            >
+            <div className="p-6 space-y-4 w-full max-w-sm rounded-2xl bg-white shadow-md">
               <form onSubmit={handleRegister} className="space-y-4">
-
-
-                <User className="mx-auto w-24 h-24"/>
+                <User className="mx-auto w-24 h-24" />
                 <h1 className="text-2xl font-bold mb-4 text-black text-center border-b pb-2">
                   Service User Registration
                 </h1>
@@ -214,28 +214,53 @@ export default function ServiceRegister() {
                   </select>
                 </div>
 
-                <div className="flex flex-col items-start space-y-2">
+                <div className="flex flex-col items-start space-y-2 relative">
+                  {" "}
+                  {/* ← added relative */}
                   <Input
                     name="password"
-                    type="password"
+                    type={showPwd ? "text" : "password"}
                     placeholder="Password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded "
+                    className="w-full px-4 py-2 border rounded pr-10"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPwd((v) => !v)}
+                    className="absolute right-3 top-1/4 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPwd ? (
+                      <Eye className="h-5 w-5 inline-block" />
+                    ) : (
+                      <EyeClosed className="h-5 w-5 inline-block" />
+                    )}
+                  </button>
                 </div>
 
-                <div className="flex flex-col items-start space-y-2">
+                <div className="flex flex-col items-start space-y-2 relative">
+                  {" "}
                   <Input
                     name="confirm_password"
-                    type="password"
+                    type={showConfirm ? "text" : "password"}
                     placeholder="Confirm Password"
                     value={formData.confirm_password}
                     onChange={handleChange}
-                    className="w-full px-4 py-2 border rounded "
+                    className="w-full px-4 py-2 border rounded pr-10"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    className="absolute right-3 top-1/4 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirm ? (
+                      <Eye className="h-5 w-5 inline-block" />
+                    ) : (
+                      <EyeClosed className="h-5 w-5 inline-block" />
+                    )}
+                  </button>
                 </div>
 
                 <Button

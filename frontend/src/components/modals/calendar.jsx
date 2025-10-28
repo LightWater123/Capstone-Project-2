@@ -5,6 +5,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import '../../styles/datepicker.css';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/api/api';
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
 
 export default function CalendarModal() {
   const [selectedDate, setSelectedDate] = useState(null);
@@ -76,12 +78,18 @@ export default function CalendarModal() {
     <div className="bg-white rounded-xl shadow-md p-4 flex flex-col flex-1">
       <div className="flex items-center justify-between mb-3 shrink-0">
         <h2 className="text-xl font-bold text-gray-700">Calendar</h2>
-        <button
+        <Button
           onClick={() => navigate('/calendar-full')}
-          className="text-sm text-yellow-400 hover:underline"
+          variant="ghost"
+          className="relative text-sm px-3 py-1 bg-transparent border-none 
+            after:content-[''] after:absolute after:left-0 after:bottom-[-1px] 
+            after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full 
+            after:transition-all after:duration-300 hover:after:w-full 
+            focus:outline-non"
         >
           View Full Calendar
-        </button>
+          <ChevronRight className="h-2 w-2" />
+        </Button>
       </div>
 
       <div className="flex-1 w-full min-h-0 items-center justify-center flex">
