@@ -329,39 +329,55 @@ class MaintenanceController extends Controller
     public function uploadReport(Request $request)
     {
         $request->validate([
-            'report_file' => 'required|file|mimes:pdf|max:5120', // 5 MB
+        'report_file' => 'required|file|mimes:pdf|max:5120', // 5 MB
         ]);
 
-        $file  = $request->file('report_file');
-        $fname = Str::random(20).'.pdf';
+        // read file & encode
+        $pdf  = $request->file('report_file');
+        $b64  = base64_encode(file_get_contents($pdf));
+        $url  = route('pdf.view', [
+            'id' => $request->input('job_id'),   // we’ll use the job _id
+            't'  => time(),                      // cache-bust
+        ]);
 
-        // store in storage/app/public/reports
-        $path = $file->storeAs('public/reports', $fname);
-
-        // public URL
-        $url = asset('storage/reports/'.$fname);
-
-        return response()->json(['url' => $url]);
+        return response()->json([
+            'url' => $url,               // Laravel route, not a disk path
+            'b64' => $b64,               // optional – you can ignore it
+        ]);
     }
 
     public function updateReport(Request $request, $id)
     {
         $request->validate([
-            'remarks'     => 'nullable|string|max:5000',
-            'report_file' => 'nullable|url', // save the URL returned by upload
+        'remarks'    => 'nullable|string|max:5000',
+        'report_pdf' => 'nullable|string',   // base64
         ]);
 
-        $doc = MaintenanceJob::find($id);
-        if (!$doc) return response()->json(['error' => 'Not found'], 404);
+        $job = MaintenanceJob::find($id);
+        if (!$job) return response()->json(['error' => 'Not found'], 404);
 
-        // only send the keys that really came
-        $update = [];
-        if ($request->exists('remarks'))     $update['remarks']     = $request->remarks;
-        if ($request->exists('report_file')) $update['report_file'] = $request->report_file;
+        // only keys that arrived
+        if ($request->exists('remarks'))    $job->remarks    = $request->remarks;
+        if ($request->exists('report_pdf')) $job->report_pdf = $request->report_pdf;
 
-        $doc->update($update);
+        $job->save();
 
         return response()->json(['message' => 'Report updated']);
+    }
+
+    public function showPdf($id)
+    {
+        $job = MaintenanceJob::find($id);
+
+        if (!$job || !$job->report_pdf) {
+            abort(404);
+        }
+
+        $pdf = base64_decode($job->report_pdf);
+
+        return response($pdf, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="report.pdf"');
     }
 
 }

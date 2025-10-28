@@ -17,7 +17,7 @@ class MaintenanceJob extends Model
         'scheduled_at',
         'status',
         'remarks',      
-        'report_file',  
+        'report_pdf',  
     ];
 
     protected $dates = ['scheduled_at'];

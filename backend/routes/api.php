@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
+use App\Http\Controllers\EventController;
 
 // PUBLIC   
 Route::post('/login',    [AuthenticatedSessionController::class, 'store']);
@@ -20,6 +21,7 @@ Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify']);
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/forgot-password',  fn(Request $r) => … );
 Route::post('/reset-password',   fn(Request $r) => … );
+
 
 // AUTHENTICATED - Unified user endpoint for all guards
 Route::middleware(['auth:admin'])->group(function () {
@@ -35,6 +37,8 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
     
     Route::post('/admin/change-password', [PasswordController::class, 'change']);
+
+    Route::post('/events', [EventController::class, 'store']);
 
     // inventory
     Route::apiResource('inventory', EquipmentController::class)
@@ -65,6 +69,10 @@ Route::middleware(['auth:service'])->group(function () {
     Route::post('/service/change-password', [PasswordController::class, 'change']);
     Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
     Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
+    Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
+     ->name('pdf.view')
+     ->middleware('auth:service');
+    
 });
 
 // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)
