@@ -19,16 +19,17 @@ export default function CalendarModal() {
   const { data: events = [] } = useQuery({
     queryKey: ['getCalendarEvents'],
     queryFn: async () => {
-      const result = await api.get('/api/events');
-      return result.data.map((event) => ({
-        ...event,
-        start: new Date(event.startDate),
-        end: new Date(event.endDate),
-        color: event.color || '#3b82f6',
-      }));
+      const [norm, maint] = await Promise.all([
+        api.get('/api/events').then(r => r.data),
+        api.get('/api/events/maintenance').then(r => r.data),
+      ]);
+      return [
+        ...norm.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+        ...maint.map(e => ({ ...e, start: new Date(e.startDate), end: new Date(e.endDate) })),
+      ];
     },
-    staleTime: 5000,
-    refetchInterval: 5000,
+    staleTime: 5_000,
+    refetchInterval: 5_000,
   });
 
   const getEventColorForDate = (date) => {
