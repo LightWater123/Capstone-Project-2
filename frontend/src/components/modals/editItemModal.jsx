@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../api/api";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function EditItemModal({ isOpen, item, onClose, onSave }) {
   const [form, setForm] = useState({});
@@ -14,6 +15,14 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
       });
     }
   }, [item]);
+
+ // disable user typing - sign
+ const handleNumberKeyDown = (e) => {
+  // Prevent the minus sign from being entered from the main keyboard or numpad
+  if (e.key === '-' || e.key === 'Subtract') {
+    e.preventDefault();
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,28 +41,42 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
     }));
   }, [form.recorded_count, form.actual_count, form.unit_value]);
 
+  // edit submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!item) return;
+  e.preventDefault();
+  const itemId = item?._id || item?.id;
 
-    try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
+  if (!item || !itemId) {
+    toast.error("Item ID is missing. Cannot update.");
+    // Log the item to the console for debugging
+    console.error("handleSubmit failed, item prop is:", item);
+    return;
+  }
 
-      await api.put(`/api/inventory/${item._id || item.id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
 
-      alert("Item updated successfully!");
-      onSave?.(form);
-      onClose();
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Update failed");
+  try {
+     // Use the robust 'itemId' variable in the API call
+    const response = await api.put(`/api/inventory/${itemId}`, form);
+
+    toast.success("Item updated successfully!");
+    onSave?.(response.data);
+    onClose();
+
+  } catch (err) {
+    console.error(err);
+    // Display a more specific error message from the backend if available
+    const errorMessage = err.response?.data?.message || 'An unexpected error occurred.';
+    const errors = err.response?.data?.errors;
+    
+    if (errors && typeof errors === 'object') {
+      // If there are validation errors, show them
+      const errorList = Object.values(errors).flat().join(', ');
+      toast.error(`Update failed: ${errorList}`);
+    } else {
+      toast.error(errorMessage);
     }
-  };
+  }
+};
 
   if (!isOpen || !item) return null;
 
@@ -221,6 +244,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="text"
+                name="unit"
                 id="unit"
                 value={form.unit || ""}
                 onChange={handleChange}
@@ -247,11 +271,13 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="number"
+                name="unit_value"
                 id="unit_value"
                 min="0"
                 step="0.01"
                 value={form.unit_value || ""}
                 onChange={handleChange}
+                onKeyDown={handleNumberKeyDown}
                 className="peer w-full border-b-2 border-gray-400 bg-transparent px-0 py-2 text-black placeholder-transparent focus:outline-none focus:border-gray-800"
                 placeholder="Unit Value"
               />
@@ -274,10 +300,12 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="number"
+                name="recorded_count"
                 id="recorded_count"
                 value={form.recorded_count || ""}
                 onChange={handleChange}
                 min="0"
+                onKeyDown={handleNumberKeyDown}
                 className="peer w-full border-b-2 border-gray-400 bg-transparent px-0 py-2 text-black placeholder-transparent focus:outline-none focus:border-gray-800"
                 placeholder="Balance per Card"
               />
@@ -300,10 +328,12 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="number"
+                name="actual_count"
                 id="actual_count"
                 value={form.actual_count || ""}
                 onChange={handleChange}
                 min="0"
+                onKeyDown={handleNumberKeyDown}
                 className="peer w-full border-b-2 border-gray-400 bg-transparent px-0 py-2 text-black placeholder-transparent focus:outline-none focus:border-gray-800"
                 placeholder="On-hand Count"
               />
@@ -326,10 +356,12 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="number"
+                name="shortage_or_overage_qty"
                 id="shortage_or_overage_qty"
                 value={form.shortage_or_overage_qty || ""}
-                onChange={handleChange}
+                //onChange={handleChange}
                 min="0"
+                readOnly
                 className="peer w-full border-b-2 border-gray-400 bg-transparent px-0 py-2 text-black placeholder-transparent focus:outline-none focus:border-gray-800"
                 placeholder="Shortage/Overage Qty"
               />
@@ -352,10 +384,12 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="number"
+                name="shortage_or_overage_val"
                 id="shortage_or_overage_val"
                 value={form.shortage_or_overage_val || ""}
-                onChange={handleChange}
+                //onChange={handleChange}
                 min="0"
+                readOnly
                 className="peer w-full border-b-2 border-gray-400 bg-transparent px-0 py-2 text-black placeholder-transparent focus:outline-none focus:border-gray-800"
                 placeholder="Shortage/Overage Value"
               />
@@ -377,6 +411,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             {/* Location */}
             <div className="relative w-full">
               <select
+                name="location"
                 value={form.location || ""}
                 onChange={handleChange}
                 required
@@ -400,6 +435,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             {/* Condition */}
             <div className="relative w-full">
               <select
+                name="condition"
                 value={form.condition || ""}
                 onChange={handleChange}
                 required
@@ -416,6 +452,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <div className="relative w-full">
               <input
                 type="text"
+                name="remarks"
                 id="remarks"
                 value={form.remarks || ""}
                 onChange={handleChange}
@@ -442,7 +479,7 @@ export default function EditItemModal({ isOpen, item, onClose, onSave }) {
             <Button
               type="submit"
               variant="ghost"
-              onClick={handleSubmit}
+              //onClick={handleSubmit}
               className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
             after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
             after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2

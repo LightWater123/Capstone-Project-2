@@ -7,55 +7,43 @@ import { ChevronRight } from "lucide-react";
 import CalendarModal from "../components/modals/calendar.jsx";
 import api from "../api/api";
 import { Button } from "@/components/ui/button";
+import DueSoon from "../components/modals/adminDashboardDueSoon";
+import { useInventory } from "../hooks/useInventory";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const handleInventoryList = () => navigate("/inventory");
-  const handleMaintenanceList = (e) =>
-    navigate(`/admin/maintenance-list?id=${e}`);
+  
   const [open, setOpen] = useState(false);
   const eventDates = [];
 
-  // State for data, loading, and errors
+  // State for regular maintenance data (for Reminders section)
   const [dueItems, setDueItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch data from the API on component mount
+  // Use the useInventory hook with "due soon" category for predictive maintenance data
+  const { inventoryData: predictiveItems, filteredData: filteredPredictiveItems } = useInventory("due soon");
+
+  // Fetch regular maintenance data on component mount
   useEffect(() => {
     const fetchDueItems = async () => {
       try {
         setIsLoading(true);
         setError(null);
 
-        // Get current date for debugging
-        const today = new Date();
-        //console.log("Today's date:", today.toISOString());
-
-        // Use the api instance
         const response = await api.get(
           "/api/maintenance/due-for-maintenance?days=2"
         );
 
-        // Log the response for debugging
-        //console.log("API Response:", response.data);
-
-        // The data is in the `data.data` property of the response
         setDueItems(response.data.data || []);
-
-        // Additional debugging info
-        if (response.data.date_range) {
-          //console.log("Checking dates from", response.data.date_range.from, "to", response.data.date_range.to);
-        }
       } catch (err) {
-        // Axios provides a more detailed error object
         const errorMessage =
           err.response?.data?.error ||
           err.response?.data?.message ||
           err.message ||
           "An unknown error occurred";
         setError(errorMessage);
-        //console.error("Failed to fetch maintenance items:", err);
       } finally {
         setIsLoading(false);
       }
@@ -70,19 +58,30 @@ export default function AdminDashboard() {
       <BTRNavbar />
 
       <div className="max-w-[88rem] mx-auto px-6 py-6">
-        <div className="grid gap-4 mb-6 grid-cols-1 grid-rows-auto lg:grid-cols-5 lg:grid-rows-5" >
-          <div className="flex items-start justify-end col-span-1 row-span-1 lg:col-span-3 lg:row-span-5 p-4 border-b">
-            <Button
-              onClick={handleInventoryList}
-              variant="ghost"
-              className="relative text-sm px-3 py-1 bg-transparent border-none 
-             after:content-[''] after:absolute after:left-0 after:bottom-[-1px] 
-             after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full 
-             after:transition-all after:duration-300 hover:after:w-full 
-             focus:outline-none">
-              View Full Details 
-              <ChevronRight className="h-2 w-2" />
-            </Button>
+        <div className="grid gap-4 mb-6 grid-cols-1 grid-rows-auto lg:grid-cols-5 lg:grid-rows-5">
+          <div className="flex flex-col col-span-1 row-span-1 lg:col-span-3 lg:row-span-5 p-4 border-b">
+            <div className="flex items-start justify-end mb-4">
+              <Button
+                onClick={handleInventoryList}
+                variant="ghost"
+                className="relative text-sm px-3 py-1 bg-transparent border-none 
+                after:content-[''] after:absolute after:left-0 after:bottom-[-1px] 
+                after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full 
+                after:transition-all after:duration-300 hover:after:w-full 
+                focus:outline-none">
+                View Full Details 
+                <ChevronRight className="h-2 w-2" />
+              </Button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              <DueSoon 
+                dueItems={filteredPredictiveItems}
+                isLoading={false} // The hook handles loading internally
+                error={null} // The hook handles errors internally
+                // Removed onItemClick prop to make items non-clickable
+              />
+            </div>
           </div>
 
           <div

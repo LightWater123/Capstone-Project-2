@@ -168,33 +168,54 @@ class EquipmentController extends Controller
             // find id through mongodb id
             $equipment = Equipment::findOrFail($id);
 
-            // validate fields 
+            // --- CORRECTED VALIDATION RULES ---
+            // We've added all the missing fields from your model's $fillable array.
             $validated = $request->validate([
-                'article'     => ['sometimes', 'string'],
-                'description' => ['sometimes', 'string'],
-                'property_ro' => ['nullable', 'string'], // or semi-expendable property no.
-                'property_co' => ['nullable', 'string'], // only for PPE
-                'semi_expendable_property_no' => ['required_if:category,RPCSP', 'nullable', 'string'], // only for RPCSP
-                'unit'        => ['sometimes', 'string'],
-                'unit_value'  => ['sometimes', 'numeric'],
-                'recorded_count' => ['sometimes', 'integer', 'min:0'], // quantity listed in inventory
-                'actual_count'   => ['sometimes', 'integer', 'min:0'], // actual count of items
-                'remarks'     => ['nullable', 'string'],
-                'location'    => ['sometimes', 'string', Rule::in($this->validLocations)],
-                'condition' => 'nullable|string',
-                'start_date' => 'nullable|date',
-                'end_date' => 'nullable|date',
+                // Core Inventory Fields
+                'category'                   => ['sometimes', 'string', Rule::in(['PPE', 'RPCSP'])],
+                'article'                    => ['sometimes', 'string'],
+                'description'                => ['sometimes', 'string'],
+                'property_ro'                => ['nullable', 'string'],
+                'property_co'                => ['nullable', 'string'],
+                'semi_expendable_property_no'=> ['required_if:category,RPCSP', 'nullable', 'string'],
+                'unit'                       => ['sometimes', 'string'],
+                'unit_value'                 => ['sometimes', 'numeric'],
+                'recorded_count'             => ['sometimes', 'integer', 'min:0'],
+                'actual_count'               => ['sometimes', 'integer', 'min:0'],
+                'remarks'                    => ['nullable', 'string'],
+                'location'                   => ['sometimes', 'string', Rule::in($this->validLocations)],
+                'condition'                  => ['nullable', 'string'],
+                'start_date'                 => ['nullable', 'date'],
+                'end_date'                   => ['nullable', 'date'],
+                'pickup_date'                => ['nullable', 'date'],
+                'pickup_location'            => ['sometimes', 'string'],
+
+                // Predictive Maintenance Fields (These were all missing)
+                // 'install_date'               => ['nullable', 'date'],
+                // 'daily_usage_hours'          => ['sometimes', 'numeric'],
+                // 'operating_days'             => ['sometimes', 'array'],
+                // 'total_run_hours'            => ['sometimes', 'numeric'],
+                // 'last_run_update'            => ['nullable', 'date'],
+                // 'next_due_date'              => ['nullable', 'date'],
+                // 'max_usage_hours'            => ['sometimes', 'numeric'],
+                // 'max_time_days'              => ['sometimes', 'integer'],
             ]);
+            Log::info($validated);
+            $equipment->update($validated);
 
-            // update field and save
-            $equipment->fill($validated)->save();
+            return $equipment;
 
-            
+            // // update field anud save
+            // // Now $validated will contain all the fields you want to update
+            // $equipment->fill($validated)->save();
 
-            // return updated item to frontend
-            return response()->json($equipment, 200);
+            // // It's good practice to refresh the model to get the latest state from the DB
+            // $equipment->refresh();
 
-        } catch (ValidationException $e) 
+            // // return updated item to frontend
+            // return response()->json($equipment, 200);
+
+        } catch (ValidationException $e)
         {
             // return specific validation errors
             Log::error('Equipment update failed', ['exception' => $e]);
