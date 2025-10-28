@@ -42,14 +42,33 @@ const LandingPage = () => {
  const { data: events = [] } = useQuery({
   queryKey: ["getCalendarEvents"],
   queryFn: async () => {
-    const result = await api.get("/api/events");
-    return result.data.map((event) => ({
+    const [resultData, dueSoonData, maintenanceDueData] = await Promise.all([
+      api.get("/api/events").then((r) => r.data.map((event) => ({
       id: event.id,
+      type: "event",
       title: event.title,
       start: new Date(event.start_date),
       end: new Date(event.end_date),
-      color: event.color || "#3b82f6",
-    }));
+      color: event.color || "red",
+    }))),
+      api.get("/api/maintenance/inventory/due-soon").then((r) => r.data.map((item) => ({
+      id: item.id,
+      type: "due-soon",
+      title: `Maintenance Due: ${item.category} - ${item.article}`,
+      start: new Date(item.next_maintenance_date),
+      end: new Date(item.next_maintenance_date),
+      color: "green", // red for due soon items
+    }))),
+    api.get("/api/maintenance/due-for-maintenance?days=2").then((r) => r.data.data.map((item) => ({
+      id: item.id,
+      type: "maintenance-due",
+      title: `Maintenance Due: ${item.asset_name}`,
+      start: new Date(item.scheduled_at),
+      end: new Date(item.scheduled_at),
+      color: "blue"
+    })))
+    ]);
+    return [...resultData, ...dueSoonData, ...maintenanceDueData];
   },
   staleTime: 5000,
   refetchInterval: 5000,
@@ -57,13 +76,6 @@ const LandingPage = () => {
 
 
   const handleCreateEvent = async (data) => {
-    const newEvent = {
-      id: uuidv4(),
-      title: data.title,
-      start: new Date(data.start),
-      end: new Date(data.end),
-      color: data.color || "#3b82f6", // default to blue if not provided
-    };
     // setEvents([...events, newEvent]);
     setSelectedSlot(null);
 
