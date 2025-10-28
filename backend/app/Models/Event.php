@@ -10,6 +10,6 @@ class Event extends Model
     protected $collection = 'events';
 
     protected $fillable = [
-        'id','title', 'startDate', 'endDate', 'color'
+        'id','title', 'start_date', 'end_date', 'color'
     ];
 }

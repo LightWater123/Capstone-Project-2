@@ -20,8 +20,7 @@ const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
 
 const LandingPage = () => {
-  const queryClient = useQueryClient();
-  const [view, setView] = useState(Views.WEEK);
+  const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -76,7 +75,11 @@ const LandingPage = () => {
     setSelectedEvent(null);
   };
 
-  const handleSelectEvent = (calEvent) => setSelectedEvent(calEvent);
+  const handleSelectEvent = (event) => {
+    setSelectedEvent(event);
+    setSelectedSlot(null);
+  };
+
 
   /* ----------------------------------------------------------
    *  CRUD  (only regular events)
@@ -85,12 +88,19 @@ const LandingPage = () => {
     await api
       .post("/api/events", {
         title: data.title,
-        startDate: data.start,
-        endDate: data.end,
+        start_date: data.start,
+        end_date: data.end,
         color: data.color,
       })
-      .catch(() => toast.error("Failed to add event"))
-      .finally(() => queryClient.invalidateQueries(["getCalendarEvents"]));
+      .then(() => {
+        toast.success("Added new event!");
+      })
+      .catch(() => {
+        toast.error("failed to add new event");
+      })
+      .finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+      });
     toast.success("Event created");
     setSelectedSlot(null);
   };
@@ -120,11 +130,16 @@ const LandingPage = () => {
     try {
       await api.put(`/api/events/${event.id}`, {
         title: event.title,
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
+        start_date: start,
+        end_date: end,
         color: event.color,
       });
-      toast.success("Moved");
+      if (response.status === 200) {
+      toast.success("Event updated!");
+        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+      } else {
+        toast.error("Update failed: unexpected response");
+      }
     } catch {
       toast.error("Move failed");
     } finally {

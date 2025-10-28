@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use App\Models\Equipment;
+use Illuminate\Support\Facades\Auth;
 
 class PdfParserController extends Controller
 {
@@ -152,7 +153,7 @@ class PdfParserController extends Controller
                     'actual_count'   => $normalizeNumber($row['quantity_per_physical_count'] ?? null, true),
                     'remarks'        => (string)($row['remarks'] ?? $row['remarks_whereabouts'] ?? ''),
                     'location'       => (string)($row['whereabouts'] ?? $row['remarks_whereabouts'] ?? ''),
-
+                    'created_by'     => Auth::user()->email,
                     'created_at'     => $now,
                     'updated_at'     => $now,
                 ];

@@ -13,10 +13,13 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string',
-            'startDate' => 'required|date',
-            'endDate' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'required',
             'color' => 'required|string',
         ]);
+
+        \Log::info($request);
+        \Log::info($validated);
 
         $event = Event::create($validated);
 
@@ -48,10 +51,13 @@ public function update(Request $request, $id)
         return response()->json(['message' => 'Event not found'], 404);
     }
 
+    \Log::info($id);
+    \Log::info($request);
+
     $event->update([
         'title' => $request->title,
-        'start_date' => $request->startDate,
-        'end_date' => $request->endDate,
+        'start_date' => $request->start_date,
+        'end_date' => $request->end_date,
         'color' => $request->color,
     ]);
 
