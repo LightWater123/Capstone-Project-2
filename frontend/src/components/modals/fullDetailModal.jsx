@@ -52,7 +52,7 @@ export default function ViewItemDetailModal({
                 </span>
               </div>
 
-               {/* descrip */}
+              {/* descrip */}
               <div className="col-span-3 row-start-2 flex flex-col items-start space-y-1">
                 <strong className="text-gray-800">Description:</strong>
                 <span className="text-gray-600 break-words whitespace-pre-wrap">
@@ -175,7 +175,6 @@ export default function ViewItemDetailModal({
               </div>
             </div>
 
-
             {/* buttons */}
             <div className="flex flex-col md:flex-row justify-end md:justify-end gap-3 mt-6 md:items-start items-end">
               {/* edit button */}
@@ -190,13 +189,13 @@ export default function ViewItemDetailModal({
                 Edit
               </Button>
 
-               {/* remove */}
+              {/* remove */}
               <Button
                 onClick={() => onDelete(item.id)}
                 variant="ghost"
                 className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
             after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
-            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:h-[3px] after:w-0 after:bg-red-900 after:rounded-full after:-translate-x-1/2
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 Remove

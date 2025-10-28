@@ -197,7 +197,7 @@ export default function PredictiveMaintenanceModal({
               onClick={onClose}
               className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
             after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
-            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:h-[3px] after:w-0 after:bg-red-90 after:rounded-full after:-translate-x-1/2
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
             >
               Cancel

@@ -7,6 +7,7 @@ import { useCsrf } from "../hooks/useCsrf";
 import api from "../api/api";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
+import * as React from "react";
 
 // Modals
 import ScheduleMaintenanceModal from "../components/modals/scheduleModal.jsx";
@@ -20,6 +21,7 @@ import PredictiveModal from "../components/modals/predictiveModal.jsx";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import PaginationBar from "@/components/paginationBar";
 import {
   Table,
   TableBody,
@@ -32,7 +34,9 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -50,9 +54,8 @@ import {
   Search,
   ArrowUpDown,
   ChevronDownIcon,
-  ArrowDownAZ,
   ChevronRight,
-  ChevronLeft,
+  ArrowDownAZ,
 } from "lucide-react";
 
 export default function InventoryDashboard() {
@@ -112,6 +115,17 @@ export default function InventoryDashboard() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState([]);
+
+  //sort map
+  const SORT_MAP = {
+    "name:asc": "Name A-Z",
+    "name:desc": "Name Z-A",
+    "price:asc": "Price ↑",
+    "price:desc": "Price ↓",
+  };
+
+  //sort text placeholder
+  const sortText = SORT_MAP[sortBy] ?? "Sort by:";
 
   // back function
   const navigate = useNavigate();
@@ -380,7 +394,7 @@ export default function InventoryDashboard() {
         </Button> */}
 
         <div className="max-w-[88rem] mx-auto px-4 sm:px-6 mt-4 justify-start flex">
-          <nav className="w-full border-b mb-4 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
+          <nav className="w-full border-b mb-2 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
               {/* Search */}
               <div className="relative w-full ">
@@ -395,41 +409,19 @@ export default function InventoryDashboard() {
               </div>
               {/* Sort Dropdown */}
               <div className="relative w-full sm:w-auto">
-                <Button
-                  onClick={() => setShowSortOptions(!showSortOptions)}
-                  className="px-2 py-0.2 bg-gray-200 text-gray-800 rounded-md font-semibold hover:bg-gray-300 w-full sm:w-auto"
-                >
-                  Sort by:
-                  <ChevronDownIcon
-                    className="-me-1 opacity-60"
-                    size={16}
-                    aria-hidden="true"
-                  />
-                </Button>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full md:w-[100px]">
+                    {/* 👇  this line shows “Sort : Name A-Z” etc. */}
+                    {`${sortText}`}
+                  </SelectTrigger>
 
-                {showSortOptions && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-20">
-                    <button
-                      onClick={() => handleSort("name")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Name
-                      {sortBy.split(":")[0] === "name" &&
-                      sortBy.split(":")[1] === "desc" ? (
-                        <ArrowUpAZ className="h-5 w-5 inline-block ml-2" />
-                      ) : (
-                        <ArrowDownAZ className="h-5 w-5 inline-block ml-2" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => handleSort("price")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Price
-                      <ArrowUpDown className="h-5 w-5 inline-block ml-2" />
-                    </button>
-                  </div>
-                )}
+                  <SelectContent>
+                    <SelectItem value="name:asc">Name A-Z</SelectItem>
+                    <SelectItem value="name:desc">Name Z-A</SelectItem>
+                    <SelectItem value="price:asc">Price ↑</SelectItem>
+                    <SelectItem value="price:desc">Price ↓</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -481,9 +473,9 @@ export default function InventoryDashboard() {
           </nav>
         </div>
 
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 mt-4 flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 mt-4 flex flex-wrap items-center justify-between gap-3 pb-3">
           {/* Category Buttons */}
-          <div className="flex flex-wrap w-full md:w-auto gap-3">
+          <div className="flex flex-wrap w-full md:w-auto gap-3 ">
             {[
               { name: "PPE", Icon: Car },
               { name: "RPCSP", Icon: Keyboard },
@@ -517,15 +509,23 @@ export default function InventoryDashboard() {
           {/* Items per page selector */}
           <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
             <Label>Items per page:</Label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-              className="w-full md:w-auto px-2 py-1 border rounded">
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-              <option value={40}>40</option>
-              <option value={50}>50</option>
-            </select>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => setItemsPerPage(Number(v))}
+            >
+              <SelectTrigger className="w-full md:w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Items per page</SelectLabel>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="30">30</SelectItem>
+                  <SelectItem value="40">40</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -558,7 +558,7 @@ export default function InventoryDashboard() {
                         )}
                         <TableHead className="px-2 py-1">Unit</TableHead>
                         <TableHead className="px-2 py-1">Unit Value</TableHead>
-                        <TableHead className="px-2 py-1">Actions</TableHead>
+                        <TableHead className="px-5 py-1">Actions</TableHead>
                         <TableHead className="px-2 py-1 text-center">
                           <input
                             type="checkbox"
@@ -631,13 +631,18 @@ export default function InventoryDashboard() {
                           </TableCell>
                           <TableCell className="px-2 py-1 space-x-2 min-w-[112px] max-w-[144px]">
                             <Button
-                              className="bg-blue-900 text-white px-2 py-1 rounded hover:bg-blue-950 "
+                              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
                               onClick={() => {
                                 setSelectedDetailItem(item);
                                 setShowDetailModal(true);
                               }}
+                              variant="ghost"
                             >
                               View Full Detail
+                              <ChevronRight className="h-5 w-5 inline-block" />
                             </Button>
                           </TableCell>
                           <TableCell className="px-2 py-1 text-center">
@@ -671,64 +676,79 @@ export default function InventoryDashboard() {
                         <TableHead className="px-2 py-1">Description</TableHead>
                         <TableHead className="px-2 py-1">Type</TableHead>
                         <TableHead className="px-2 py-1">Due Date</TableHead>
-                        <TableHead className="px-2 py-1">Actions</TableHead>
+                        <TableHead className="px-5 py-1">Actions</TableHead>
                         <TableHead className="px-2 py-1 text-center">
                           Select
                         </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {currentItems.map((item, index) => (
-                        <TableRow
-                          key={item.id}
-                          className="hover:bg-gray-100 transition"
-                        >
-                          <TableCell className="px-2 py-1">
-                            {item.article}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {item.description}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {item.category}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {item.next_maintenance_date ? (
-                              new Date(
-                                item.next_maintenance_date
-                              ).toLocaleDateString()
-                            ) : (
-                              <span className="text-gray-400 italic">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-2 py-1 text-center space-x-2">
-                            <Button
-                              className="bg-blue-900 text-white px-2 py-1 rounded hover:bg-blue-950"
-                              onClick={() => {
-                                setSelectedDetailItem(item);
-                                setShowDetailModal(true);
-                              }}
-                            >
-                              View Full Detail
-                            </Button>
-                          </TableCell>
-                          <TableCell className="px-2 py-1 text-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedEquipmentIds.includes(item.id)}
-                              onChange={(e) => {
-                                setSelectedEquipmentIds((prev) =>
-                                  e.target.checked
-                                    ? [...prev, item.id]
-                                    : prev.filter((id) => id !== item.id)
-                                );
-                              }}
-                              className="accent-green-500 w-4 h-4"
-                              title="Select for Maintenance"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {[...currentItems]
+                        .sort((a, b) => {
+                          const dateA = a.next_maintenance_date
+                            ? new Date(a.next_maintenance_date)
+                            : Infinity;
+                          const dateB = b.next_maintenance_date
+                            ? new Date(b.next_maintenance_date)
+                            : Infinity;
+                          return dateA - dateB; // nearest due date
+                        })
+                        .map((item) => (
+                          <TableRow
+                            key={item.id}
+                            className="hover:bg-gray-100 transition"
+                          >
+                            <TableCell className="px-2 py-1">
+                              {item.article}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.description}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.category}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.next_maintenance_date ? (
+                                new Date(
+                                  item.next_maintenance_date
+                                ).toLocaleDateString()
+                              ) : (
+                                <span className="text-gray-400 italic">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="px-2 py-1 text-center space-x-2">
+                              <Button
+                                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+            after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
+            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
+            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
+                                onClick={() => {
+                                  setSelectedDetailItem(item);
+                                  setShowDetailModal(true);
+                                }}
+                                variant="ghost"
+                              >
+                                View Full Detail
+                                <ChevronRight className="h-5 w-5 inline-block" />
+                              </Button>
+                            </TableCell>
+                            <TableCell className="px-2 py-1 text-center">
+                              <input
+                                type="checkbox"
+                                checked={selectedEquipmentIds.includes(item.id)}
+                                onChange={(e) => {
+                                  setSelectedEquipmentIds((prev) =>
+                                    e.target.checked
+                                      ? [...prev, item.id]
+                                      : prev.filter((id) => id !== item.id)
+                                  );
+                                }}
+                                className="accent-blue-900 w-4 h-4"
+                                title="Select for Maintenance"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -737,36 +757,12 @@ export default function InventoryDashboard() {
           </div>
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-4 space-x-2 mb-4 overflow-x-auto">
-              <Button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 text-black hover:bg-gray-400"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <Button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 rounded ${
-                      page === currentPage
-                        ? "bg-blue-900 text-white"
-                        : "bg-gray-200 text-black hover:bg-gray-300"
-                    }`}
-                  >
-                    {page}
-                  </Button>
-                )
-              )}
-              <Button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 text-black hover:bg-gray-400"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+            <div className="flex justify-center mt-4 mb-4">
+              <PaginationBar
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </div>

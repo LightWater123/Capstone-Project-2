@@ -71,7 +71,7 @@ export default function AdminDashboard() {
 
       <div className="max-w-[88rem] mx-auto px-6 py-6">
         <div className="grid gap-4 mb-6 grid-cols-1 grid-rows-auto lg:grid-cols-5 lg:grid-rows-5" >
-          <div className="shadow-md flex items-start justify-end col-span-1 row-span-1 lg:col-span-3 lg:row-span-5 p-4">
+          <div className="flex items-start justify-end col-span-1 row-span-1 lg:col-span-3 lg:row-span-5 p-4 border-b">
             <Button
               onClick={handleInventoryList}
               variant="ghost"
