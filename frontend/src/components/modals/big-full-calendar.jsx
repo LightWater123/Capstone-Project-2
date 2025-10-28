@@ -9,6 +9,11 @@ import { momentLocalizer, Views } from "react-big-calendar";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { EventForm } from "./eventForm";
 import ShadcnBigCalendar from "./big-calendar";
+import { toast } from "sonner";
+import api from "@/api/api";
+import { v4 as uuidv4 } from "uuid";
+import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/App";
 
 const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
@@ -16,7 +21,7 @@ const localizer = momentLocalizer(moment);
 const LandingPage = () => {
   const [view, setView] = useState(Views.WEEK);
   const [date, setDate] = useState(new Date());
-  const [events, setEvents] = useState([]);
+  // const [events, setEvents] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -32,22 +37,60 @@ const LandingPage = () => {
     setSelectedSlot(null);
   };
 
-  const handleCreateEvent = (data) => {
-  const newEvent = {
-    title: data.title,
-    start: new Date(data.start),
-    end: new Date(data.end),
-    color: data.color || "#3b82f6", // default to blue if not provided
+  const { data: events = [] } = useQuery({
+    queryKey: ["getCalendarEvents"],
+    queryFn: async () => {
+      const result = await api.get("/api/events");
+      const data = {
+        id: result.data.id,
+        title: result.data.title,
+        start: result.data.startDate,
+        end: result.data.endDate,
+        color: result.data.color,
+      };
+      return result.data;
+    },
+    staleTime: 5000,
+    refetchInterval: 5000,
+  });
+
+  const handleCreateEvent = async (data) => {
+    const newEvent = {
+      id: uuidv4(),
+      title: data.title,
+      start: new Date(data.start),
+      end: new Date(data.end),
+      color: data.color || "#3b82f6", // default to blue if not provided
+    };
+    // setEvents([...events, newEvent]);
+    setSelectedSlot(null);
+
+    console.log(data);
+    await api
+      .post("/api/events", {
+        title: data.title,
+        startDate: data.start,
+        endDate: data.end,
+        color: data.color,
+      })
+      .catch(() => {
+        toast.error("failed to add new event");
+      })
+      .finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+      });
+
+    toast.success("Added new event!");
   };
-  setEvents([...events, newEvent]);
-  setSelectedSlot(null);
-};
 
-
-  const handleDeleteEvent = () => {
+  const handleDeleteEvent = async () => {
     if (selectedEvent) {
-      setEvents(events.filter((e) => e !== selectedEvent));
+      console.log(selectedEvent);
+      // setEvents(events.filter((e) => e !== selectedEvent));
       setSelectedEvent(null);
+      await api.delete(`/api/event/${selectedEvent.id}`).finally(() => {
+        queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
+      });
     }
   };
 
@@ -55,29 +98,41 @@ const LandingPage = () => {
     const updatedEvents = events.map((existingEvent) =>
       existingEvent === event ? { ...existingEvent, start, end } : existingEvent
     );
-    setEvents(updatedEvents);
+    // setEvents(updatedEvents);
   };
 
   const handleEventResize = ({ event, start, end }) => {
     const updatedEvents = events.map((existingEvent) =>
       existingEvent === event ? { ...existingEvent, start, end } : existingEvent
     );
-    setEvents(updatedEvents);
+    // setEvents(updatedEvents);
   };
 
   return (
-    <main className="container my-auto">
+    <main className="w-full p-5">
       <div className="mb-4">
-        <Button onClick={() => setSelectedSlot({ start: new Date(), end: new Date(), slots: [], action: "click" })}>
+        <Button
+          onClick={() =>
+            setSelectedSlot({
+              start: new Date(),
+              end: new Date(),
+              slots: [],
+              action: "click",
+            })
+          }
+        >
           <Plus className="size-5 mr-2" />
           Create Event
         </Button>
       </div>
 
-      <Dialog open={selectedSlot !== null || selectedEvent !== null} onOpenChange={() => {
-        setSelectedSlot(null);
-        setSelectedEvent(null);
-      }}>
+      <Dialog
+        open={selectedSlot !== null || selectedEvent !== null}
+        onOpenChange={() => {
+          setSelectedSlot(null);
+          setSelectedEvent(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <h2 className="scroll-m-20 text-xl font-semibold tracking-tight">
@@ -96,9 +151,16 @@ const LandingPage = () => {
 
           {selectedEvent && (
             <div className="space-y-4">
-              <p><strong>Title:</strong> {selectedEvent.title}</p>
-              <p><strong>Start:</strong> {moment(selectedEvent.start).format("LLLL")}</p>
-              <p><strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}</p>
+              <p>
+                <strong>Title:</strong> {selectedEvent.title}
+              </p>
+              <p>
+                <strong>Start:</strong>{" "}
+                {moment(selectedEvent.start).format("LLLL")}
+              </p>
+              <p>
+                <strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}
+              </p>
               <Button variant="destructive" onClick={handleDeleteEvent}>
                 <Trash2 className="size-4 mr-2" />
                 Delete Event

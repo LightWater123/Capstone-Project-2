@@ -11,10 +11,8 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string',
-            'date' => 'required|date',
-            'startTime' => 'required',
-            'endTime' => 'required',
-            'location' => 'required|string',
+            'startDate' => 'required|date',
+            'endDate' => 'required',
             'color' => 'required|string',
         ]);
 
@@ -22,4 +20,16 @@ class EventController extends Controller
 
         return response()->json(['success' => true, 'event' => $event], 201);
     }
+
+    public function index() {
+        return Event::all();
+    }
+
+    public function destroy($id) {
+        $event = Event::findOrFail($id);
+
+        $event->destroy();
+
+        return response()->json(['success' => true], 200);
+    } 
 }

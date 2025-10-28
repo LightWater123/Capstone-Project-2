@@ -1,12 +1,26 @@
 "use client";
 
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "../ui/button";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -27,7 +41,10 @@ export function EventForm({ start, end, onSubmit, onCancel }) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full p-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4 w-full p-4"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -71,23 +88,40 @@ export function EventForm({ start, end, onSubmit, onCancel }) {
             <FormItem>
               <FormLabel>Event Color</FormLabel>
               <FormControl>
-                <Select>
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select a color" />
-      </SelectTrigger>
-      <SelectContent className={"w-full"}>
-
-        <SelectGroup>
-          <SelectLabel>Color</SelectLabel>
-          <SelectItem className="hover:text-red-500 w-full" value="red">
-            <div className="bg-red-600 size-10 w-full">Red</div></SelectItem>
-          <SelectItem className="hover:text-green-500" value="green">Green</SelectItem>
-          <SelectItem className="hover:text-blue-500" value="blue">Blue</SelectItem>
-          <SelectItem className="hover:text-purple-500" value="purple">Purple</SelectItem>
-          <SelectItem className="hover:text-yellow-600" value="yellow">Yellow</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+                <Select onValueChange={field.onChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a color" />
+                  </SelectTrigger>
+                  <SelectContent className={"w-full"}>
+                    <SelectGroup>
+                      <SelectLabel>Color</SelectLabel>
+                      <SelectItem
+                        className="focus:bg-red-600 hover:text-red-500 w-full"
+                        value="red"
+                      >
+                        Red
+                      </SelectItem>
+                      <SelectItem className="focus:bg-green-600" value="green">
+                        Green
+                      </SelectItem>
+                      <SelectItem className="focus:bg-blue-600" value="blue">
+                        Blue
+                      </SelectItem>
+                      <SelectItem
+                        className="focus:bg-purple-600"
+                        value="purple"
+                      >
+                        Purple
+                      </SelectItem>
+                      <SelectItem
+                        className="focus:bg-yellow-600"
+                        value="yellow"
+                      >
+                        Yellow
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </FormControl>
             </FormItem>
           )}
