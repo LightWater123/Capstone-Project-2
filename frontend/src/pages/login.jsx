@@ -5,6 +5,7 @@ import btrlogo from "../assets/btrlogo.png";
 import btrlegpics from "../assets/btrlegpics.jpg";
 import sevenimage from "../assets/sevenimage.png";
 import siximage from "../assets/siximage.png";
+import eightimage from "../assets/eightimage.png";
 
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
@@ -20,7 +21,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
-  const images = [btrlegpics, siximage, sevenimage];
+  const images = [eightimage, siximage, sevenimage];
 
   useEffect(() => {
     if (!showPassword) return; // nothing to do
@@ -71,25 +72,25 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
-<div className="absolute inset-0 overflow-hidden">
-  <div
-    className="flex h-full animate-banner"
-    style={{ width: `${images.length * 100}vw` }}
-  >
-    {[...images, ...images].map((img, i) => (
-      <div
-        key={i}
-        className="w-screen h-screen flex-shrink-0"
-        style={{
-          backgroundImage: `url(${img})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      ></div>
-    ))}
-  </div>
-</div>
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="flex h-full animate-banner"
+          style={{ width: `${images.length * 100}vw` }}
+        >
+          {[...images, ...images].map((img, i) => (
+            <div
+              key={i}
+              className="w-screen h-screen flex-shrink-0"
+              style={{
+                backgroundImage: `url(${img})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }}
+            ></div>
+          ))}
+        </div>
+      </div>
       ={/* overlay */}
       <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none"></div>
       {/* login form */}
