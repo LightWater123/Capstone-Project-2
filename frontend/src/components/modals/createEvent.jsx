@@ -2,8 +2,30 @@ import React from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-export default function CreateEvent({ show, onClose, onSave, formData, setFormData }) {
+export default function CreateEvent({ show, onClose, formData, setFormData }) {
   if (!show) return null;
+
+ const onSave = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/events', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(formData),
+    });
+
+    // optional: check HTTP-level errors
+    if (!response.ok) {
+      throw new Error(`Server answered ${response.status}`);
+    }
+
+    const result = await response.json();
+    alert('Event saved!');
+    onClose();
+  } catch (error) {               // ← parameter is “error”, not “response”
+    console.error('Error saving event:', error);
+    alert('Failed to save event.');
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
