@@ -69,6 +69,7 @@ export default function InventoryDashboard() {
   const [showSortOptions, setShowSortOptions] = useState(false);
 
   // Inventory hook
+  
   const {
     inventoryData,
     filteredData,
@@ -83,6 +84,23 @@ export default function InventoryDashboard() {
 
   // Maintenance hook
   const { maintenanceSchedules, fetchSchedules } = useMaintenance();
+
+  const handleDeleteSelectedItems = async () => {
+  if (selectedItems.length === 0) return;
+
+  const confirmed = window.confirm("Are you sure you want to delete the selected items?");
+  if (!confirmed) return;
+
+  try {
+    const response = await api.post("/api/inventory/bulk-destroy", {
+        ids: selectedItems.map((item) => item.id),
+    }).catch((r)=>{toast.error(`Failed to delete items. ${r.message}`)});
+
+  } catch (error) {
+    console.error("Delete error:", error);
+    toast.error("An unexpected error occurred.");
+  }
+};
 
   //Sort Handler
   const handleSort = (type) => {
@@ -422,24 +440,24 @@ export default function InventoryDashboard() {
               </div>
               <div className="relative w-full sm:w-auto">
 
-            <Button
-  variant="outline"
+ <Button
   size="icon"
-  disabled={isTrashButtonDisabled}
+  disabled={selectedItems.length === 0}
   title={
-    isTrashButtonDisabled
+    selectedItems.length === 0
       ? "Select at least one item to delete"
       : "Delete selected items"
   }
-  className={isTrashButtonDisabled ? "cursor-not-allowed opacity-50" : ""}
-  onClick={() => {
-    if (!isTrashButtonDisabled) {
-      handleDeleteSelectedItems(); // Replace with your actual delete handler
-    }
-  }}
+  onClick={handleDeleteSelectedItems}
+  className={`
+    ${selectedItems.length === 0 
+      ? "cursor-not-allowed opacity-50 bg-gray-200 text-gray-400" 
+      : "bg-red-600 hover:bg-red-700 text-white"}
+  `}
 >
   <Trash2 />
 </Button>
+
 
 
               </div>

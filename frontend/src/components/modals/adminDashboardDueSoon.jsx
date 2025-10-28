@@ -22,7 +22,7 @@ export default function DueSoon({ dueItems, isLoading, error }) {
 
   return (
     <div className="bg-gray-100 rounded-xl p-4 flex flex-col h-full">
-      <h2 className="text-xl font-bold mb-4 border-b pb-3">Due Soon</h2>
+      <h2 className="text-xl font-bold mb-4 border-b pb-3">Predictive Maintenance</h2>
 
       {/* Table header */}
       <div className="grid grid-cols-4 gap-2 mb-2 text-xs font-semibold text-white rounded-md bg-blue-900/90 p-3">
