@@ -65,6 +65,10 @@ Route::middleware(['auth:service'])->group(function () {
     Route::post('/service/change-password', [PasswordController::class, 'change']);
     Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
     Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
+    Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
+     ->name('pdf.view')
+     ->middleware('auth:service');
+    
 });
 
 // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)
