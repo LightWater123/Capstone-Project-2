@@ -45,6 +45,7 @@ class MaintenanceController extends Controller
             'user_email'  => $req->recipientEmail,
             'scheduled_at'=> Carbon::parse($req->scheduledAt),
             'status'      => 'pending',
+            'admin_email'     => Auth::user()->email,
         ]);
 
         /* ---------- 2.  queue e-mail ---------- */
@@ -130,7 +131,7 @@ class MaintenanceController extends Controller
     public function index(Request $req)
     {
         return MaintenanceJob::query()
-                      ->where("user_email", Auth::user()->email)
+                      ->where("admin_email", Auth::user()->email)
                       ->orderBy('created_at', 'desc')
                       ->get();
     }
@@ -200,9 +201,9 @@ class MaintenanceController extends Controller
         // The UTCDateTime class is now correctly referenced
         Log::info(Auth::user()->email);
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
-                            ->where('admin_email', "redguzman015@gmail.com")
-                            ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
-                            ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
+                            // ->where('admin_email', "redguzman015@gmail.com")
+                            // ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
+                            // ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
                             ->orderBy('scheduled_at', 'asc')
                             ->get();
         
