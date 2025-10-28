@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 //(daysOfWeek array is unchanged)
 const daysOfWeek = [
@@ -98,7 +99,7 @@ export default function PredictiveMaintenanceModal({
           &times;
         </button>
 
-        <h2 className="text-xl font-bold text-gray-500 mb-2">
+        <h2 className="text-xl font-bold text-gray-500 mb-2 border-b pb-3">
           Predictive Maintenance
         </h2>
         <p className="text-gray-600 mb-6">
@@ -166,7 +167,7 @@ export default function PredictiveMaintenanceModal({
                     key={day.value}
                     className="flex items-center gap-2 cursor-pointer p-2 rounded-md hover:bg-gray-200"
                   >
-                    <input
+                    <Input
                       type="checkbox"
                       checked={formData.operating_days.includes(day.value)}
                       onChange={() => handleDayChange(day.value)}
@@ -197,7 +198,7 @@ export default function PredictiveMaintenanceModal({
               onClick={onClose}
               className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
             after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
-            after:h-[3px] after:w-0 after:bg-red-90 after:rounded-full after:-translate-x-1/2
+            after:h-[3px] after:w-0 after:bg-red-900 after:rounded-full after:-translate-x-1/2
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
             >
               Cancel

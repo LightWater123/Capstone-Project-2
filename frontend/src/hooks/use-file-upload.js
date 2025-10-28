@@ -117,7 +117,7 @@ export const useFileUpload = (options = {}) => {
 
     // Check if adding these files would exceed maxFiles (only in multiple mode)
     if (
-      multiple &&
+      multiple && 
       maxFiles !== Infinity &&
       state.files.length + newFilesArray.length > maxFiles
     ) {
