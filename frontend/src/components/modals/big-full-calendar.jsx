@@ -22,6 +22,7 @@ const LandingPage = () => {
 
   const handleNavigate = (newDate) => setDate(newDate);
   const handleViewChange = (newView) => setView(newView);
+
   const handleSelectSlot = (slotInfo) => {
     setSelectedSlot(slotInfo);
     setSelectedEvent(null);
@@ -33,16 +34,15 @@ const LandingPage = () => {
   };
 
   const handleCreateEvent = (data) => {
-  const newEvent = {
-    title: data.title,
-    start: new Date(data.start),
-    end: new Date(data.end),
-    color: data.color || "#3b82f6", // default to blue if not provided
+    const newEvent = {
+      title: data.title,
+      start: new Date(data.start),
+      end: new Date(data.end),
+      color: data.color || "#3b82f6",
+    };
+    setEvents([...events, newEvent]);
+    setSelectedSlot(null);
   };
-  setEvents([...events, newEvent]);
-  setSelectedSlot(null);
-};
-
 
   const handleDeleteEvent = () => {
     if (selectedEvent) {
@@ -63,6 +63,18 @@ const LandingPage = () => {
       existingEvent === event ? { ...existingEvent, start, end } : existingEvent
     );
     setEvents(updatedEvents);
+  };
+
+  const eventStyleGetter = (event) => {
+    return {
+      style: {
+        backgroundColor: event.color || "#3b82f6",
+        borderRadius: "6px",
+        color: "white",
+        border: "none",
+        padding: "2px 6px",
+      },
+    };
   };
 
   return (
@@ -125,6 +137,7 @@ const LandingPage = () => {
         onSelectEvent={handleSelectEvent}
         onEventDrop={handleEventDrop}
         onEventResize={handleEventResize}
+        eventPropGetter={eventStyleGetter}
       />
     </main>
   );
