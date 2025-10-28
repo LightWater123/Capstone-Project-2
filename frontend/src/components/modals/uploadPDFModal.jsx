@@ -94,7 +94,7 @@ export default function UploadPDFModal({
                 after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
                 after:transition-all after:duration-300 hover:after:w-full focus:outline-none disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors"
             >
-              Upload/{isParsing ? "Processing..." : "Upload and Parse"}
+              {isParsing ? "Processing..." : "Upload and Parse"}
             </Button>
 
             <Button
