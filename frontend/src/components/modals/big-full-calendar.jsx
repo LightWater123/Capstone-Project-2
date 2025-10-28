@@ -167,7 +167,7 @@ const handleEventResize = async ({ event, start, end }) => {
   };
 
   return (
-    <main className="w-full p-5">
+    <main className="max-w-[88rem] mx-auto px-6 py-6">
       <div className="mb-4">
         <Button
           onClick={() =>

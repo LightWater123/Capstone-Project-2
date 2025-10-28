@@ -59,7 +59,11 @@ export default function AdminDashboard() {
           {/* 1️⃣ DueSoon */}
           <div className="lg:col-span-3 lg:row-span-6 flex flex-col min-h-[50vh] lg:min-h-0">
             {/* header */}
-            <div className="flex items-start justify-start mb-4 shrink-0">
+
+
+            {/* card that holds the table */}
+            <div className="flex-1 bg-white rounded-xl shadow-md p-5 overflow-hidden">
+                          <div className="flex items-start justify-start mb-4 shrink-0">
               <Button
                 onClick={handleInventoryList}
                 variant="ghost"
@@ -73,9 +77,6 @@ export default function AdminDashboard() {
                 <ChevronRight className="h-2 w-2" />
               </Button>
             </div>
-
-            {/* card that holds the table */}
-            <div className="flex-1 bg-white rounded-xl shadow-md p-5 overflow-hidden">
               <DueSoon
                 dueItems={filteredPredictiveItems}
                 isLoading={false}
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
                   <li
                     key={item.id}
                     className="bg-white p-3 rounded shadow-sm border-l-4 border-blue-900 cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => navigate(`/maintenance/${item.asset_id}`)}
+                    onClick={() => navigate(`/calendar-full`)}
                   >
                     <div className="font-semibold text-gray-800">
                       {item.asset_name}

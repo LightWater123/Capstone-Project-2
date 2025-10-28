@@ -263,6 +263,24 @@ class EquipmentController extends Controller
         }
     }
 
+    public function bulkDestroy(Request $request)
+{
+    try {
+        $ids = $request->input('ids'); // array of MongoDB IDs
+        Equipment::whereIn('_id', $ids)->delete();
+
+        return response()->json(['message' => 'Selected equipment deleted successfully.'], 200);
+    } catch (\Exception $e) {
+        Log::error('Bulk deletion failed', ['exception' => $e]);
+
+        return response()->json([
+            'message' => 'An unexpected error occurred.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
     /**
  * GET /api/service/inventory?category=PPE|RPCSP
  * Service-user list: only the 4 allowed columns
@@ -361,6 +379,7 @@ class EquipmentController extends Controller
         //     // It will run if 'due_soon' is not in the URL.
         //     $query->where('category', $request->category);
         // }
+
         
 
         // Execute the query and return the results
