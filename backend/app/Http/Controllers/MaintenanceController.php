@@ -240,7 +240,7 @@ class MaintenanceController extends Controller
 
         // CALCULATE INITIAL RUN-HOURS
         $initialRunHours = 0;
-        // Create a period from the start date up to *yesterday*
+        // Create a period from the start date up to yesterday
         $period = CarbonPeriod::create($startDate, $today->copy()->subDay());
 
         foreach ($period as $day) {
@@ -293,9 +293,9 @@ class MaintenanceController extends Controller
         }
 
         // calculate predicted date based on time
-        $predictedTimeDate = Carbon::create(9999, 12, 31, 0, 0, 0); // Default to "never"
+        $predictedTimeDate = Carbon::create(9999, 12, 31, 0, 0, 0);
         if (!is_null($maxTimeDays)) {
-            // Add max days to the *install date*
+            // Add max days to the install date
             $predictedTimeDate = $startDate->copy()->addDays($maxTimeDays);
         }
         
@@ -313,8 +313,7 @@ class MaintenanceController extends Controller
         $equipment->operating_days = $operatingDays;
         $equipment->total_run_hours = $initialRunHours; // Set the "odometer"
         $equipment->last_run_update = Carbon::now(); // Timestamp the activation/update
-        $equipment->next_maintenance_date = $nextMaintenanceDate; // The new predicted date!
-        
+        $equipment->next_maintenance_date = $nextMaintenanceDate; // predicted date
         $equipment->save();
 
         // return response
