@@ -138,7 +138,7 @@ class MaintenanceController extends Controller
     public function serviceIndex()
     {
         // fetch jobs that are pending or in-progress
-        $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])
+        $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])->where('user_email', Auth::user()->email)
                           ->orderBy('created_at', 'desc')
                           ->get();
         

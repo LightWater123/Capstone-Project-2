@@ -19,7 +19,7 @@ const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
 
 const LandingPage = () => {
-  const [view, setView] = useState(Views.WEEK);
+  const [view, setView] = useState(Views.MONTH);
   const [date, setDate] = useState(new Date());
   // const [events, setEvents] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -46,8 +46,8 @@ const LandingPage = () => {
     return result.data.map((event) => ({
       id: event.id,
       title: event.title,
-      start: new Date(event.startDate),
-      end: new Date(event.endDate),
+      start: new Date(event.start_date),
+      end: new Date(event.end_date),
       color: event.color || "#3b82f6",
     }));
   },
@@ -71,9 +71,12 @@ const LandingPage = () => {
     await api
       .post("/api/events", {
         title: data.title,
-        startDate: data.start,
-        endDate: data.end,
+        start_date: data.start,
+        end_date: data.end,
         color: data.color,
+      })
+      .then(() => {
+        toast.success("Added new event!");
       })
       .catch(() => {
         toast.error("failed to add new event");
@@ -82,7 +85,6 @@ const LandingPage = () => {
         queryClient.invalidateQueries({ queryKey: ["getCalendarEvents"] });
       });
 
-    toast.success("Added new event!");
   };
 
   const handleDeleteEvent = async () => {
@@ -102,10 +104,11 @@ const LandingPage = () => {
 
   const handleEventDrop = async ({ event, start, end }) => {
   try {
+    console.log(event, start, end)
     const response = await api.put(`/api/events/${event.id}`, {
       title: event.title,
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
+      start_date: start,
+      end_date: end,
       color: event.color,
     });
 
@@ -126,8 +129,8 @@ const handleEventResize = async ({ event, start, end }) => {
   try {
     await api.put(`/api/events/${event.id}`, {
       title: event.title,
-      startDate: start,
-      endDate: end,
+      start_date: start,
+      end_date: end,
       color: event.color,
     });
     toast.success("Event resized!");

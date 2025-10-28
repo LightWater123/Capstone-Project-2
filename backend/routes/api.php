@@ -78,15 +78,19 @@ Route::middleware(['auth:service'])->group(function () {
     Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
      ->name('pdf.view')
      ->middleware('auth:service');
+
+     Route::get('/service/inventory',                    [MaintenanceController::class, 'serviceIndex']);
+    Route::get('/service/inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
+    Route::get('/service/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
     
 });
 
-// SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)
-Route::prefix('service')->group(function () {
-    Route::get('inventory',                    [MaintenanceController::class, 'serviceIndex']);
-    Route::get('inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
-    Route::get('/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
-})->middleware(['auth:service']);
+// // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)
+// Route::prefix('service')->group(function () {
+//     Route::get('inventory',                    [MaintenanceController::class, 'serviceIndex']);
+//     Route::get('inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
+//     Route::get('/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
+// })->middleware(['auth:service']);
 
 // EMAIL
 Route::post('/send-email', [EmailController::class, 'sendEmail']);

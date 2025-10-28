@@ -22,8 +22,8 @@ export default function CalendarModal() {
       const result = await api.get('/api/events');
       return result.data.map((event) => ({
         ...event,
-        start: new Date(event.startDate),
-        end: new Date(event.endDate),
+        start: new Date(event.start_date),
+        end: new Date(event.end_date),
         color: event.color || '#3b82f6',
       }));
     },
