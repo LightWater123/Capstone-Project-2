@@ -107,6 +107,21 @@ class PdfParserController extends Controller
             };
 
             // Optional: filter header/blank rows
+            Log::info("Type" . $parsed[0]['type']);
+            $type = strtoupper($parsed[0]['type']);
+            if($type != $mode) {
+                return response()->json([
+                'success'        => false,
+                'inserted_count' => 0,
+                'data'           => [],
+                'message'        => 'Invalid pdf expected: '. $mode . ' received: '. $type,
+                'filename'       => $originalName,
+                'mode'           => $mode,
+            ], 400);
+            }
+
+
+            $parsed = array_slice($parsed,  1);
             $rows = array_values(array_filter($parsed, function ($r) use ($normalizeNumber) {
                 $article = trim((string)($r['article'] ?? ''));
                 $hasNumeric =
@@ -154,6 +169,7 @@ class PdfParserController extends Controller
                     'remarks'        => (string)($row['remarks'] ?? $row['remarks_whereabouts'] ?? ''),
                     'location'       => (string)($row['whereabouts'] ?? $row['remarks_whereabouts'] ?? ''),
                     'created_by'     => Auth::user()->email,
+                    'is_active'      => true,
                     'created_at'     => $now,
                     'updated_at'     => $now,
                 ];

@@ -119,7 +119,7 @@ export default function PredictiveMaintenanceModal({
                 htmlFor="install_date"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Install / Service Date
+                Last Maintenance Date
               </label>
               <input
                 id="install_date"

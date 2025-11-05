@@ -201,9 +201,9 @@ class MaintenanceController extends Controller
         // The UTCDateTime class is now correctly referenced
         Log::info(Auth::user()->email);
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
-                            // ->where('admin_email', "redguzman015@gmail.com")
-                            // ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
-                            // ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
+                            ->where('admin_email', Auth::user()->email)
+                            ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
+                            ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
                             ->orderBy('scheduled_at', 'asc')
                             ->get();
         
@@ -230,7 +230,7 @@ class MaintenanceController extends Controller
         $request->validate([
             'install_date' => 'required|date',
             'daily_usage_hours' => 'required|numeric|min:0',
-            'operating_days' => 'required|array', // e.g., [1, 2, 3, 4, 5]
+            'operating_days' => 'required|array', // 1, 2, 3, 4, 5
         ]);
 
         // GET EQUIPMENT & INPUTS
@@ -252,7 +252,7 @@ class MaintenanceController extends Controller
             }
         }
 
-        // GET MAINTENANCE RULES (Dynamic Lookup)
+        // GET MAINTENANCE RULES
         
         // Find the rules from the 'equipment_types' collection
         // match its 'name' against the equipment's 'article' field

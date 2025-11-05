@@ -6,6 +6,7 @@ import BTRNavbar from '../components/modals/btrNavbar.jsx';
 import { useMonitorMaintenance } from '../hooks/useMonitorMaintenance.js';
 import { usePredictiveMaintenance } from '../hooks/usePredictiveMaintenance.js';
 import { Button } from "@/components/ui/button";
+import api from "../api/api";
 
 export default function MaintenanceList() {
   const navigate = useNavigate();
@@ -131,10 +132,33 @@ export default function MaintenanceList() {
                         </span>
                       </p>
                     </div>
+
+                    <div>
+                      <span className="text-gray-500">Report:</span>
+                      <Button
+                      variant={"link"}
+                        onClick={async()=>{
+                          const response = await api.get(`/api/pdf/${s.id}`, {
+                          responseType: 'blob',
+                        });
+
+                        // Create a URL from the Blob
+                        const fileURL = URL.createObjectURL(response.data);
+                        
+                        // Open the URL in a new tab
+                        window.open(fileURL, '_blank');
+                        }}
+                        className="py-2 px-0 flex flex-col gap-3 hover:text-blue-400 underline"
+                      >
+                        View report
+                      </Button>
+                    </div>
                     <div>
                       <span className="text-gray-500">Sender e-mail:</span>
                       <p className="font-mono text-gray-600">{s.user_email ? 'Sent' : '-'}</p>
                     </div>
+
+
 
                     {/* Predictive maintenance row */}
                     {/* <div className="sm:col-span-2">

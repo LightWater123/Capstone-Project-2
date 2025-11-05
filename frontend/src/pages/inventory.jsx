@@ -57,7 +57,15 @@ import {
   ChevronRight,
   ArrowDownAZ,
   Trash2,
+  BookmarkIcon,
+  Bookmark,
+  ArchiveIcon,
+  ArchiveX,
 } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+
+const disabledItems = ["vehicle", "generator","grasscutter","hard hats","trash bins","trash bin","door closer","weighing scale","mobile phone","garden hose","door mat","mobile phone","chair","table","flag stand","fuse cut","corkboard"];
+
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -67,6 +75,8 @@ export default function InventoryDashboard() {
 
   //Sort
   const [showSortOptions, setShowSortOptions] = useState(false);
+  const [hideArchive, setHideArchive] = useState(true);
+
 
   // Inventory hook
   
@@ -120,6 +130,8 @@ export default function InventoryDashboard() {
 
     setShowSortOptions(false); // close after picking
   };
+
+  
   // Modals
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -137,13 +149,14 @@ export default function InventoryDashboard() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState([]);
-
+  
   //sort map
   const SORT_MAP = {
     "name:asc": "Name A-Z",
     "name:desc": "Name Z-A",
     "price:asc": "Price ↑",
     "price:desc": "Price ↓",
+    "predictive": "predictive",
   };
 
   //sort text placeholder
@@ -164,11 +177,22 @@ export default function InventoryDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
+  const filData = useMemo(() =>filteredData.filter((e) => {
+    let res = e.is_active == hideArchive
+      console.log(hideArchive, sortBy)
+
+    if(sortBy === "predictive") {
+      res = !disabledItems.includes(String(e.article).toLowerCase())
+      console.log("SDDSDD", res)
+    }
+    return res
+  } ),[filteredData, sortBy, hideArchive])
+
   // derive paginated data
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = filteredData.slice(startIndex, endIndex);
+  const currentItems = filData.slice(startIndex, endIndex);
 
   // Function to handle page changes
   
@@ -365,8 +389,11 @@ export default function InventoryDashboard() {
       return true; // Disabled if no items are selected
     }
     const firstArticle = selectedItems[0].article;
+
+    const isItemDisabled = new RegExp(disabledItems.join("|"), 'i').test(firstArticle)
+
     // Disabled if not all selected items share the same article
-    return !selectedItems.every((item) => item.article === firstArticle);
+    return !selectedItems.every((item) => item.article === firstArticle) || isItemDisabled;
   }, [selectedItems]);
 
   // open predictive modal
@@ -444,27 +471,25 @@ export default function InventoryDashboard() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
               <div className="relative w-full sm:w-auto">
-
- <Button
-  size="icon"
-  disabled={selectedItems.length === 0}
-  title={
-    selectedItems.length === 0
-      ? "Select at least one item to delete"
-      : "Delete selected items"
-  }
-  onClick={handleDeleteSelectedItems}
-  className={`
-    ${selectedItems.length === 0 
-      ? "cursor-not-allowed opacity-50 bg-gray-200 text-gray-400" 
-      : "bg-red-600 hover:bg-red-700 text-white"}
+                <Button
+                  size="icon"
+                  disabled={selectedItems.length === 0}
+                  title={
+                    selectedItems.length === 0
+                      ? "Select at least one item to delete"
+                      : "Delete selected items"
+                  }
+                  onClick={handleDeleteSelectedItems}
+                  className={`
+    ${
+      selectedItems.length === 0
+        ? "cursor-not-allowed opacity-50 bg-gray-200 text-gray-400"
+        : "bg-red-800 hover:bg-red-900 text-white"
+    }
   `}
->
-  <Trash2 />
-</Button>
-
-
-
+                >
+                  <ArchiveX />
+                </Button>
               </div>
               {/* Sort Dropdown */}
               <div className="relative w-full sm:w-auto">
@@ -479,6 +504,7 @@ export default function InventoryDashboard() {
                     <SelectItem value="name:desc">Name Z-A</SelectItem>
                     <SelectItem value="price:asc">Price ↑</SelectItem>
                     <SelectItem value="price:desc">Price ↓</SelectItem>
+                    <SelectItem value="predictive">PM</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -503,21 +529,20 @@ export default function InventoryDashboard() {
               </Button>
 
               <Button
-  className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
-  onClick={openScheduleModal}
-  disabled={isScheduleButtonDisabled}
-  title={
-    isScheduleButtonDisabled
-      ? selectedItems.length > 1
-        ? "Please select only one item"
-        : "Please select an item"
-      : "Schedule Maintenance"
-  }
->
-  <Calendar className="h-5 w-5 inline-block mr-2" />
-  Schedule Maintenance
-</Button>
-
+                className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
+                onClick={openScheduleModal}
+                disabled={isScheduleButtonDisabled}
+                title={
+                  isScheduleButtonDisabled
+                    ? selectedItems.length > 1
+                      ? "Please select only one item"
+                      : "Please select an item"
+                    : "Schedule Maintenance"
+                }
+              >
+                <Calendar className="h-5 w-5 inline-block mr-2" />
+                Schedule Maintenance
+              </Button>
 
               <Button
                 className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
@@ -570,32 +595,57 @@ export default function InventoryDashboard() {
           </div>
 
           {/* Items per page selector */}
-          <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
-            <Label>Items per page:</Label>
-            <Select
-              value={String(itemsPerPage)}
-              onValueChange={(v) => setItemsPerPage(Number(v))}
+          <div className="flex justify-end gap-2">
+            <Toggle
+              aria-label="Toggle bookmark"
+              size="sm"
+              variant="outline"
+              onClick={() => setHideArchive((prev) => !prev)}
+              className="mt-0.5 data-[state=on]:bg-blue-900 data-[state=on]:text-white data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
             >
-              <SelectTrigger className="w-full md:w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Items per page</SelectLabel>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="30">30</SelectItem>
-                  <SelectItem value="40">40</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              <ArchiveIcon />
+              Archived
+            </Toggle>
+            <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
+              <Label>Items per page:</Label>
+              <Select
+                value={String(itemsPerPage)}
+                onValueChange={(v) => setItemsPerPage(Number(v))}
+              >
+                <SelectTrigger className="w-full md:w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Items per page</SelectLabel>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="40">40</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <a
+                href={`http://localhost:8000/api/inventory/gen?category=${category.toUpperCase()}`}
+                target={"_blank"}
+              >
+                <Button
+                  type="button"
+                  className="text-white px-2 sm:px-3 py-1 rounded-md font-semiboldtext-xs sm:text-sm leading-tight whitespace-nowrap bg-blue-900 hover:bg-blue-950"
+                >
+                  Download Report
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Equipment Table */}
         <div className="max-w-[88rem] mx-auto px-4 sm:px-6">
           <div className="px-1 pt-3 pb-3 rounded-md border mt-4 mb-5">
-            {filteredData.length === 0 ? (
+            {filData.length === 0 ? (
               <p className="text-gray-500">No equipment found in {category}.</p>
             ) : category !== "Due soon" ? (
               <>
@@ -620,7 +670,6 @@ export default function InventoryDashboard() {
                           </TableHead>
                         )}
                         <TableHead className="px-2 py-1">Unit</TableHead>
-                        <TableHead className="px-2 py-1">Unit Value</TableHead>
                         <TableHead className="px-5 py-1">Actions</TableHead>
                         <TableHead className="px-2 py-1 text-center">
                           <input
@@ -685,13 +734,6 @@ export default function InventoryDashboard() {
                           <TableCell className="px-2 py-1 min-w-[96px] max-w-[120px] truncate">
                             {item.unit}
                           </TableCell>
-                          <TableCell className="px-2 py-1 min-w-[96px] max-w-[128px] truncate">
-                            ₱
-                            {Number(item.unit_value).toLocaleString("en-PH", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </TableCell>
                           <TableCell className="px-2 py-1 space-x-2 min-w-[112px] max-w-[144px]">
                             <Button
                               className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
@@ -737,6 +779,12 @@ export default function InventoryDashboard() {
                       <TableRow>
                         <TableHead className="px-2 py-1">Article</TableHead>
                         <TableHead className="px-2 py-1">Description</TableHead>
+                        <TableHead className="px-2 py-1">
+                          Property No. (RO/CO)
+                        </TableHead>
+                        <TableHead className="px-2 py-1">
+                          Semi-Expendable Property No.
+                        </TableHead>
                         <TableHead className="px-2 py-1">Type</TableHead>
                         <TableHead className="px-2 py-1">Due Date</TableHead>
                         <TableHead className="px-5 py-1">Actions</TableHead>
@@ -765,7 +813,15 @@ export default function InventoryDashboard() {
                               {item.article}
                             </TableCell>
                             <TableCell className="px-2 py-1">
-                              {item.description}
+                              {String(item.description).slice(0, 50)}
+                              {String(item.description).length > 50 && "..."}
+                            </TableCell>
+
+                            <TableCell className="px-2 py-1">
+                              {item.property_ro ?? item.property_co ?? ""}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.semi_expendable_property_no}
                             </TableCell>
                             <TableCell className="px-2 py-1">
                               {item.category}
@@ -902,7 +958,7 @@ export default function InventoryDashboard() {
           }}
           // delete item
           onDelete={async (id) => {
-            if (!window.confirm("Are you sure you want to delete this item?"))
+            if (!window.confirm("Are you sure you want to remove this item?"))
               return;
             try {
               await api.delete(`/api/inventory/${id}`);

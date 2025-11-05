@@ -12,6 +12,7 @@ use MongoDB\BSON\ObjectId;
 use Illuminate\Database\Eloquent\Builder; // Added for type-hinting
 use Carbon\Carbon; // Added for date manipulation
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\PdfBuilderJob;
 
 class EquipmentController extends Controller
 {
@@ -134,6 +135,7 @@ class EquipmentController extends Controller
             // create and save item
             // $equipment = Equipment::create($validated);
             Log::info('Creating new equipment entry', ['data' => $validated]);
+            $validated["is_active"] = true;
             $equipment = new Equipment();
             $equipment->fill($validated);
             $equipment->date_added = now(); // set date_added to current timestamp
@@ -247,9 +249,10 @@ class EquipmentController extends Controller
             $equipment = Equipment::findOrFail($id);
 
             // delete item
-            $equipment->delete();
+            $vals = ["is_active" => false];
+            $equipment->update($vals);
 
-            return response()->json(['message' => 'Equipment deleted successfully.'], 200);
+            return response()->json(['message' => 'Equipment archived successfully.'], 200);
 
         } catch (\Exception $e) 
         {
@@ -267,7 +270,8 @@ class EquipmentController extends Controller
 {
     try {
         $ids = $request->input('ids'); // array of MongoDB IDs
-        Equipment::whereIn('_id', $ids)->delete();
+        $vals = ["is_active" => false];
+        Equipment::whereIn('_id', $ids)->update($vals);
 
         return response()->json(['message' => 'Selected equipment deleted successfully.'], 200);
     } catch (\Exception $e) {
@@ -346,6 +350,24 @@ class EquipmentController extends Controller
                     'scheduled_at'  => $job->scheduled_at,
                 ];
             }),
+        ]);
+    }
+
+    public function buildPdf(Request $request) {
+        $category = $request->query('category');
+
+        $items = Equipment::query();
+        if ($category) {
+            $items->where('category', $category);
+        }
+
+
+        // return $items->get();
+        $bytes = app(PdfBuilderJob::class)->buildComparisonPdf($items->get()->toArray(), $category);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="report.pdf"'
         ]);
     }
 

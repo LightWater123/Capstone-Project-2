@@ -44,6 +44,7 @@ class Equipment extends Model
         'next_due_date',         // prediction result
         'max_usage_hours',
         'max_time_days',
+        'is_active',
         'created_by'
     ];
 
@@ -73,7 +74,7 @@ class Equipment extends Model
     public function getShortageOrOverageQtyAttribute()
     {
         // Calculate shortage or overage quantity
-        return $this->recorded_count - $this->actual_count;
+        return $this->actual_count - $this->recorded_count ;
     }
 
     public function getShortageOrOverageValAttribute()

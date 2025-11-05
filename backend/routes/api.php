@@ -30,6 +30,9 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::get('/user', fn(Request $r) => $r->user());
 });
 
+    Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
+
+
 // AUTHENTICATED
 Route::middleware(['auth:admin'])->group(function () {
 
@@ -50,6 +53,7 @@ Route::middleware(['auth:admin'])->group(function () {
     // inventory
     Route::apiResource('inventory', EquipmentController::class)
          ->only(['index','store','update','destroy']);
+
     // pdf parse
     Route::post('parse-pdf', [PdfParserController::class, 'parse']);
     // bulk delete
@@ -68,6 +72,10 @@ Route::middleware(['auth:admin'])->group(function () {
     });
 });
 
+// admin and service user view report
+Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
+ ->name('pdf.view');
+ 
 // SERVICE USER (service guard)
 Route::middleware(['auth:service'])->group(function () {
     Route::get('/service/user', fn(Request $r) => $r->user());
@@ -77,9 +85,7 @@ Route::middleware(['auth:service'])->group(function () {
     Route::post('/service/change-password', [PasswordController::class, 'change']);
     Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
     Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
-    Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
-     ->name('pdf.view')
-     ->middleware('auth:service');
+    
 
      Route::get('/service/inventory',                    [MaintenanceController::class, 'serviceIndex']);
     Route::get('/service/inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
