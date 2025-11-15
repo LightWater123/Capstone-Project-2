@@ -49,7 +49,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "deploy": "vite build && scp -r build/* webserver:~/Capstone-Project-2/frontend/build"
   },
   "browserslist": {
     "production": [
