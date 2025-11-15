@@ -21,6 +21,7 @@ import AuthProvider from "./auth/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import ServiceSettings from "./pages/service_settings";
 
+
 export const queryClient = new QueryClient();
 
 export default function App() {

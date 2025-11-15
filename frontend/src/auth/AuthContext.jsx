@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { queryClient } from "@/App";
+import GlobalSpinner from "@/components/loader";
 
 const AuthContext = createContext(null);
 
@@ -10,7 +11,7 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
   const Navigate = useNavigate();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     async function run() {
       if (!user) {
         const data = await queryClient.fetchQuery({
@@ -21,7 +22,6 @@ export default function AuthProvider({ children }) {
             return res.data;
           },
           staleTime: 15000,
-          retry: 3,
         });
         if (data.user) {
           setUser(data.user);
@@ -35,6 +35,10 @@ export default function AuthProvider({ children }) {
       Navigate("/");
     });
   }, [user]);
+
+  if(user === undefined) {
+    return <GlobalSpinner/>
+  }
 
   const login = async (user, password) => {
     const response = await api.post("/api/login", {
