@@ -54,7 +54,10 @@ class EquipmentController extends Controller
         // 2. Initialize the base query with the category filter
         $query = Equipment::query();
         if ($category) {
-            $query->where('category', $category)->where('created_by', Auth::user()->email);
+            // Get the current guard from the session
+            $guard = session('auth_guard', 'web');
+            $user = Auth::guard($guard)->user();
+            $query->where('category', $category)->where('created_by', $user->email);
         }
 
         // 3. Get the equipment and then map over the collection to add the predictive date
@@ -139,7 +142,12 @@ class EquipmentController extends Controller
             $equipment = new Equipment();
             $equipment->fill($validated);
             $equipment->date_added = now(); // set date_added to current timestamp
-            $equipment->created_by = Auth::user()->email;
+            
+            // Get the current guard from the session
+            $guard = session('auth_guard', 'web');
+            $user = Auth::guard($guard)->user();
+            $equipment->created_by = $user->email;
+            
             $equipment->save();
             // return created item to frontend
             return response()->json($equipment, 201);
@@ -376,8 +384,11 @@ class EquipmentController extends Controller
         // Start a new query on the Equipment model
         $query = Equipment::query();
 
-
-        $query->whereNotNull('next_maintenance_date')->where("created_by", Auth::user()->email);
+        // Get the current guard from the session
+        $guard = session('auth_guard', 'web');
+        $user = Auth::guard($guard)->user();
+        
+        $query->whereNotNull('next_maintenance_date')->where("created_by", $user->email);
             
             // We sort them by that date in ascending order ('asc').
             // This puts the SOONEST dates (including overdue ones) at the TOP.
