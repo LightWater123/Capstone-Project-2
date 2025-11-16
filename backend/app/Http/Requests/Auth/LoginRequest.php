@@ -47,10 +47,13 @@ class LoginRequest extends FormRequest
 
         $login = $this->input('login');
         
+        // Check if session exists before trying to access it
+        $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
+        
         \Log::info('Authentication attempt', [
             'login' => $login,
             'is_email' => filter_var($login, FILTER_VALIDATE_EMAIL),
-            'session_id' => $this->session()->getId(),
+            'session_id' => $sessionId,
             'current_guard' => Auth::getDefaultDriver(),
         ]);
 
@@ -72,10 +75,11 @@ class LoginRequest extends FormRequest
             $this->usedGuard = 'web';
         } else {
             // No user found in any collection
+            $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
             \Log::warning('No user found in any collection', [
                 'login' => $login,
                 'field' => $field,
-                'session_id' => $this->session()->getId(),
+                'session_id' => $sessionId,
             ]);
             
             RateLimiter::hit($this->throttleKey());
@@ -93,10 +97,11 @@ class LoginRequest extends FormRequest
         ]);
 
         if (! Auth::guard($this->usedGuard)->attempt($this->only('login', 'password'), $this->boolean('remember'))) {
+            $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
             \Log::warning('Authentication failed', [
                 'login' => $login,
                 'guard' => $this->usedGuard,
-                'session_id' => $this->session()->getId(),
+                'session_id' => $sessionId,
             ]);
             
             RateLimiter::hit($this->throttleKey());
@@ -106,11 +111,12 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
         \Log::info('Authentication successful', [
             'login' => $login,
             'guard' => $this->usedGuard,
             'user' => Auth::guard($this->usedGuard)->user()->toArray(),
-            'session_id' => $this->session()->getId(),
+            'session_id' => $sessionId,
         ]);
         
         // logout other devices if a user logins into a new device
@@ -118,7 +124,7 @@ class LoginRequest extends FormRequest
         \Log::info('Logged out other sessions', [
             'user_id' => Auth::guard($this->usedGuard)->id(),
             'guard' => $this->usedGuard,
-            'current_session_id' => $this->session()->getId(),
+            'current_session_id' => $sessionId,
         ]);
 
         RateLimiter::clear($this->throttleKey());

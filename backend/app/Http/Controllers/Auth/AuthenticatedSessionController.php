@@ -36,19 +36,10 @@ class AuthenticatedSessionController extends Controller
         // 2. Get the guard that was used for authentication from the request object.
         $guard = $request->getUsedGuard();
         
-        // 3. DYNAMICALLY SET THE SESSION COOKIE BASED ON THE GUARD.
-        // This is the key to isolating the sessions.
-        if ($guard === 'admin') {
-            config(['session.cookie' => env('ADMIN_SESSION_COOKIE', 'btr_admin_session')]);
-        } elseif ($guard === 'service') {
-            config(['session.cookie' => env('SERVICE_SESSION_COOKIE', 'btr_service_session')]);
-        }
-
-        // 4. Get the user from the correct guard.
+        // 3. Get the user from the correct guard.
         $user = Auth::guard($guard)->user();
         
-        // 5. Regenerate the session ID with the NEW, ISOLATED cookie name.
-        // This must be done AFTER setting the config.
+        // 4. Regenerate the session ID.
         $request->session()->regenerate();
 
         \Log::info('Authentication successful', [
