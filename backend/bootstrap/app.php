@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Middleware aliases
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'api.auth.session' => \App\Http\Middleware\StartSessionForApiAuth::class,
         ]);
     })
     ->withProviders([
