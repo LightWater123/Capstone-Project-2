@@ -399,7 +399,7 @@ class MaintenanceController extends Controller
         return response()->json(['message' => 'Report updated']);
     }
 
-    public function showPdf($id)
+    public function showPdf($id, $t = null)
     {
         $job = MaintenanceJob::find($id);
 

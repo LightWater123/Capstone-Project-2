@@ -80,7 +80,7 @@ Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
 
 // admin and service user view report
 Route::middleware(['api.auth.session'])->group(function () {
-    Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf']);
+    Route::get('pdf/{id}/{t?}', [MaintenanceController::class, 'showPdf'])->name('pdf.view');
 });
 
 // // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)

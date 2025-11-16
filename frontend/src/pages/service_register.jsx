@@ -75,7 +75,8 @@ export default function ServiceRegister() {
       });
 
       //console.log("Registered service user:", response.data.user);
-      toast.success(`Registered service user: ${response.data.user}`);
+      //console.log("Registered admin user:", response.data.user);
+      toast.success(`Registered service user: ${response.data?.user?.username ?? "new user"}`);
       navigate("/admin/dashboard");
     } catch (err) {
       console.error("Registration error:", err.response?.data);
