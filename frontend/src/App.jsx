@@ -20,6 +20,7 @@ import ResetPassword from "./pages/reset_password";
 import AuthProvider from "./auth/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import ServiceSettings from "./pages/service_settings";
+import ProtectedRoutes from "./auth/ProtectedRoutes";
 
 
 export const queryClient = new QueryClient();
@@ -33,24 +34,28 @@ export default function App() {
             <Route path="/" element={<Login />} />
             <Route path="*" element={<Login />} />
 
-            <Route path="/register/admin" element={<AdminRegister />} />
-            <Route path="/register/service" element={<ServiceRegister />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/service/dashboard" element={<ServiceDashboard />} />
-            <Route path="/oic/dashboard" element={<DirectorDashboard />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/service/archive" element={<ServiceArchive />} />
-            <Route path="/admin/messages" element={<AdminMessages />} />
-            <Route
-              path="/admin/maintenance-list"
-              element={<MaintenanceList />}
-            />
-            <Route path="/service/inventory" element={<ServiceInventory />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/calendar-full" element={<CalendarFullPage />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/service/settings" element={<ServiceSettings />} />
+            <Route element={<ProtectedRoutes redirectPath={"/"} />}>
+              <Route path="/inventory" element={<Inventory />} />
+
+              <Route path="/register/admin" element={<AdminRegister />} />
+              <Route path="/register/service" element={<ServiceRegister />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/service/dashboard" element={<ServiceDashboard />} />
+              <Route path="/oic/dashboard" element={<DirectorDashboard />} />
+              <Route path="/service/archive" element={<ServiceArchive />} />
+              <Route path="/admin/messages" element={<AdminMessages />} />
+              <Route
+                path="/admin/maintenance-list"
+                element={<MaintenanceList />}
+              />
+              <Route path="/service/inventory" element={<ServiceInventory />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/calendar-full" element={<CalendarFullPage />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/service/settings" element={<ServiceSettings />} />
+            </Route>
+
           </Routes>
           <Toaster />
         </AuthProvider>
