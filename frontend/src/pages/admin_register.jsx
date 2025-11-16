@@ -67,7 +67,8 @@ export default function AdminRegister() {
       });
 
       console.log("Registered admin user:", response.data.user);
-      //navigate('/');
+      toast.success(`Registered admin user: ${response.data.user}`);
+      // navigate('/');
     } catch (err) {
       console.error("Registration error:", err.response?.data);
       if (err.response?.data?.errors) {
