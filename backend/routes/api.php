@@ -23,19 +23,8 @@ Route::post('/forgot-password',  fn(Request $r) => … )->middleware('api.auth.s
 Route::post('/reset-password',   fn(Request $r) => … )->middleware('api.auth.session');
 
 
-// AUTHENTICATED - Unified user endpoint for all guards
-Route::middleware(['auth:admin'])->group(function () {
-
-    // user & password
-    Route::get('/user', fn(Request $r) => $r->user());
-});
-
-    Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
-
-
-// AUTHENTICATED
-Route::middleware(['auth:admin'])->group(function () {
-
+// AUTHENTICATED - Admin routes
+Route::middleware(['api.auth.session', 'auth:admin'])->group(function () {
     // user & password
     Route::get('/user', fn(Request $r) => $r->user());
     
@@ -48,7 +37,6 @@ Route::middleware(['auth:admin'])->group(function () {
     Route::put('/events/{id}', [EventController::class, 'update']);
     Route::get('/events/maintenance', [EventController::class, 'maintenanceEvents']);
     Route::get('/events/reminders', [EventController::class, 'reminderEvents']);
-
 
     // inventory
     Route::apiResource('inventory', EquipmentController::class)
@@ -72,12 +60,8 @@ Route::middleware(['auth:admin'])->group(function () {
     });
 });
 
-// admin and service user view report
-Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf'])
- ->name('pdf.view');
- 
-// SERVICE USER (service guard)
-Route::middleware(['auth:service'])->group(function () {
+// AUTHENTICATED - Service user routes
+Route::middleware(['api.auth.session', 'auth:service'])->group(function () {
     Route::get('/service/user', fn(Request $r) => $r->user());
     Route::get('/my-messages', [MaintenanceController::class,'messages']);
     Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
@@ -86,11 +70,17 @@ Route::middleware(['auth:service'])->group(function () {
     Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
     Route::patch('/maintenance/{id}/report', [MaintenanceController::class, 'updateReport'] );
     
-
-     Route::get('/service/inventory',                    [MaintenanceController::class, 'serviceIndex']);
+    Route::get('/service/inventory',                    [MaintenanceController::class, 'serviceIndex']);
     Route::get('/service/inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
     Route::get('/service/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
-    
+});
+
+// PUBLIC - No authentication required
+Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
+
+// admin and service user view report
+Route::middleware(['api.auth.session'])->group(function () {
+    Route::get('pdf/{id}', [MaintenanceController::class, 'showPdf']);
 });
 
 // // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)

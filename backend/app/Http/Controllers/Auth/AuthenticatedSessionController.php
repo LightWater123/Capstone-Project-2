@@ -65,13 +65,8 @@ class AuthenticatedSessionController extends Controller
             'session_id' => $request->session()->getId(),
         ]);
 
-        // destroys other sessions for different devices
-        // $tokenId = $request->user()->currentAccessToken()->id;
-
-        // $user->tokens()->where('id', '!=',$tokenId)->delete(); 
-        // return $user?->toArray()
-
-        $request->session()->put('auth_guard', $guard);
+        // Regenerate the session to prevent session fixation
+        $request->session()->regenerate();
 
         return response()->json([
             'redirect' => $redirectUrl,
@@ -119,9 +114,11 @@ class AuthenticatedSessionController extends Controller
         $guard = session('auth_guard', 'web');   // fallback to default
         $user  = Auth::guard($guard)->user();
 
-        return $user
-            ? response()->json(['user' => $user])
-            : response()->json(['error' => 'Unauthorized'], 401);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        return response()->json(['user' => $user]);
     }
 
     /**

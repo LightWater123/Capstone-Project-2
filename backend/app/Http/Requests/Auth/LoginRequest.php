@@ -119,6 +119,9 @@ class LoginRequest extends FormRequest
             'session_id' => $sessionId,
         ]);
         
+        // Store the authentication guard in the session
+        $this->session()->put('auth_guard', $this->usedGuard);
+        
         // logout other devices if a user logins into a new device
         Auth::guard($this->usedGuard)->logoutOtherDevices($this->input('password'));
         \Log::info('Logged out other sessions', [
