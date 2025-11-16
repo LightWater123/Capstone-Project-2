@@ -15,12 +15,12 @@ use Illuminate\Auth\Events\PasswordReset;
 use App\Http\Controllers\EventController;
 
 // PUBLIC
-Route::post('/login',    [AuthenticatedSessionController::class, 'store'])->middleware('web');
-Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy'])->middleware('web');
-Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify'])->middleware('web');
-Route::post('/register', [RegisterController::class, 'register'])->middleware('web');
-Route::post('/forgot-password',  fn(Request $r) => … )->middleware('web');
-Route::post('/reset-password',   fn(Request $r) => … )->middleware('web');
+Route::post('/login',    [AuthenticatedSessionController::class, 'store']);
+Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy']);
+Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify']);
+Route::post('/register', [RegisterController::class, 'register']);
+Route::post('/forgot-password',  fn(Request $r) => … );
+Route::post('/reset-password',   fn(Request $r) => … );
 
 
 // AUTHENTICATED - Unified user endpoint for all guards
