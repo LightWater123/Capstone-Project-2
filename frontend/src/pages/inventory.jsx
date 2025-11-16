@@ -64,7 +64,7 @@ import {
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
-const disabledItems = ["vehicle", "generator","grasscutter","hard hats","trash bins","trash bin","door closer","weighing scale","mobile phone","garden hose","door mat","mobile phone","chair","table","flag stand","fuse cut","corkboard"];
+const disabledItems = ["vehicle", "generator","grasscutter","hard hats","trash bins","trash bin","door closer","weighing scale","mobile phone","garden hose","door mat","mobile phone","chair","table","flag stand","fuse cut","corkboard", "keyboard", "mouse", "monitor", "projector", "sd wan device", "sofa set", "flag pole", "signage", "cubicle set", "cabinet", "client coun", "organizer", "sala set", "storage bo", "bed", "towel bar", "table kiosk", "organizational chart"];
 
 
 export default function InventoryDashboard() {
