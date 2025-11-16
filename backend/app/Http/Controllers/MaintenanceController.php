@@ -191,19 +191,21 @@ class MaintenanceController extends Controller
         $days = (int)$days;
 
         // Use UTC to match MongoDB's date storage
-        $now = Carbon::now('UTC');
-        $futureDate = $now->copy()->addDays($days)->endOfDay();
+        $now = Carbon::now('UTC')->startOfDay(); // Set to 00:00:00
+        $futureDate = $now->copy()->addDays($days)->endOfDay(); // Set to 23:59:59
         
         // Log for debugging
         Log::info("Checking maintenance from {$now} to {$futureDate}");
 
         // MongoDB-specific query with proper date handling
-        // The UTCDateTime class is now correctly referenced
-        Log::info(Auth::user()->email);
+        // Convert Carbon instances to UTCDateTime with correct milliseconds
+        $startDateTime = new UTCDateTime($now->getTimestampMs());
+        $endDateTime = new UTCDateTime($futureDate->getTimestampMs());
+        
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
                             ->where('admin_email', Auth::user()->email)
-                            ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
-                            ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
+                            ->where('scheduled_at', '>=', $startDateTime)
+                            ->where('scheduled_at', '<=', $endDateTime)
                             ->orderBy('scheduled_at', 'asc')
                             ->get();
         
