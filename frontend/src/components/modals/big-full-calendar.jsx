@@ -14,6 +14,7 @@ import api from "@/api/api";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/App";
+import { format } from "date-fns";
 
 const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
@@ -48,6 +49,8 @@ const LandingPage = () => {
       type: "event",
       title: event.title,
       start: new Date(event.start_date),
+      pickUpDate: new Date(event.pickup_date),
+      pickUpLocation: new Date(event.pickup_place),
       end: new Date(event.end_date),
       color: event.color || "red",
     }))),
@@ -219,6 +222,19 @@ const handleEventResize = async ({ event, start, end }) => {
               <p>
                 <strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}
               </p>
+
+              {selectedEvent.pickUpDate && (
+              <p>
+                <strong>Pick up date:</strong> {format(selectedEvent.pickUpDate, "PPP")}
+              </p>
+              )}
+
+              {selectedEvent.pickUpLocation && (
+              <p>
+                <strong>Pick up location:</strong> {format(selectedEvent.pickUpLocation, "PPP")}
+              </p>
+              )}
+              
               <Button variant="destructive" onClick={handleDeleteEvent}>
                 <Trash2 className="size-4 mr-2" />
                 Delete Event
