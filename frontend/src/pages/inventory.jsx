@@ -437,7 +437,7 @@ export default function InventoryDashboard() {
     }
   };
 
-  const isScheduleButtonDisabled = selectedItems.length !== 1;
+  const isScheduleButtonDisabled = selectedItems.length !== 1 || !hideArchive;
   const isTrashButtonDisabled = selectedItems.length === 0;
 
 
