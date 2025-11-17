@@ -628,7 +628,7 @@ export default function InventoryDashboard() {
             </div>
             <div>
               <a
-                href={`http://${import.meta.env.VITE_BACKEND_URL ?? 'localhost:8000'}/api/inventory/gen?category=${category.toUpperCase()}`}
+                href={`${import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8000'}/api/inventory/gen?category=${category.toUpperCase()}`}
                 target={"_blank"}
               >
                 <Button
