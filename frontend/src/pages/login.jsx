@@ -75,7 +75,7 @@ export default function Login() {
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="flex h-full animate-banner"
-          style={{ width: `${images.length * 100}vw` }}
+          style={{ width: `${images.length * 2 * 100}vw` }}
         >
           {[...images, ...images].map((img, i) => (
             <div
