@@ -49,8 +49,6 @@ const LandingPage = () => {
       type: "event",
       title: event.title,
       start: new Date(event.start_date),
-      pickUpDate: new Date(event.pickup_date),
-      pickUpLocation: new Date(event.pickup_place),
       end: new Date(event.end_date),
       color: event.color || "red",
     }))),
@@ -67,6 +65,8 @@ const LandingPage = () => {
       type: "maintenance-due",
       title: `Maintenance Due: ${item.asset_name}`,
       start: new Date(item.scheduled_at),
+      pickUpDate: item.pickup_date,
+      pickUpLocation: item.pickup_place,
       end: new Date(item.scheduled_at),
       color: "blue"
     })))
@@ -101,6 +101,8 @@ const LandingPage = () => {
       });
 
   };
+
+  console.log(selectedEvent)
 
   const handleDeleteEvent = async () => {
   if (!selectedEvent) return;
@@ -231,7 +233,7 @@ const handleEventResize = async ({ event, start, end }) => {
 
               {selectedEvent.pickUpLocation && (
               <p>
-                <strong>Pick up location:</strong> {format(selectedEvent.pickUpLocation, "PPP")}
+                <strong>Pick up location:</strong> {selectedEvent.pickUpLocation}
               </p>
               )}
               
