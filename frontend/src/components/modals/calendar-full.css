@@ -65,7 +65,7 @@
 
 /* Highlight today's date */
 .today-highlight .day-cell {
-  background-color: #facc15; /* yellow */
+  background-color: #F2A900; /* yellow */
   color: black;
 }
 
@@ -76,7 +76,7 @@
 
 /* Dynamic background from data-color */
 .event-day .day-cell[data-color] {
-  background-color: attr(data-color color, #3b82f6);
+  background-color: attr(data-color color, #0D47A1);
 }
 
 

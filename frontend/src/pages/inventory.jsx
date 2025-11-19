@@ -8,6 +8,7 @@ import api from "../api/api";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
 import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // Modals
 import ScheduleMaintenanceModal from "../components/modals/scheduleModal.jsx";
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import PaginationBar from "@/components/paginationBar";
+import { Download } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -64,8 +66,49 @@ import {
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
-const disabledItems = ["vehicle", "generator","grasscutter","hard hats","trash bins","trash bin","door closer","weighing scale","mobile phone","garden hose","door mat","mobile phone","chair","table","flag stand","fuse cut","corkboard", "keyboard", "mouse", "monitor", "projector", "sd wan device", "sofa set", "flag pole", "signage", "cubicle set", "cabinet", "client coun", "organizer", "sala set", "storage bo", "bed", "towel bar", "table kiosk", "organizational chart", "building", "landscaping", "carport", "gate", "cctv", "conference set"];
-
+const disabledItems = [
+  "vehicle",
+  "generator",
+  "grasscutter",
+  "hard hats",
+  "trash bins",
+  "trash bin",
+  "door closer",
+  "weighing scale",
+  "mobile phone",
+  "garden hose",
+  "door mat",
+  "mobile phone",
+  "chair",
+  "table",
+  "flag stand",
+  "fuse cut",
+  "corkboard",
+  "keyboard",
+  "mouse",
+  "monitor",
+  "projector",
+  "sd wan device",
+  "sofa set",
+  "flag pole",
+  "signage",
+  "cubicle set",
+  "cabinet",
+  "client coun",
+  "organizer",
+  "sala set",
+  "storage bo",
+  "bed",
+  "towel bar",
+  "table kiosk",
+  "organizational chart",
+  "building",
+  "landscaping",
+  "carport",
+  "gate",
+  "cctv",
+  "conference set",
+];
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -77,9 +120,8 @@ export default function InventoryDashboard() {
   const [showSortOptions, setShowSortOptions] = useState(false);
   const [hideArchive, setHideArchive] = useState(true);
 
-
   // Inventory hook
-  
+
   const {
     inventoryData,
     filteredData,
@@ -92,27 +134,33 @@ export default function InventoryDashboard() {
     setInventoryData,
   } = useInventory(category);
 
+  // button for due soon disabled
+  const isDueSoon = category === "Due soon";
+
   // Maintenance hook
   const { maintenanceSchedules, fetchSchedules } = useMaintenance();
 
   const handleDeleteSelectedItems = async () => {
-  if (selectedItems.length === 0) return;
+    if (selectedItems.length === 0) return;
 
-  const confirmed = window.confirm("Are you sure you want to delete the selected items?");
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete the selected items?"
+    );
+    if (!confirmed) return;
 
-  try {
-    const response = await api.post("/api/inventory/bulk-destroy", {
-        ids: selectedItems.map((item) => item.id),
-    }).catch((r)=>{toast.error(`Failed to delete items. ${r.message}`)});
-
-  } catch (error) {
-    console.error("Delete error:", error);
-    toast.error("An unexpected error occurred.");
-  }
-};
-
-
+    try {
+      const response = await api
+        .post("/api/inventory/bulk-destroy", {
+          ids: selectedItems.map((item) => item.id),
+        })
+        .catch((r) => {
+          toast.error(`Failed to delete items. ${r.message}`);
+        });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
 
   //Sort Handler
   const handleSort = (type) => {
@@ -131,7 +179,6 @@ export default function InventoryDashboard() {
     setShowSortOptions(false); // close after picking
   };
 
-  
   // Modals
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -149,14 +196,14 @@ export default function InventoryDashboard() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState([]);
-  
+
   //sort map
   const SORT_MAP = {
-    "name:asc": "Name A-Z",
-    "name:desc": "Name Z-A",
+    "name:asc": "A-Z",
+    "name:desc": "Z-A",
     "price:asc": "Price ↑",
     "price:desc": "Price ↓",
-    "predictive": "predictive",
+    predictive: "Predictive",
   };
 
   //sort text placeholder
@@ -177,16 +224,20 @@ export default function InventoryDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  const filData = useMemo(() =>filteredData.filter((e) => {
-    let res = e.is_active == hideArchive
-      console.log(hideArchive, sortBy)
+  const filData = useMemo(
+    () =>
+      filteredData.filter((e) => {
+        let res = e.is_active == hideArchive;
+        console.log(hideArchive, sortBy);
 
-    if(sortBy === "predictive") {
-      res = !disabledItems.includes(String(e.article).toLowerCase())
-      console.log("SDDSDD", res)
-    }
-    return res
-  } ),[filteredData, sortBy, hideArchive])
+        if (sortBy === "predictive") {
+          res = !disabledItems.includes(String(e.article).toLowerCase());
+          console.log("SDDSDD", res);
+        }
+        return res;
+      }),
+    [filteredData, sortBy, hideArchive]
+  );
 
   // derive paginated data
   const totalPages = Math.ceil(filData.length / itemsPerPage);
@@ -195,7 +246,7 @@ export default function InventoryDashboard() {
   const currentItems = filData.slice(startIndex, endIndex);
 
   // Function to handle page changes
-  
+
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -265,17 +316,35 @@ export default function InventoryDashboard() {
     if (!rows || rows.length === 0) {
       return {
         isValid: false,
-        error: "This PDF contains no data rows. Please ensure the file has a table with inventory items."
+        error:
+          "This PDF contains no data rows. Please ensure the file has a table with inventory items.",
       };
     }
     const firstRow = rows[0];
-    if (category.toUpperCase() === 'RPCSP') {
-      if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
-        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the RPCSP format." };
+    if (category.toUpperCase() === "RPCSP") {
+      if (
+        !firstRow.description &&
+        !firstRow.semi_expendable_property_no &&
+        !firstRow.unit_of_measure
+      ) {
+        return {
+          isValid: false,
+          error:
+            "Invalid PDF: This file does not have the correct columns for the RPCSP format.",
+        };
       }
-    } else if (category.toUpperCase() === 'PPE') {
-      if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
-        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the PPE format." };
+    } else if (category.toUpperCase() === "PPE") {
+      if (
+        !firstRow.description &&
+        !firstRow.property_number_RO &&
+        !firstRow.property_number_CO &&
+        !firstRow.unit_of_measure
+      ) {
+        return {
+          isValid: false,
+          error:
+            "Invalid PDF: This file does not have the correct columns for the PPE format.",
+        };
       }
     }
     return { isValid: true };
@@ -300,20 +369,35 @@ export default function InventoryDashboard() {
       // --- FRONTEND VALIDATION ---
       // Check if the parsed data is empty
       if (!rows || rows.length === 0) {
-        setParseError("This PDF contains no data rows. Please ensure the file has a table with inventory items.");
+        setParseError(
+          "This PDF contains no data rows. Please ensure the file has a table with inventory items."
+        );
         return; // Stop here
       }
 
       // Check if the first row has the correct columns for the selected category
       const firstRow = rows[0];
-      if (category.toUpperCase() === 'RPCSP') {
-        if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
-          setParseError("Invalid PDF: This file does not have the correct columns for the RPCSP format.");
+      if (category.toUpperCase() === "RPCSP") {
+        if (
+          !firstRow.description &&
+          !firstRow.semi_expendable_property_no &&
+          !firstRow.unit_of_measure
+        ) {
+          setParseError(
+            "Invalid PDF: This file does not have the correct columns for the RPCSP format."
+          );
           return; // Stop here
         }
-      } else if (category.toUpperCase() === 'PPE') {
-        if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
-          setParseError("Invalid PDF: This file does not have the correct columns for the PPE format.");
+      } else if (category.toUpperCase() === "PPE") {
+        if (
+          !firstRow.description &&
+          !firstRow.property_number_RO &&
+          !firstRow.property_number_CO &&
+          !firstRow.unit_of_measure
+        ) {
+          setParseError(
+            "Invalid PDF: This file does not have the correct columns for the PPE format."
+          );
           return; // Stop here
         }
       }
@@ -333,14 +417,13 @@ export default function InventoryDashboard() {
         recorded_count: Number(row.quantity_per_property_card) || 0,
         actual_count: Number(row.quantity_per_physical_count) || 0,
         location: row.remarks_whereabouts || "", // Corrected property name
-        remarks: row.remarks_whereabouts || "",  // Corrected property name
+        remarks: row.remarks_whereabouts || "", // Corrected property name
       }));
 
       setInventoryData((prev) => [...prev, ...formattedItems]);
       setShowPdfModal(false);
       setShowModal(false);
       toast.success("PDF uploaded and inventory updated!");
-
     } catch (err) {
       // This will now catch the specific error from the hook
       console.error("PDF parse failed:", err);
@@ -356,19 +439,17 @@ export default function InventoryDashboard() {
     (eq) => eq.id === selectedEquipmentIds[0]
   );
 
-  
   // opens the schedule modal for only 1 row
   const openScheduleModal = () => {
-  if (isScheduleButtonDisabled) {
-    toast.error("Please select exactly one item to schedule maintenance.");
-    return;
-  }
+    if (isScheduleButtonDisabled) {
+      toast.error("Please select exactly one item to schedule maintenance.");
+      return;
+    }
 
-  const selectedItem = selectedItems[0];
-  setScheduleModalData(selectedItem);
-  setShowScheduleModal(true);
-};
-
+    const selectedItem = selectedItems[0];
+    setScheduleModalData(selectedItem);
+    setShowScheduleModal(true);
+  };
 
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
@@ -390,10 +471,15 @@ export default function InventoryDashboard() {
     }
     const firstArticle = selectedItems[0].article;
 
-    const isItemDisabled = new RegExp(disabledItems.join("|"), 'i').test(firstArticle)
+    const isItemDisabled = new RegExp(disabledItems.join("|"), "i").test(
+      firstArticle
+    );
 
     // Disabled if not all selected items share the same article
-    return !selectedItems.every((item) => item.article === firstArticle) || isItemDisabled;
+    return (
+      !selectedItems.every((item) => item.article === firstArticle) ||
+      isItemDisabled
+    );
   }, [selectedItems]);
 
   // open predictive modal
@@ -440,8 +526,6 @@ export default function InventoryDashboard() {
   const isScheduleButtonDisabled = selectedItems.length !== 1 || !hideArchive;
   const isTrashButtonDisabled = selectedItems.length === 0;
 
-
-
   // render component UI
   return (
     <>
@@ -460,7 +544,7 @@ export default function InventoryDashboard() {
           <nav className="w-full border-b mb-2 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
               {/* Search */}
-              <div className="relative w-full ">
+              <div className="relative w-full sm:w-auto flex-1">
                 <Input
                   type="text"
                   placeholder={`Search ${category} items...`}
@@ -495,13 +579,12 @@ export default function InventoryDashboard() {
               <div className="relative w-full sm:w-auto">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-full md:w-[100px]">
-                    {/* 👇  this line shows “Sort : Name A-Z” etc. */}
                     {`${sortText}`}
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="name:asc">Name A-Z</SelectItem>
-                    <SelectItem value="name:desc">Name Z-A</SelectItem>
+                    <SelectItem value="name:asc">A-Z</SelectItem>
+                    <SelectItem value="name:desc">Z-A</SelectItem>
                     <SelectItem value="price:asc">Price ↑</SelectItem>
                     <SelectItem value="price:desc">Price ↓</SelectItem>
                     <SelectItem value="predictive">PM</SelectItem>
@@ -594,47 +677,61 @@ export default function InventoryDashboard() {
             })}
           </div>
 
-          {/* Items per page selector */}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
+            {/* 1. Archive toggle */}
             <Toggle
               aria-label="Toggle bookmark"
               size="sm"
               variant="outline"
-              onClick={() => setHideArchive((prev) => !prev)}
+              onClick={() => setHideArchive((p) => !p)}
               className="mt-0.5 data-[state=on]:bg-blue-900 data-[state=on]:text-white data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
             >
               <ArchiveIcon />
               Archived
             </Toggle>
-            <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
-              <Label>Items per page:</Label>
-              <Select
-                value={String(itemsPerPage)}
-                onValueChange={(v) => setItemsPerPage(Number(v))}
-              >
-                <SelectTrigger className="w-full md:w-[100px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Items per page</SelectLabel>
+            {/* 2. Items per page & Download button */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Label className="whitespace-nowrap">Items per page:</Label>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(v) => setItemsPerPage(Number(v))}
+                >
+                  <SelectTrigger className="w-20 sm:w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                     <SelectItem value="20">20</SelectItem>
                     <SelectItem value="30">30</SelectItem>
                     <SelectItem value="40">40</SelectItem>
                     <SelectItem value="50">50</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <a
-                href={`${import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:8000'}/api/inventory/gen?category=${category.toUpperCase()}`}
-                target={"_blank"}
+                href={
+                  isDueSoon
+                    ? undefined // no link when disabled
+                    : `${
+                        import.meta.env.VITE_BACKEND_URL ??
+                        "http://localhost:8000"
+                      }/api/inventory/gen?category=${category.toUpperCase()}`
+                }
+                onClick={(e) => isDueSoon && e.preventDefault()} // extra safety
+                className={cn(
+                  "inline-block", // keep layout
+                  isDueSoon && "pointer-events-none" // completely mute clicks
+                )}
+                target="_blank"
+                rel="noreferrer"
               >
                 <Button
-                  type="button"
-                  className="text-white px-2 sm:px-3 py-1 rounded-md font-semiboldtext-xs sm:text-sm leading-tight whitespace-nowrap bg-blue-900 hover:bg-blue-950"
+                  size="sm"
+                  disabled={isDueSoon} // visual disabled state
+                  className="bg-blue-900 text-white hover:bg-blue-950 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
+                  <Download className="h-4 w-4 inline-block mr-2" />
                   Download Report
                 </Button>
               </a>

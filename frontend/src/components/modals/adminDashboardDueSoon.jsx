@@ -21,7 +21,7 @@ export default function DueSoon({ dueItems, isLoading, error }) {
   };
 
   return (
-    <div className="bg-gray-100 rounded-xl p-4 flex flex-col h-screen">
+    <div className="bg-gray-100 rounded-xl p-4 flex flex-col h-full min-h-0">
       <h2 className="text-xl font-bold mb-4 border-b pb-3">Predictive Maintenance</h2>
 
       {/* Table header */}

@@ -83,7 +83,7 @@ export default function Login() {
               className="w-screen h-screen flex-shrink-0"
               style={{
                 backgroundImage: `url(${img})`,
-                backgroundSize: "cover",
+                backgroundSize: "auto",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
@@ -91,8 +91,8 @@ export default function Login() {
           ))}
         </div>
       </div>
-      ={/* overlay */}
-      <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none"></div>
+      {/* overlay */}
+      <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none p-4"></div>
       {/* login form */}
       <form
         onSubmit={handleLogin}
@@ -105,7 +105,7 @@ export default function Login() {
       >
         {/* logo and title */}
         <img src={btrlogo} alt="Logo" className="mx-auto w-24 h-24" />
-        <h2 className="text-xl font-bold text-white text-center">Login</h2>
+        <h2 className="text-xl font-bold text-white text-center">Welcome Back!</h2>
 
         {/* Username */}
         <div className="flex flex-col items-start space-y-2">
