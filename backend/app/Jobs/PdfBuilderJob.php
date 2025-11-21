@@ -65,7 +65,7 @@ class PdfBuilderJob implements ShouldQueue
         <html>
           <head>
             <meta charset="utf-8">
-            <title>Options comparison</title>
+            <title>Report</title>
             <style>
               body{font-family:Arial,Helvetica,sans-serif;font-size:6px}
               table{width:100%;border-collapse:collapse;margin-top:20px}
@@ -119,7 +119,7 @@ class PdfBuilderJob implements ShouldQueue
         <html>
           <head>
             <meta charset="utf-8">
-            <title>Options comparison</title>
+            <title>Report</title>
             <style>
               body{font-family:Arial,Helvetica,sans-serif;font-size:8px}
               table{width:100%;border-collapse:collapse;margin-top:20px}
