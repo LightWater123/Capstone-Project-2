@@ -65,6 +65,8 @@ import {
   ArchiveX,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 const disabledItems = [
   "vehicle",
@@ -137,6 +139,17 @@ export default function InventoryDashboard() {
   // button for due soon disabled
   const isDueSoon = category === "Due soon";
 
+  const {data: schedules = []} = useQuery({
+    queryKey: ["maintenance", "scheduled"],
+    queryFn: async () => {
+      const res = await api.get("/api/maintenance/not-done-schedule")
+      return res.data
+    }
+  })
+
+  const archiveBlacklist = useMemo(()=> schedules.map(e => e.asset_id), [schedules])
+  console.log("archiveBlacklist", archiveBlacklist)
+
   // Maintenance hook
   const { maintenanceSchedules, fetchSchedules } = useMaintenance();
 
@@ -158,6 +171,28 @@ export default function InventoryDashboard() {
         });
     } catch (error) {
       console.error("Delete error:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
+
+  const handleRestoreSelectedItems = async () => {
+    if (selectedItems.length === 0) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to restore the selected items?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const response = await api
+        .post("/api/inventory/bulk-restore", {
+          ids: selectedItems.map((item) => item.id),
+        })
+        .catch((r) => {
+          toast.error(`Failed to restore items. ${r.message}`);
+        });
+    } catch (error) {
+      console.error("Restore error:", error);
       toast.error("An unexpected error occurred.");
     }
   };
@@ -458,15 +493,31 @@ export default function InventoryDashboard() {
     [selectedEquipmentIds, inventoryData]
   );
 
+  const isBlacklist = useMemo(() => {
+    let returnVal = false
+    if(selectedItems.length > 0){
+      selectedItems.forEach((element) => {
+        if(archiveBlacklist.includes(element.id)){
+          returnVal = true
+        }
+      });
+    }
+    return returnVal
+  }, [selectedItems, archiveBlacklist])
+
+  console.log("selectedItems", selectedItems)
+
+  console.log("isBlacklist", isBlacklist)
+
   // Find the first selected item to use as a template for the modal
   const currentTemplateItem = useMemo(
-    () => selectedItems[0] || null,
+    () => selectedItems[0] ?? null,
     [selectedItems]
   );
 
   // Check if the "Predictive Maintenance" button should be disabled
   const isPredictiveButtonDisabled = useMemo(() => {
-    if (selectedItems.length === 0) {
+    if (selectedItems.length === 0 || !hideArchive) {
       return true; // Disabled if no items are selected
     }
     const firstArticle = selectedItems[0].article;
@@ -557,13 +608,13 @@ export default function InventoryDashboard() {
               <div className="relative w-full sm:w-auto">
                 <Button
                   size="icon"
-                  disabled={selectedItems.length === 0}
+                  disabled={selectedItems.length === 0 || isBlacklist}
                   title={
                     selectedItems.length === 0
                       ? "Select at least one item to delete"
                       : "Delete selected items"
                   }
-                  onClick={handleDeleteSelectedItems}
+                  onClick={hideArchive ? handleDeleteSelectedItems : handleRestoreSelectedItems}
                   className={`
     ${
       selectedItems.length === 0

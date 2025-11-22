@@ -46,11 +46,13 @@ Route::middleware(['api.auth.session', 'auth:admin'])->group(function () {
     Route::post('parse-pdf', [PdfParserController::class, 'parse']);
     // bulk delete
     Route::post('inventory/bulk-destroy', [EquipmentController::class, 'bulkDestroy']);
+    Route::post('inventory/bulk-restore', [EquipmentController::class, 'bulkRestore']);
 
     // admin maintenance
     Route::prefix('maintenance')->group(function () {
         Route::get('/schedule',      [MaintenanceController::class, 'index']);
         Route::post('/schedule',     [MaintenanceController::class, 'store']);
+        Route::get('/not-done-schedule',     [MaintenanceController::class, 'notDone']);
         Route::get('/admin/messages',[MaintenanceController::class, 'sent']);
         Route::get('/due-for-maintenance', [MaintenanceController::class, 'getDueForMaintenance']);
         Route::post('/equipment/{id}/predictive-maintenance', [
@@ -76,11 +78,11 @@ Route::middleware(['api.auth.session', 'auth:service'])->group(function () {
 });
 
 // PUBLIC - No authentication required
-Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
 
 // admin and service user view report
 Route::middleware(['api.auth.session'])->group(function () {
     Route::get('pdf/{id}/{t?}', [MaintenanceController::class, 'showPdf'])->name('pdf.view');
+    Route::get("/inventory/gen", [EquipmentController::class, 'buildPdf']);
 });
 
 // // SERVICE-ONLY INVENTORY VIEWS (protected by auth:service middleware)

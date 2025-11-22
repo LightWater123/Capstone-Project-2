@@ -55,9 +55,10 @@ class EquipmentController extends Controller
         $query = Equipment::query();
         if ($category) {
             // Get the current guard from the session
-            $guard = session('auth_guard', 'web');
-            $user = Auth::guard($guard)->user();
-            $query->where('category', $category)->where('created_by', $user->email);
+            // $guard = session('auth_guard', 'web');
+            // $user = Auth::guard($guard)->user();
+            // $query->where('category', $category)->where('created_by', $user->email);
+            $query->where('category', $category);
         }
 
         // 3. Get the equipment and then map over the collection to add the predictive date
@@ -292,6 +293,24 @@ class EquipmentController extends Controller
     }
 }
 
+    public function bulkRestore(Request $request)
+{
+    try {
+        $ids = $request->input('ids'); // array of MongoDB IDs
+        $vals = ["is_active" => true];
+        Equipment::whereIn('_id', $ids)->update($vals);
+
+        return response()->json(['message' => 'Selected equipment restored successfully.'], 200);
+    } catch (\Exception $e) {
+        Log::error('Bulk restore failed', ['exception' => $e]);
+
+        return response()->json([
+            'message' => 'An unexpected error occurred.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 
     /**
  * GET /api/service/inventory?category=PPE|RPCSP
@@ -364,7 +383,14 @@ class EquipmentController extends Controller
     public function buildPdf(Request $request) {
         $category = $request->query('category');
 
+        // $guard = session('auth_guard', 'web');
+        // $user = Auth::guard($guard)->user();
+
+        // Log::info("use" . $user);
+
         $items = Equipment::query();
+        // $items->where('created_by', $user->email);
+        $items->where('is_active', true);
         if ($category) {
             $items->where('category', $category);
         }
@@ -385,10 +411,11 @@ class EquipmentController extends Controller
         $query = Equipment::query();
 
         // Get the current guard from the session
-        $guard = session('auth_guard', 'web');
-        $user = Auth::guard($guard)->user();
+        // $guard = session('auth_guard', 'web');
+        // $user = Auth::guard($guard)->user();
         
-        $query->whereNotNull('next_maintenance_date')->where("created_by", $user->email);
+        // $query->whereNotNull('next_maintenance_date')->where("created_by", $user->email);
+        $query->whereNotNull('next_maintenance_date')->where('is_active', true);
             
             // We sort them by that date in ascending order ('asc').
             // This puts the SOONEST dates (including overdue ones) at the TOP.

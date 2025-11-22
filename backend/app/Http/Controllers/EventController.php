@@ -27,7 +27,7 @@ class EventController extends Controller
     }
 
     public function index() {
-        return Event::where("created_by", Auth::user()->email)->get();
+        return Event::get();
     }
 
     public function destroy($id)

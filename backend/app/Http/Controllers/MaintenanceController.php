@@ -131,7 +131,16 @@ class MaintenanceController extends Controller
     public function index(Request $req)
     {
         return MaintenanceJob::query()
-                      ->where("admin_email", Auth::user()->email)
+                    //   ->where("admin_email", Auth::user()->email)
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+    }
+
+    public function notDone(Request $req)
+    {
+        return MaintenanceJob::query()
+                    //   ->where("admin_email", Auth::user()->email)
+                      ->where('status', '<>', 'done')
                       ->orderBy('created_at', 'desc')
                       ->get();
     }
@@ -141,6 +150,7 @@ class MaintenanceController extends Controller
     {
         // fetch jobs that are pending or in-progress
         $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])->where('user_email', Auth::user()->email)
+        // $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])
                           ->orderBy('created_at', 'desc')
                           ->get();
         
@@ -203,7 +213,7 @@ class MaintenanceController extends Controller
         $endDateTime = new UTCDateTime($futureDate->getTimestampMs());
         
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
-                            ->where('admin_email', Auth::user()->email)
+                            // ->where('admin_email', Auth::user()->email)
                             ->where('scheduled_at', '>=', $startDateTime)
                             ->where('scheduled_at', '<=', $endDateTime)
                             ->orderBy('scheduled_at', 'asc')
