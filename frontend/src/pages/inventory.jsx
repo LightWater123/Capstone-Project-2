@@ -236,8 +236,8 @@ export default function InventoryDashboard() {
   const SORT_MAP = {
     "name:asc": "A-Z",
     "name:desc": "Z-A",
-    "price:asc": "Price ↑",
-    "price:desc": "Price ↓",
+    // "price:asc": "Price ↑",
+    // "price:desc": "Price ↓",
     predictive: "Predictive",
   };
 
@@ -636,8 +636,8 @@ export default function InventoryDashboard() {
                   <SelectContent>
                     <SelectItem value="name:asc">A-Z</SelectItem>
                     <SelectItem value="name:desc">Z-A</SelectItem>
-                    <SelectItem value="price:asc">Price ↑</SelectItem>
-                    <SelectItem value="price:desc">Price ↓</SelectItem>
+                    {/* <SelectItem value="price:asc">Price ↑</SelectItem>
+                    <SelectItem value="price:desc">Price ↓</SelectItem> */}
                     <SelectItem value="predictive">PM</SelectItem>
                   </SelectContent>
                 </Select>
