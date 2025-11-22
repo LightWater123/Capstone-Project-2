@@ -176,7 +176,7 @@ export default function InventoryDashboard() {
   })
 
   const archiveBlacklist = useMemo(()=> schedules.map(e => e.asset_id), [schedules])
-  console.log("archiveBlacklist", archiveBlacklist)
+  //console.log("archiveBlacklist", archiveBlacklist)
 
   // Maintenance hook
   const { maintenanceSchedules, fetchSchedules } = useMaintenance();
@@ -291,11 +291,11 @@ export default function InventoryDashboard() {
     () =>
       filteredData.filter((e) => {
         let res = e.is_active == hideArchive;
-        console.log(hideArchive, sortBy);
+        //console.log(hideArchive, sortBy);
 
         if (sortBy === "predictive") {
           res = !disabledItems.includes(String(e.article).toLowerCase());
-          console.log("SDDSDD", res);
+          //console.log("SDDSDD", res);
         }
         return res;
       }),
@@ -533,9 +533,9 @@ export default function InventoryDashboard() {
     return returnVal
   }, [selectedItems, archiveBlacklist])
 
-  console.log("selectedItems", selectedItems)
+  //console.log("selectedItems", selectedItems)
 
-  console.log("isBlacklist", isBlacklist)
+  //console.log("isBlacklist", isBlacklist)
 
   // Find the first selected item to use as a template for the modal
   const currentTemplateItem = useMemo(

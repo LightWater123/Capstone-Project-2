@@ -44,7 +44,7 @@ export default function Login() {
       //   password,
       // });
       await login(identifier, password).then((e) => {
-        console.log("Current user logged-in:", identifier, e);
+        //console.log("Current user logged-in:", identifier, e);
         if (e.redirect) {
           navigate(e.redirect);
         }

@@ -66,7 +66,7 @@ export default function AdminRegister() {
         role: "admin",
       });
 
-      console.log("Registered admin user:", response.data.user);
+      //console.log("Registered admin user:", response.data.user);
       toast.success(`Registered admin user: ${response.data?.user?.username ?? "new user"}`);
       // navigate('/');
     } catch (err) {

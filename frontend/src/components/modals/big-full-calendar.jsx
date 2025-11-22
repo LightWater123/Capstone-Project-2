@@ -82,7 +82,7 @@ const LandingPage = () => {
     // setEvents([...events, newEvent]);
     setSelectedSlot(null);
 
-    console.log(data);
+    //console.log(data);
     await api
       .post("/api/events", {
         title: data.title,
@@ -102,7 +102,7 @@ const LandingPage = () => {
 
   };
 
-  console.log(selectedEvent)
+  //console.log(selectedEvent)
 
   const handleDeleteEvent = async () => {
   if (!selectedEvent) return;
@@ -121,7 +121,7 @@ const LandingPage = () => {
 
   const handleEventDrop = async ({ event, start, end }) => {
   try {
-    console.log(event, start, end)
+    //console.log(event, start, end)
     const response = await api.put(`/api/events/${event.id}`, {
       title: event.title,
       start_date: start,
