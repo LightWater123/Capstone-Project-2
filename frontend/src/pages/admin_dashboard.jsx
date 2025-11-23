@@ -29,7 +29,7 @@ export default function AdminDashboard() {
     queryFn: async () => {
       const [maintDue, events] = await Promise.all([
         api
-          .get("/api/maintenance/due-for-maintenance?days=2")
+          .get("/api/maintenance/due-for-maintenance?days=365")
           .then((r) => r.data.data),
         api.get("/api/events").then((r) =>
           r.data.map((e) => ({
