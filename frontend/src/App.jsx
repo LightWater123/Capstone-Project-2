@@ -33,7 +33,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="*" element={<Login />} />
-
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<ProtectedRoutes redirectPath={"/"} />}>
               <Route path="/inventory" element={<Inventory />} />
 
@@ -51,7 +51,6 @@ export default function App() {
               <Route path="/service/inventory" element={<ServiceInventory />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/calendar-full" element={<CalendarFullPage />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/service/settings" element={<ServiceSettings />} />
             </Route>

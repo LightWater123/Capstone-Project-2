@@ -8,6 +8,8 @@ use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\PdfParserController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\PasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
@@ -19,8 +21,8 @@ Route::post('/login',    [AuthenticatedSessionController::class, 'store'])->midd
 Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy'])->middleware('api.auth.session');
 Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify'])->middleware('api.auth.session');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('api.auth.session');
-Route::post('/forgot-password',  fn(Request $r) => … )->middleware('api.auth.session');
-Route::post('/reset-password',   fn(Request $r) => … )->middleware('api.auth.session');
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('api.auth.session');
+Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('api.auth.session');
 
 
 // AUTHENTICATED - Admin routes

@@ -29,7 +29,7 @@ export default function CalendarModal() {
             title: event.title,
             start: new Date(event.start_date),
             end: new Date(event.end_date),
-            color: event.color || "red",
+            color: "blue",
           }))
         ),
         api.get("/api/maintenance/inventory/due-soon").then((r) =>

@@ -50,7 +50,7 @@ const LandingPage = () => {
       title: event.title,
       start: new Date(event.start_date),
       end: new Date(event.end_date),
-      color: event.color || "red",
+      color: "blue",
     }))),
       api.get("/api/maintenance/inventory/due-soon").then((r) => r.data.map((item) => ({
       id: item.id,
@@ -88,7 +88,7 @@ const LandingPage = () => {
         title: data.title,
         start_date: data.start,
         end_date: data.end,
-        color: data.color,
+        color: "blue",
       })
       .then(() => {
         toast.success("Added new event!");
@@ -126,7 +126,7 @@ const LandingPage = () => {
       title: event.title,
       start_date: start,
       end_date: end,
-      color: event.color,
+      color: "blue",
     });
 
     if (response.status === 200) {
@@ -148,7 +148,7 @@ const handleEventResize = async ({ event, start, end }) => {
       title: event.title,
       start_date: start,
       end_date: end,
-      color: event.color,
+      color: "blue",
     });
     toast.success("Event resized!");
   } catch (error) {

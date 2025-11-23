@@ -21,7 +21,7 @@ export default function CalendarFullPage() {
     startTime: '',
     endTime: '',
     location: '',
-    color: '#FFC107'
+    color: '#0000FF'
   });
 
   const [eventDates, setEventDates] = useState([]);
@@ -45,7 +45,7 @@ export default function CalendarFullPage() {
             startTime: eventForm.startTime,
             endTime: eventForm.endTime,
             location: eventForm.location,
-            color: eventForm.color
+            color: '#0000FF'
           }
         ]);
       }
@@ -57,7 +57,7 @@ export default function CalendarFullPage() {
       startTime: '',
       endTime: '',
       location: '',
-      color: '#FFC107'
+      color: '#0000FF'
     });
   };
 

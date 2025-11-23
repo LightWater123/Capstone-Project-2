@@ -26,7 +26,6 @@ const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   start: z.string(),
   end: z.string(),
-  color: z.string().optional(),
 });
 
 export function EventForm({ start, end, onSubmit, onCancel }) {
@@ -36,6 +35,7 @@ export function EventForm({ start, end, onSubmit, onCancel }) {
       title: "",
       start: start.toISOString().slice(0, 16),
       end: end.toISOString().slice(0, 16),
+      color: "blue",
     },
   });
 
@@ -77,51 +77,6 @@ export function EventForm({ start, end, onSubmit, onCancel }) {
               <FormLabel>End Time</FormLabel>
               <FormControl>
                 <Input type="datetime-local" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="color"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Event Color</FormLabel>
-              <FormControl>
-                <Select onValueChange={field.onChange}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select a color" />
-                  </SelectTrigger>
-                  <SelectContent className={"w-full"}>
-                    <SelectGroup>
-                      <SelectLabel>Color</SelectLabel>
-                      <SelectItem
-                        className="focus:bg-red-600 hover:text-red-500 w-full"
-                        value="red"
-                      >
-                        Red
-                      </SelectItem>
-                      <SelectItem className="focus:bg-green-600" value="green">
-                        Green
-                      </SelectItem>
-                      <SelectItem className="focus:bg-blue-600" value="blue">
-                        Blue
-                      </SelectItem>
-                      <SelectItem
-                        className="focus:bg-purple-600"
-                        value="purple"
-                      >
-                        Purple
-                      </SelectItem>
-                      <SelectItem
-                        className="focus:bg-yellow-600"
-                        value="yellow"
-                      >
-                        Yellow
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
               </FormControl>
             </FormItem>
           )}
