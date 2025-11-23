@@ -191,8 +191,8 @@ class MaintenanceController extends Controller
     // get items due for maintenance
     public function getDueForMaintenance(Request $request)
     {
-        // Get the number of days from the request, defaulting to 2.
-        $days = $request->get('days', 2);
+        // Get the number of days from the request, defaulting to 365.
+        $days = $request->get('days', 365);
 
         // Validate the 'days' parameter
         if (!is_numeric($days) || (int)$days < 0) {

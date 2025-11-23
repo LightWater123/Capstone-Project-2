@@ -60,7 +60,7 @@ const LandingPage = () => {
       end: new Date(item.next_maintenance_date),
       color: "green", // red for due soon items
     }))),
-    api.get("/api/maintenance/due-for-maintenance?days=2").then((r) => r.data.data.map((item) => ({
+    api.get("/api/maintenance/due-for-maintenance?days=365").then((r) => r.data.data.map((item) => ({
       id: item.id,
       type: "maintenance-due",
       title: `Maintenance Due: ${item.asset_name}`,
