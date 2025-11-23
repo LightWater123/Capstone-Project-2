@@ -5,11 +5,13 @@ import { queryClient } from "@/App";
 
 const AuthContext = createContext(null);
 
-const queryKey = ["verifyUser"]
+const queryKey = ["verifyUser"];
 
 // redirects an unauthorized user to the login trying to access a page
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(queryClient.getQueryData(queryKey) ?? undefined);
+  const [user, setUser] = useState(
+    queryClient.getQueryData(queryKey) ?? undefined
+  );
   const Navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export default function AuthProvider({ children }) {
     }
     run().catch(() => {
       setUser(null);
-      Navigate("/");
+      Navigate("/login");
     });
   }, [user]);
 
@@ -52,7 +54,7 @@ export default function AuthProvider({ children }) {
     }
   };
 
-  const logout = async (user, password) => {
+  const logout = async () => {
     const response = await api.post("/api/logout");
     setUser(null);
     queryClient.invalidateQueries({ queryKey });
