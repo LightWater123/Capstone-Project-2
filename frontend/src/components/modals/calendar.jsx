@@ -42,7 +42,7 @@ export default function CalendarModal() {
             color: "green", // red for due soon items
           }))
         ),
-        api.get("/api/maintenance/due-for-maintenance?days=2").then((r) =>
+        api.get("/api/maintenance/due-for-maintenance?days=365").then((r) =>
           r.data.data.map((item) => ({
             id: item.id,
             type: "maintenance-due",
