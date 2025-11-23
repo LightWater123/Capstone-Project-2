@@ -21,7 +21,7 @@ import AuthProvider from "./auth/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
 import ServiceSettings from "./pages/service_settings";
 import ProtectedRoutes from "./auth/ProtectedRoutes";
-
+import RouteSession from "./pages/dashboard";
 
 export const queryClient = new QueryClient();
 
@@ -31,8 +31,9 @@ export default function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="*" element={<Login />} />
+            <Route path="/" element={<RouteSession />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<RouteSession />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<ProtectedRoutes redirectPath={"/"} />}>
               <Route path="/inventory" element={<Inventory />} />
@@ -54,7 +55,6 @@ export default function App() {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/service/settings" element={<ServiceSettings />} />
             </Route>
-
           </Routes>
           <Toaster />
         </AuthProvider>

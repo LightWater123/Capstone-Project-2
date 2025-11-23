@@ -16,7 +16,7 @@ export default function LogoutButton({ className = "" }) {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      navigate("/"); // Always go to login page
+      navigate("/login"); // Always go to login page
     }
   };
 
