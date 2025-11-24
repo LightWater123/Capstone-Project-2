@@ -70,6 +70,7 @@ Route::middleware(['api.auth.session', 'auth:admin', EnsureUserIsVerified::class
         Route::get('/not-done-schedule',     [MaintenanceController::class, 'notDone']);
         Route::get('/admin/messages',[MaintenanceController::class, 'sent']);
         Route::get('/due-for-maintenance', [MaintenanceController::class, 'getDueForMaintenance']);
+        Route::get('/overdue', [MaintenanceController::class, 'getOverdue']);
         Route::post('/equipment/{id}/predictive-maintenance', [
             MaintenanceController::class, 'predictiveMaintenance'
         ]);
@@ -81,7 +82,6 @@ Route::middleware(['api.auth.session', 'auth:admin', EnsureUserIsVerified::class
 Route::middleware(['api.auth.session', 'auth:service', EnsureUserIsVerified::class])->group(function () {
     Route::get('/service/user', fn(Request $r) => $r->user());
     Route::get('/my-messages', [MaintenanceController::class,'messages']);
-    Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
     Route::put('/maintenance/{id}/done-details', [MaintenanceController::class, 'setPickupDetails']);
     Route::post('/service/change-password', [PasswordController::class, 'change']);
     Route::post( '/upload/report',      [MaintenanceController::class, 'uploadReport'] );
@@ -90,6 +90,12 @@ Route::middleware(['api.auth.session', 'auth:service', EnsureUserIsVerified::cla
     Route::get('/service/inventory',                    [MaintenanceController::class, 'serviceIndex']);
     Route::get('/service/inventory/{id}/maintenance',   [EquipmentController::class, 'serviceMaintenance']);
     Route::get('/service/serviceReminder', [MaintenanceController::class, 'getDueForMaintenance']);
+});
+
+// Route that allows both admin and service users
+Route::middleware(['api.auth.session'])->group(function () {
+    Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
+    Route::patch('/maintenance-jobs/{job}/condition', [MaintenanceController::class, 'updateCondition']);
 });
 
 // PUBLIC - No authentication required

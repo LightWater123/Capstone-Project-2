@@ -72,9 +72,18 @@ class MaintenanceController extends Controller
     {
         \Log::info('messages() called – raw query result');
 
+        // Explicitly use the service guard to get the authenticated user
+        $user = auth('service')->user();
         
-        // filter through Message and gets the items with the same email as the currently logged in user
-        $message = Message::where('recipient_email', Auth::user()->email)
+        if (!$user) {
+            \Log::warning('No authenticated service user found');
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        \Log::info('Service user authenticated', ['email' => $user->email]);
+        
+        // filter through Message and gets the items with the same email as the currently logged in service user
+        $message = Message::where('recipient_email', $user->email)
                     ->orderBy('created_at', 'desc')->get();
 
         \Log::info($message);
@@ -98,8 +107,17 @@ class MaintenanceController extends Controller
                     ->orderBy('created_at', 'desc');
 
             // Filter by status if provided
-            if ($req->has('status') && in_array($req->status, ['pending', 'in-progress', 'done'])) {
-                $query->where('status', $req->status);
+            if ($req->has('status')) {
+                $status = $req->status;
+                
+                // Handle special status values
+                if ($status === 'null') {
+                    $query->whereNull('status');
+                }
+                // Handle standard status values
+                elseif (in_array($status, ['pending', 'in-progress', 'done', 'overdue', 'picked-up'])) {
+                    $query->where('status', $status);
+                }
             }
 
             $data = $query->first();
@@ -146,46 +164,77 @@ class MaintenanceController extends Controller
     }
 
     // service user maintenance list
-    public function serviceIndex()
+    public function serviceIndex(Request $request)
     {
-        // fetch jobs that are pending or in-progress
-        $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])->where('user_email', Auth::user()->email)
-        // $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])
-                          ->orderBy('created_at', 'desc')
-                          ->get();
+        // Start with base query for service user's jobs
+        $query = MaintenanceJob::where('user_email', Auth::user()->email)
+                          ->orderBy('created_at', 'desc');
+        
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $status = $request->status;
+            
+            // Handle special status values
+            if ($status === 'null') {
+                $query->whereNull('status');
+            }
+            // Handle standard status values
+            elseif (in_array($status, ['pending', 'in-progress', 'done', 'overdue', 'picked-up'])) {
+                $query->where('status', $status);
+            }
+        }
+        
+        $jobs = $query->get();
         
         return response()->json($jobs);
     }
 
     // update status of equipment maintenance
-    public function updateStatus(Request $request, MaintenanceJob $job) // <-- type-hint
+    public function updateStatus(Request $request, MaintenanceJob $job)
     {
-        $request->validate(['status' => 'required|in:pending,in-progress,done']);
+        $request->validate(['status' => 'required|in:pending,in-progress,done,null,picked-up,overdue']);
 
-        // authorisation
-        if (! auth()->user()->email === 'admin@yourdomain.com' &&   // or any admin check you use
-            $job->user_email !== auth()->user()->email) {
-            abort(403);
+        $user = auth('admin')->user() ?? auth('service')->user();
+
+        if (! $user) {                       // should never happen with the cookie
+            abort(401, 'Session required');
         }
 
-        $job->update(['status' => $request->status]);
+        $isAdmin    = $user->role === 'admin';   // or tokenCan('admin') if you issue tokens
+        $isAssigned = $job->user_email === $user->email;
 
-        $now = Carbon::now();
-        $equipt = Equipment::find($job->asset_id);
-        \Log::info("test", ['request' => $request ]);
-
-        if($equipt && $request->status === 'in-progress') {
-            $equipt->start_date = $now;
-            $equipt->save();
-        } elseif ($equipt && $request->status === 'done') {
-            $equipt->end_date = $now;
-            $equipt->save();
+        if (! $isAdmin && ! $isAssigned) {
+            abort(403, 'Unauthorized to update this maintenance job');
         }
-        \Log::info("test", ['equipt' => $equipt]);
-        
-        
 
-        return response()->json($job);
+        $job->status = $request->status;
+        $job->save();
+
+        return response()->json(['message' => 'Status updated', 'data' => $job]);
+    }
+
+    // update condition of equipment maintenance
+    public function updateCondition(Request $request, MaintenanceJob $job)
+    {
+        $request->validate(['condition' => 'required|in:null,picked-up,overdue']);
+
+        $user = auth('admin')->user() ?? auth('service')->user();
+
+        if (! $user) {                       // should never happen with the cookie
+            abort(401, 'Session required');
+        }
+
+        $isAdmin    = $user->role === 'admin';   // or tokenCan('admin') if you issue tokens
+        $isAssigned = $job->user_email === $user->email;
+
+        if (! $isAdmin && ! $isAssigned) {
+            abort(403, 'Unauthorized to update this maintenance job');
+        }
+
+        $job->condition = $request->condition;
+        $job->save();
+
+        return response()->json(['message' => 'Condition updated', 'data' => $job]);
     }
 
     // get items due for maintenance
@@ -233,6 +282,55 @@ class MaintenanceController extends Controller
                 'from' => $now->toDateString(),
                 'to' => $futureDate->toDateString()
             ]
+        ]);
+    }
+
+    // get overdue maintenance items
+    public function getOverdue(Request $request)
+    {
+        // Get the number of days overdue from the request, defaulting to 1
+        $days = $request->get('days', 1);
+
+        // Validate the 'days' parameter
+        if (!is_numeric($days) || (int)$days < 0) {
+            return response()->json(['error' => 'The "days" parameter must be a non-negative integer.'], 400);
+        }
+        $days = (int)$days;
+
+        // Use UTC to match MongoDB's date storage
+        $now = Carbon::now('UTC');
+        $overdueDate = $now->copy()->subDays($days)->startOfDay();
+        
+        // Log for debugging
+        Log::info("Checking overdue items before {$overdueDate}");
+
+        // MongoDB-specific query with proper date handling
+        // Convert Carbon instances to UTCDateTime with correct milliseconds
+        $overdueDateTime = new UTCDateTime($overdueDate->getTimestampMs());
+        
+        $overdueItems = MaintenanceJob::whereNotNull('scheduled_at')
+                            // ->where('admin_email', Auth::user()->email)
+                            ->where('scheduled_at', '<', $overdueDateTime)
+                            ->where('status', '!=', 'done') // Only include items that are not completed
+                            ->orderBy('scheduled_at', 'asc')
+                            ->get();
+        
+        // Calculate overdue days for each item
+        $itemsWithOverdueDays = $overdueItems->map(function ($item) use ($now) {
+            $scheduledDate = Carbon::parse($item->scheduled_at);
+            $overdueDays = $now->diffInDays($scheduledDate, false); // negative value for overdue
+            $item->overdue_days = abs($overdueDays);
+            return $item;
+        });
+        
+        // Log results for debugging
+        Log::info("Found {$itemsWithOverdueDays->count()} overdue items");
+        
+        return response()->json([
+            'data' => $itemsWithOverdueDays,
+            'count' => $itemsWithOverdueDays->count(),
+            'as_of' => $now->toDateString(),
+            'overdue_by_days' => $days
         ]);
     }
 

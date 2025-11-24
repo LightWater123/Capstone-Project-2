@@ -51,8 +51,8 @@ export function useMonitorMaintenance() {
     sortedData.sort((a,b) => new Date(b.scheduled_at) - new Date(a.scheduled_at))
   } else if(sortBy === "status") {
     sortedData.sort((a,b) => {
-      const statusOrder = { 'confirmed': 1, 'pending': 2 };
-      return statusOrder[a.status] - statusOrder[b.status];
+      const statusOrder = { 'pending': 1, 'in-progress': 2, 'done': 3 };
+      return statusOrder[a.status || 'pending'] - statusOrder[b.status || 'pending'];
     })
   }
 
@@ -62,6 +62,7 @@ export function useMonitorMaintenance() {
     searchQuery,
     setSearchQuery,
     fetchSchedules: refetch,
+    refetch,
     loading: isLoading,
     error,
     setSchedulesData: (data) => {

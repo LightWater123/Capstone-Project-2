@@ -18,10 +18,11 @@ const StatusDropdown = ({
   updateStatus,
   refetchMaintenance,
   refetchArchived,
-  setDoneModal, 
+  refetchOverdue,
+  setDoneModal,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [status, setStatus] = useState(currentStatus || "pending");
+  const [status, setStatus] = useState(currentStatus || null);
   const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 });
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -38,6 +39,7 @@ const StatusDropdown = ({
     await updateStatus(itemId, newStatus).then(() => {
       refetchArchived();
       refetchMaintenance();
+      refetchOverdue();
     });
   };
 
@@ -47,6 +49,8 @@ const StatusDropdown = ({
         return "bg-green-100 text-green-800";
       case "in-progress":
         return "bg-blue-100 text-blue-800";
+      case null:
+        return "bg-gray-100 text-gray-800";
       default:
         return "bg-yellow-100 text-yellow-800";
     }
@@ -113,6 +117,12 @@ const StatusDropdown = ({
           className="w-48 bg-white rounded-md shadow-lg py-1"
         >
           <button
+            onClick={() => handleStatusChange(null)}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Null
+          </button>
+          <button
             onClick={() => handleStatusChange("pending")}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
@@ -162,10 +172,13 @@ export default function ServiceDashboard() {
     const {
       maintenanceItems,
       archivedItems,
+      overdueItems,
       maintenanceDetails,
       refetchMaintenance,
       refetchArchived,
+      refetchOverdue,
       updateStatus,
+      updateCondition,
       fetchMaintenanceDetails,
       setSearchQuery,
       searchQuery,
@@ -229,6 +242,16 @@ export default function ServiceDashboard() {
                           Inventory
                         </Button>
                         <Button
+                          onClick={() => setTab("overdue")}
+                          className={`flex-1 sm:flex-initial px-4 py-2 rounded ${
+                            tab === "overdue"
+                              ? "bg-blue-900 border hover:bg-blue-900 text-white"
+                              : "bg-gray-800 border hover:bg-blue-900"
+                          }`}
+                        >
+                          Overdue
+                        </Button>
+                        <Button
                           onClick={() => setTab("archive")}
                           className={`flex-1 sm:flex-initial px-4 py-2 rounded ${
                             tab === "archive"
@@ -252,6 +275,49 @@ export default function ServiceDashboard() {
                       />
                     </div>
             
+                    {/* OVERDUE TABLE */}
+                    {tab === "overdue" && (
+                      <div className="bg-white rounded shadow overflow-hidden">
+                        <div className="overflow-x-auto w-full">
+                          <table className="w-full text-left">
+                            <thead className="bg-red-100 text-sm uppercase text-gray-600">
+                              <tr>
+                                <th className="px-4 py-3">Equipment</th>
+                                <th className="px-4 py-3">Scheduled Date</th>
+                                <th className="px-4 py-3 w-10"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {overdueItems
+                                .filter(item => item.condition === "overdue" && item.status !== "done")
+                                .map((item) => (
+                                  <tr
+                                    key={item.id}
+                                    className="border-t hover:bg-gray-50"
+                                    onClick={() => loadMaintenanceDetails(item.asset_id)}
+                                  >
+                                    <td className="px-4 py-3 cursor-pointer hover:text-blue-600">
+                                      {item.asset_name || "—"}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                      {item.scheduled_at
+                                        ? new Date(item.scheduled_at).toLocaleDateString()
+                                        : "—"}
+                                    </td>
+                                    <td
+                                      className="px-4 py-3 text-blue-600 cursor-pointer"
+                                      onClick={() => loadMaintenanceDetails(item.id)}
+                                    >
+                                      {">"}
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
                     {/* INVENTORY TABLE */}
                     {tab === "inventory" && (
                       <div className="bg-white rounded shadow overflow-hidden">
@@ -262,12 +328,15 @@ export default function ServiceDashboard() {
                                 <th className="px-4 py-3">Equipment</th>
                                 <th className="px-4 py-3">Scheduled At</th>
                                 <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3">Condition</th>
                                 <th className="px-4 py-3">Report</th>
                                 <th className="px-4 py-3 w-10"></th>
                               </tr>
                             </thead>
                             <tbody>
-                              {maintenanceItems.map((item) => (
+                              {maintenanceItems
+                                .filter(item => item.status !== "done")
+                                .map((item) => (
                                 <tr
                                   key={item.id}
                                   className="border-t hover:bg-gray-50"
@@ -291,8 +360,22 @@ export default function ServiceDashboard() {
                                       updateStatus={updateStatus}
                                       refetchArchived={refetchArchived}
                                       refetchMaintenance={refetchMaintenance}
+                                      refetchOverdue={refetchOverdue}
                                       setDoneModal={setDoneItem}
                                     />
+                                  </td>
+                                  <td className="px-4 py-3">
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs ${
+                                        item.condition === "overdue"
+                                          ? "bg-red-100 text-red-800"
+                                          : item.condition === "picked-up"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {item.condition || "—"}
+                                    </span>
                                   </td>
                                   <td className="px-4 py-3">
                                     <ReportCell
@@ -300,6 +383,7 @@ export default function ServiceDashboard() {
                                       onUpdate={() => {
                                         refetchMaintenance();
                                         refetchArchived();
+                                        refetchOverdue();
                                       }}
                                     />
                                   </td>
@@ -322,10 +406,12 @@ export default function ServiceDashboard() {
                       <div className="bg-white rounded shadow overflow-hidden">
                         <table className="w-full text-left">
                           <thead className="bg-gray-100 text-sm uppercase text-gray-600">
-                            <tr><th className="px-4 py-3">Asset Name</th><th className="px-4 py-3">Scheduled Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Report</th><th className="px-4 py-3">Date Sent</th></tr>
+                            <tr><th className="px-4 py-3">Asset Name</th><th className="px-4 py-3">Scheduled Date</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Condition</th><th className="px-4 py-3">Report</th></tr>
                           </thead>
                           <tbody>
-                            {archivedItems.map((item, k) => (
+                            {archivedItems
+                              .filter(item => item.job?.status === "done" || !item.job?.status)
+                              .map((item, k) => (
                               <tr
                                 key={item.job?.asset_id ?? k}
                                 className="border-t hover:bg-gray-50"
@@ -340,10 +426,24 @@ export default function ServiceDashboard() {
                                         ? "bg-green-100 text-green-800"
                                         : item.job?.status === "in-progress"
                                         ? "bg-blue-100 text-blue-800"
+                                        : item.job?.status === "overdue"
+                                        ? "bg-red-100 text-red-800"
                                         : "bg-yellow-100 text-yellow-800"
                                     }`}
                                   >
                                     {item.job?.status || "pending"}
+                                  </span>
+                                </td><td className="px-4 py-3">
+                                  <span
+                                    className={`px-2 py-1 rounded text-xs ${
+                                      item.job?.condition === "overdue"
+                                        ? "bg-red-100 text-red-800"
+                                        : item.job?.condition === "picked-up"
+                                        ? "bg-blue-100 text-blue-800"
+                                        : "bg-gray-100 text-gray-800"
+                                    }`}
+                                  >
+                                    {item.job?.condition || "—"}
                                   </span>
                                 </td><td className="px-4 py-3">
                                   <ReportCell
@@ -351,12 +451,9 @@ export default function ServiceDashboard() {
                                     onUpdate={() => {
                                       refetchMaintenance();
                                       refetchArchived();
+                                      refetchOverdue();
                                     }}
                                   />
-                                </td><td className="px-4 py-3">
-                                  {item.created_at
-                                    ? new Date(item.created_at).toLocaleDateString()
-                                    : "—"}
                                 </td></tr>
                             ))}
                           </tbody>
@@ -460,6 +557,7 @@ export default function ServiceDashboard() {
                   await submitDoneDetails(id, payload);
                   refetchMaintenance();
                   refetchArchived();
+                  refetchOverdue();
                 }}
               />
             )}

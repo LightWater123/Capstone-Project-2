@@ -63,6 +63,7 @@ import {
   Bookmark,
   ArchiveIcon,
   ArchiveX,
+  Clock,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import axios from "axios";
@@ -164,8 +165,9 @@ export default function InventoryDashboard() {
     setInventoryData,
   } = useInventory(category);
 
-  // button for due soon disabled
+  // button for due soon and overdue disabled
   const isDueSoon = category === "Due soon";
+  const isOverdue = category === "Overdue";
 
   const {data: schedules = []} = useQuery({
     queryKey: ["maintenance", "scheduled"],
@@ -179,7 +181,7 @@ export default function InventoryDashboard() {
   //console.log("archiveBlacklist", archiveBlacklist)
 
   // Maintenance hook
-  const { maintenanceSchedules, fetchSchedules } = useMaintenance();
+  const { maintenanceSchedules, fetchSchedules, fetchOverdue } = useMaintenance();
 
   const handleDeleteSelectedItems = async () => {
     if (selectedItems.length === 0) return;
@@ -288,8 +290,13 @@ export default function InventoryDashboard() {
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
   const filData = useMemo(
-    () =>
-      filteredData.filter((e) => {
+    () => {
+      if (isOverdue) {
+        // For overdue category, we need to fetch overdue maintenance data
+        return [];
+      }
+      
+      return filteredData.filter((e) => {
         let res = e.is_active == hideArchive;
         //console.log(hideArchive, sortBy);
 
@@ -298,9 +305,40 @@ export default function InventoryDashboard() {
           //console.log("SDDSDD", res);
         }
         return res;
-      }),
-    [filteredData, sortBy, hideArchive]
+      });
+    },
+    [filteredData, sortBy, hideArchive, isOverdue]
   );
+
+  // Fetch overdue maintenance data when overdue category is selected
+  useEffect(() => {
+    if (isOverdue) {
+      const fetchOverdueData = async () => {
+        try {
+          const overdueData = await fetchOverdue();
+          // Convert overdue maintenance data to inventory-like format
+          const formattedData = overdueData.map(item => ({
+            id: item._id,
+            article: item.asset_name,
+            description: item.asset_name, // Using asset name as description since we don't have more details
+            category: "Maintenance",
+            property_ro: "",
+            property_co: "",
+            semi_expendable_property_no: "",
+            unit: "pc",
+            next_maintenance_date: item.scheduled_at,
+            overdue_days: item.overdue_days
+          }));
+          setInventoryData(formattedData);
+        } catch (error) {
+          console.error("Failed to fetch overdue data:", error);
+          toast.error("Failed to load overdue maintenance items");
+        }
+      };
+
+      fetchOverdueData();
+    }
+  }, [isOverdue, fetchOverdue, setInventoryData]);
 
   // derive paginated data
   const totalPages = Math.ceil(filData.length / itemsPerPage);
@@ -730,6 +768,7 @@ export default function InventoryDashboard() {
               { name: "PPE", Icon: Car },
               { name: "RPCSP", Icon: Keyboard },
               { name: "Due soon", Icon: Calendar },
+              { name: "Overdue", Icon: Clock },
             ].map((type) => {
               const isActive = category === type.name;
               return (
@@ -737,7 +776,7 @@ export default function InventoryDashboard() {
                   key={type.name}
                   onClick={() => setCategory(type.name)}
                   variant="ghost"
-                  className={`relative flex-1 md:flex-none flex items-center justify-center gap-2 text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-950 
+                  className={`relative flex-1 md:flex-none flex items-center justify-center gap-2 text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-950
                     after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px]
                     after:h-[3px] after:rounded-full after:-translate-x-1/2
                     after:transition-all after:duration-300
@@ -790,24 +829,24 @@ export default function InventoryDashboard() {
 
               <a
                 href={
-                  isDueSoon
+                  (isDueSoon || isOverdue)
                     ? undefined // no link when disabled
                     : `${
                         import.meta.env.VITE_BACKEND_URL ??
                         "http://localhost:8000"
                       }/api/inventory/gen?category=${category.toUpperCase()}`
                 }
-                onClick={(e) => isDueSoon && e.preventDefault()} // extra safety
+                onClick={(e) => (isDueSoon || isOverdue) && e.preventDefault()} // extra safety
                 className={cn(
                   "inline-block", // keep layout
-                  isDueSoon && "pointer-events-none" // completely mute clicks
+                  (isDueSoon || isOverdue) && "pointer-events-none" // completely mute clicks
                 )}
                 target="_blank"
                 rel="noreferrer"
               >
                 <Button
                   size="sm"
-                  disabled={isDueSoon} // visual disabled state
+                  disabled={isDueSoon || isOverdue} // visual disabled state
                   className="bg-blue-900 text-white hover:bg-blue-950 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Download className="h-4 w-4 inline-block mr-2" />
@@ -823,7 +862,7 @@ export default function InventoryDashboard() {
           <div className="px-1 pt-3 pb-3 rounded-md border mt-4 mb-5">
             {filData.length === 0 ? (
               <p className="text-gray-500">No equipment found in {category}.</p>
-            ) : category !== "Due soon" ? (
+            ) : category !== "Due soon" && category !== "Overdue" ? (
               <>
                 <div className="overflow-x-auto w-full">
                   <Table className="w-full table-auto">
@@ -948,30 +987,33 @@ export default function InventoryDashboard() {
                 </div>
               </>
             ) : (
-              <>
-                <div className="overflow-x-auto w-full">
-                  <Table className="w-full table-auto">
-                    <TableHeader className="bg-black-100">
-                      <TableRow>
-                        <TableHead className="px-2 py-1">Article</TableHead>
-                        <TableHead className="px-2 py-1">Description</TableHead>
-                        <TableHead className="px-2 py-1">
-                          Property No. (RO/CO)
-                        </TableHead>
-                        <TableHead className="px-2 py-1">
-                          Semi-Expendable Property No.
-                        </TableHead>
-                        <TableHead className="px-2 py-1">Type</TableHead>
-                        <TableHead className="px-2 py-1">Due Date</TableHead>
-                        <TableHead className="px-5 py-1">Actions</TableHead>
-                        <TableHead className="px-2 py-1 text-center">
-                          Select
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {[...currentItems]
-                        .sort((a, b) => {
+              // This handles both "Due soon" and "Overdue" categories
+              <div className="overflow-x-auto w-full">
+                <Table className="w-full table-auto">
+                  <TableHeader className="bg-black-100">
+                    <TableRow>
+                      <TableHead className="px-2 py-1">Article</TableHead>
+                      <TableHead className="px-2 py-1">Description</TableHead>
+                      <TableHead className="px-2 py-1">
+                        Property No. (RO/CO)
+                      </TableHead>
+                      <TableHead className="px-2 py-1">
+                        Semi-Expendable Property No.
+                      </TableHead>
+                      <TableHead className="px-2 py-1">Type</TableHead>
+                      <TableHead className="px-2 py-1">
+                        {category === "Due soon" ? "Due Date" : "Overdue Days"}
+                      </TableHead>
+                      <TableHead className="px-5 py-1">Actions</TableHead>
+                      <TableHead className="px-2 py-1 text-center">
+                        Select
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[...currentItems]
+                      .sort((a, b) => {
+                        if (category === "Due soon") {
                           const dateA = a.next_maintenance_date
                             ? new Date(a.next_maintenance_date)
                             : Infinity;
@@ -979,75 +1021,86 @@ export default function InventoryDashboard() {
                             ? new Date(b.next_maintenance_date)
                             : Infinity;
                           return dateA - dateB; // nearest due date
-                        })
-                        .map((item) => (
-                          <TableRow
-                            key={item.id}
-                            className="hover:bg-gray-100 transition"
-                          >
-                            <TableCell className="px-2 py-1">
-                              {item.article}
-                            </TableCell>
-                            <TableCell className="px-2 py-1">
-                              {String(item.description).slice(0, 50)}
-                              {String(item.description).length > 50 && "..."}
-                            </TableCell>
+                        } else {
+                          // For Overdue, sort by most overdue first
+                          const overdueA = a.overdue_days || 0;
+                          const overdueB = b.overdue_days || 0;
+                          return overdueB - overdueA; // most overdue first
+                        }
+                      })
+                      .map((item) => (
+                        <TableRow
+                          key={item.id}
+                          className="hover:bg-gray-100 transition"
+                        >
+                          <TableCell className="px-2 py-1">
+                            {item.article}
+                          </TableCell>
+                          <TableCell className="px-2 py-1">
+                            {String(item.description).slice(0, 50)}
+                            {String(item.description).length > 50 && "..."}
+                          </TableCell>
 
-                            <TableCell className="px-2 py-1">
-                              {item.property_ro ?? item.property_co ?? ""}
-                            </TableCell>
-                            <TableCell className="px-2 py-1">
-                              {item.semi_expendable_property_no}
-                            </TableCell>
-                            <TableCell className="px-2 py-1">
-                              {item.category}
-                            </TableCell>
-                            <TableCell className="px-2 py-1">
-                              {item.next_maintenance_date ? (
+                          <TableCell className="px-2 py-1">
+                            {item.property_ro ?? item.property_co ?? ""}
+                          </TableCell>
+                          <TableCell className="px-2 py-1">
+                            {item.semi_expendable_property_no}
+                          </TableCell>
+                          <TableCell className="px-2 py-1">
+                            {item.category}
+                          </TableCell>
+                          <TableCell className="px-2 py-1">
+                            {category === "Due soon" ? (
+                              item.next_maintenance_date ? (
                                 new Date(
                                   item.next_maintenance_date
                                 ).toLocaleDateString()
                               ) : (
                                 <span className="text-gray-400 italic">—</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="px-2 py-1 text-center space-x-2">
-                              <Button
-                                className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
+                              )
+                            ) : (
+                              <span className={item.overdue_days > 0 ? "text-red-600 font-semibold" : "text-gray-400"}>
+                                {item.overdue_days ? `${item.overdue_days} days` : "—"}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-2 py-1 text-center space-x-2">
+                            <Button
+                              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
             after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
             after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
-                                onClick={() => {
-                                  setSelectedDetailItem(item);
-                                  setShowDetailModal(true);
-                                }}
-                                variant="ghost"
-                              >
-                                View Full Detail
-                                <ChevronRight className="h-5 w-5 inline-block" />
-                              </Button>
-                            </TableCell>
-                            <TableCell className="px-2 py-1 text-center">
-                              <input
-                                type="checkbox"
-                                checked={selectedEquipmentIds.includes(item.id)}
-                                onChange={(e) => {
-                                  setSelectedEquipmentIds((prev) =>
-                                    e.target.checked
-                                      ? [...prev, item.id]
-                                      : prev.filter((id) => id !== item.id)
-                                  );
-                                }}
-                                className="accent-blue-900 w-4 h-4"
-                                title="Select for Maintenance"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </>
+                              onClick={() => {
+                                setSelectedDetailItem(item);
+                                setShowDetailModal(true);
+                              }}
+                              variant="ghost"
+                            >
+                              View Full Detail
+                              <ChevronRight className="h-5 w-5 inline-block" />
+                            </Button>
+                          </TableCell>
+                          <TableCell className="px-2 py-1 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedEquipmentIds.includes(item.id)}
+                              onChange={(e) => {
+                                setSelectedEquipmentIds((prev) =>
+                                  e.target.checked
+                                    ? [...prev, item.id]
+                                    : prev.filter((id) => id !== item.id)
+                                );
+                              }}
+                              className="accent-blue-900 w-4 h-4"
+                              title="Select for Maintenance"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </div>
           {/* Pagination Controls */}
