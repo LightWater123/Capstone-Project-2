@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useInventory(category) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("name");
+  const [sortBy, setSortBy] = useState("date:desc");
   const queryClient = useQueryClient();
 
   // Fetch inventory using TanStack Query with 10-second refetch interval
