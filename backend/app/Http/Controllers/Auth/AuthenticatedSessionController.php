@@ -36,19 +36,10 @@ class AuthenticatedSessionController extends Controller
         // 2. Get the guard that was used for authentication from the request object.
         $guard = $request->getUsedGuard();
         
-        // 3. DYNAMICALLY SET THE SESSION COOKIE BASED ON THE GUARD.
-        // This is the key to isolating the sessions.
-        if ($guard === 'admin') {
-            config(['session.cookie' => env('ADMIN_SESSION_COOKIE', 'btr_admin_session')]);
-        } elseif ($guard === 'service') {
-            config(['session.cookie' => env('SERVICE_SESSION_COOKIE', 'btr_service_session')]);
-        }
-
-        // 4. Get the user from the correct guard.
+        // 3. Get the user from the correct guard.
         $user = Auth::guard($guard)->user();
         
-        // 5. Regenerate the session ID with the NEW, ISOLATED cookie name.
-        // This must be done AFTER setting the config.
+        // 4. Regenerate the session ID.
         $request->session()->regenerate();
 
         \Log::info('Authentication successful', [
@@ -74,13 +65,8 @@ class AuthenticatedSessionController extends Controller
             'session_id' => $request->session()->getId(),
         ]);
 
-        // destroys other sessions for different devices
-        // $tokenId = $request->user()->currentAccessToken()->id;
-
-        // $user->tokens()->where('id', '!=',$tokenId)->delete(); 
-        // return $user?->toArray()
-
-        $request->session()->put('auth_guard', $guard);
+        // Regenerate the session to prevent session fixation
+        $request->session()->regenerate();
 
         return response()->json([
             'redirect' => $redirectUrl,
@@ -128,9 +114,11 @@ class AuthenticatedSessionController extends Controller
         $guard = session('auth_guard', 'web');   // fallback to default
         $user  = Auth::guard($guard)->user();
 
-        return $user
-            ? response()->json(['user' => $user])
-            : response()->json(['error' => 'Unauthorized'], 401);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        return response()->json(['user' => $user]);
     }
 
     /**

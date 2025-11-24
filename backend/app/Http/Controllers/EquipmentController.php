@@ -12,6 +12,7 @@ use MongoDB\BSON\ObjectId;
 use Illuminate\Database\Eloquent\Builder; // Added for type-hinting
 use Carbon\Carbon; // Added for date manipulation
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\PdfBuilderJob;
 
 class EquipmentController extends Controller
 {
@@ -53,7 +54,11 @@ class EquipmentController extends Controller
         // 2. Initialize the base query with the category filter
         $query = Equipment::query();
         if ($category) {
-            $query->where('category', $category)->where('created_by', Auth::user()->email);
+            // Get the current guard from the session
+            // $guard = session('auth_guard', 'web');
+            // $user = Auth::guard($guard)->user();
+            // $query->where('category', $category)->where('created_by', $user->email);
+            $query->where('category', $category);
         }
 
         // 3. Get the equipment and then map over the collection to add the predictive date
@@ -134,10 +139,16 @@ class EquipmentController extends Controller
             // create and save item
             // $equipment = Equipment::create($validated);
             Log::info('Creating new equipment entry', ['data' => $validated]);
+            $validated["is_active"] = true;
             $equipment = new Equipment();
             $equipment->fill($validated);
             $equipment->date_added = now(); // set date_added to current timestamp
-            $equipment->created_by = Auth::user()->email;
+            
+            // Get the current guard from the session
+            $guard = session('auth_guard', 'web');
+            $user = Auth::guard($guard)->user();
+            $equipment->created_by = $user->email;
+            
             $equipment->save();
             // return created item to frontend
             return response()->json($equipment, 201);
@@ -247,9 +258,10 @@ class EquipmentController extends Controller
             $equipment = Equipment::findOrFail($id);
 
             // delete item
-            $equipment->delete();
+            $vals = ["is_active" => false];
+            $equipment->update($vals);
 
-            return response()->json(['message' => 'Equipment deleted successfully.'], 200);
+            return response()->json(['message' => 'Equipment archived successfully.'], 200);
 
         } catch (\Exception $e) 
         {
@@ -267,11 +279,30 @@ class EquipmentController extends Controller
 {
     try {
         $ids = $request->input('ids'); // array of MongoDB IDs
-        Equipment::whereIn('_id', $ids)->delete();
+        $vals = ["is_active" => false];
+        Equipment::whereIn('_id', $ids)->update($vals);
 
         return response()->json(['message' => 'Selected equipment deleted successfully.'], 200);
     } catch (\Exception $e) {
         Log::error('Bulk deletion failed', ['exception' => $e]);
+
+        return response()->json([
+            'message' => 'An unexpected error occurred.',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    public function bulkRestore(Request $request)
+{
+    try {
+        $ids = $request->input('ids'); // array of MongoDB IDs
+        $vals = ["is_active" => true];
+        Equipment::whereIn('_id', $ids)->update($vals);
+
+        return response()->json(['message' => 'Selected equipment restored successfully.'], 200);
+    } catch (\Exception $e) {
+        Log::error('Bulk restore failed', ['exception' => $e]);
 
         return response()->json([
             'message' => 'An unexpected error occurred.',
@@ -349,13 +380,42 @@ class EquipmentController extends Controller
         ]);
     }
 
+    public function buildPdf(Request $request) {
+        $category = $request->query('category');
+
+        // $guard = session('auth_guard', 'web');
+        // $user = Auth::guard($guard)->user();
+
+        // Log::info("use" . $user);
+
+        $items = Equipment::query();
+        // $items->where('created_by', $user->email);
+        $items->where('is_active', true);
+        if ($category) {
+            $items->where('category', $category);
+        }
+
+
+        // return $items->get();
+        $bytes = app(PdfBuilderJob::class)->buildComparisonPdf($items->get()->toArray(), $category);
+
+        return response($bytes, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="report.pdf"'
+        ]);
+    }
+
     public function dueSoon(Request $request)
     {
         // Start a new query on the Equipment model
         $query = Equipment::query();
 
-
-        $query->whereNotNull('next_maintenance_date')->where("created_by", Auth::user()->email);
+        // Get the current guard from the session
+        // $guard = session('auth_guard', 'web');
+        // $user = Auth::guard($guard)->user();
+        
+        // $query->whereNotNull('next_maintenance_date')->where("created_by", $user->email);
+        $query->whereNotNull('next_maintenance_date')->where('is_active', true);
             
             // We sort them by that date in ascending order ('asc').
             // This puts the SOONEST dates (including overdue ones) at the TOP.

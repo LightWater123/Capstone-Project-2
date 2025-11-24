@@ -131,7 +131,16 @@ class MaintenanceController extends Controller
     public function index(Request $req)
     {
         return MaintenanceJob::query()
-                      ->where("admin_email", Auth::user()->email)
+                    //   ->where("admin_email", Auth::user()->email)
+                      ->orderBy('created_at', 'desc')
+                      ->get();
+    }
+
+    public function notDone(Request $req)
+    {
+        return MaintenanceJob::query()
+                    //   ->where("admin_email", Auth::user()->email)
+                      ->where('status', '<>', 'done')
                       ->orderBy('created_at', 'desc')
                       ->get();
     }
@@ -141,6 +150,7 @@ class MaintenanceController extends Controller
     {
         // fetch jobs that are pending or in-progress
         $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])->where('user_email', Auth::user()->email)
+        // $jobs = MaintenanceJob::whereIn('status', ['pending', 'in-progress'])
                           ->orderBy('created_at', 'desc')
                           ->get();
         
@@ -181,8 +191,8 @@ class MaintenanceController extends Controller
     // get items due for maintenance
     public function getDueForMaintenance(Request $request)
     {
-        // Get the number of days from the request, defaulting to 2.
-        $days = $request->get('days', 2);
+        // Get the number of days from the request, defaulting to 365.
+        $days = $request->get('days', 365);
 
         // Validate the 'days' parameter
         if (!is_numeric($days) || (int)$days < 0) {
@@ -191,19 +201,21 @@ class MaintenanceController extends Controller
         $days = (int)$days;
 
         // Use UTC to match MongoDB's date storage
-        $now = Carbon::now('UTC');
-        $futureDate = $now->copy()->addDays($days)->endOfDay();
+        $now = Carbon::now('UTC')->startOfDay(); // Set to 00:00:00
+        $futureDate = $now->copy()->addDays($days)->endOfDay(); // Set to 23:59:59
         
         // Log for debugging
         Log::info("Checking maintenance from {$now} to {$futureDate}");
 
         // MongoDB-specific query with proper date handling
-        // The UTCDateTime class is now correctly referenced
-        Log::info(Auth::user()->email);
+        // Convert Carbon instances to UTCDateTime with correct milliseconds
+        $startDateTime = new UTCDateTime($now->getTimestampMs());
+        $endDateTime = new UTCDateTime($futureDate->getTimestampMs());
+        
         $dueItems = MaintenanceJob::whereNotNull('scheduled_at')
-                            // ->where('admin_email', "redguzman015@gmail.com")
-                            // ->where('scheduled_at', '>=', new UTCDateTime($now->timestamp * 1000))
-                            // ->where('scheduled_at', '<=', new UTCDateTime($futureDate->timestamp * 1000))
+                            // ->where('admin_email', Auth::user()->email)
+                            ->where('scheduled_at', '>=', $startDateTime)
+                            ->where('scheduled_at', '<=', $endDateTime)
                             ->orderBy('scheduled_at', 'asc')
                             ->get();
         
@@ -230,7 +242,7 @@ class MaintenanceController extends Controller
         $request->validate([
             'install_date' => 'required|date',
             'daily_usage_hours' => 'required|numeric|min:0',
-            'operating_days' => 'required|array', // e.g., [1, 2, 3, 4, 5]
+            'operating_days' => 'required|array', // 1, 2, 3, 4, 5
         ]);
 
         // GET EQUIPMENT & INPUTS
@@ -252,7 +264,7 @@ class MaintenanceController extends Controller
             }
         }
 
-        // GET MAINTENANCE RULES (Dynamic Lookup)
+        // GET MAINTENANCE RULES
         
         // Find the rules from the 'equipment_types' collection
         // match its 'name' against the equipment's 'article' field
@@ -397,7 +409,7 @@ class MaintenanceController extends Controller
         return response()->json(['message' => 'Report updated']);
     }
 
-    public function showPdf($id)
+    public function showPdf($id, $t = null)
     {
         $job = MaintenanceJob::find($id);
 

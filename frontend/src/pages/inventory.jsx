@@ -8,6 +8,7 @@ import api from "../api/api";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
 import * as React from "react";
+import { cn } from "@/lib/utils";
 
 // Modals
 import ScheduleMaintenanceModal from "../components/modals/scheduleModal.jsx";
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import PaginationBar from "@/components/paginationBar";
+import { Download } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -57,7 +59,86 @@ import {
   ChevronRight,
   ArrowDownAZ,
   Trash2,
+  BookmarkIcon,
+  Bookmark,
+  ArchiveIcon,
+  ArchiveX,
 } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+
+const disabledItems = [
+  "vehicle",
+  "generator",
+  "grasscutter",
+  "hard hats",
+  "trash bins",
+  "trash bin",
+  "door closer",
+  "weighing scale",
+  "mobile phone",
+  "garden hose",
+  "door mat",
+  "mobile phone",
+  "chair",
+  "table",
+  "flag stand",
+  "fuse cut",
+  "corkboard",
+  "keyboard",
+  "mouse",
+  "monitor",
+  "projector",
+  "sd wan device",
+  "sofa set",
+  "flag pole",
+  "signage",
+  "cubicle set",
+  "cabinet",
+  "client coun",
+  "organizer",
+  "sala set",
+  "storage bo",
+  "bed",
+  "towel bar",
+  "table kiosk",
+  "organizational chart",
+  "building",
+  "landscaping",
+  "carport",
+  "gate",
+  "cctv",
+  "conference set",
+  "grass cutter",
+  "floor polisher",
+  "speaker",
+  "white board",
+  "rechargable lamp",
+  "water air pot",
+  "ladder",
+  "vacuum",
+  "hand tools",
+  "organizational chart",
+  "tp-link",
+  "mpls",
+  "router",
+  "kiosk table",
+  "flash drive",
+  "external drive",
+  "usb port",
+  "driveways",
+  "transformer",
+  "cctv (2015 and 2018)",
+  "compactor",
+  "venetian blind",
+  "restroom fixtures",
+  "FIRE EXTINGUISHER",
+  "fire extinguisher",
+  "FLASH DRIVE",
+
+
+];
 
 export default function InventoryDashboard() {
   useCsrf();
@@ -67,9 +148,10 @@ export default function InventoryDashboard() {
 
   //Sort
   const [showSortOptions, setShowSortOptions] = useState(false);
+  const [hideArchive, setHideArchive] = useState(true);
 
   // Inventory hook
-  
+
   const {
     inventoryData,
     filteredData,
@@ -82,27 +164,66 @@ export default function InventoryDashboard() {
     setInventoryData,
   } = useInventory(category);
 
+  // button for due soon disabled
+  const isDueSoon = category === "Due soon";
+
+  const {data: schedules = []} = useQuery({
+    queryKey: ["maintenance", "scheduled"],
+    queryFn: async () => {
+      const res = await api.get("/api/maintenance/not-done-schedule")
+      return res.data
+    }
+  })
+
+  const archiveBlacklist = useMemo(()=> schedules.map(e => e.asset_id), [schedules])
+  //console.log("archiveBlacklist", archiveBlacklist)
+
   // Maintenance hook
   const { maintenanceSchedules, fetchSchedules } = useMaintenance();
 
   const handleDeleteSelectedItems = async () => {
-  if (selectedItems.length === 0) return;
+    if (selectedItems.length === 0) return;
 
-  const confirmed = window.confirm("Are you sure you want to delete the selected items?");
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete the selected items?"
+    );
+    if (!confirmed) return;
 
-  try {
-    const response = await api.post("/api/inventory/bulk-destroy", {
-        ids: selectedItems.map((item) => item.id),
-    }).catch((r)=>{toast.error(`Failed to delete items. ${r.message}`)});
+    try {
+      const response = await api
+        .post("/api/inventory/bulk-destroy", {
+          ids: selectedItems.map((item) => item.id),
+        })
+        .catch((r) => {
+          toast.error(`Failed to delete items. ${r.message}`);
+        });
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
 
-  } catch (error) {
-    console.error("Delete error:", error);
-    toast.error("An unexpected error occurred.");
-  }
-};
+  const handleRestoreSelectedItems = async () => {
+    if (selectedItems.length === 0) return;
 
+    const confirmed = window.confirm(
+      "Are you sure you want to restore the selected items?"
+    );
+    if (!confirmed) return;
 
+    try {
+      const response = await api
+        .post("/api/inventory/bulk-restore", {
+          ids: selectedItems.map((item) => item.id),
+        })
+        .catch((r) => {
+          toast.error(`Failed to restore items. ${r.message}`);
+        });
+    } catch (error) {
+      console.error("Restore error:", error);
+      toast.error("An unexpected error occurred.");
+    }
+  };
 
   //Sort Handler
   const handleSort = (type) => {
@@ -120,6 +241,7 @@ export default function InventoryDashboard() {
 
     setShowSortOptions(false); // close after picking
   };
+
   // Modals
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -140,10 +262,11 @@ export default function InventoryDashboard() {
 
   //sort map
   const SORT_MAP = {
-    "name:asc": "Name A-Z",
-    "name:desc": "Name Z-A",
-    "price:asc": "Price ↑",
-    "price:desc": "Price ↓",
+    "name:asc": "A-Z",
+    "name:desc": "Z-A",
+    // "price:asc": "Price ↑",
+    // "price:desc": "Price ↓",
+    predictive: "Predictive",
   };
 
   //sort text placeholder
@@ -164,14 +287,29 @@ export default function InventoryDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
+  const filData = useMemo(
+    () =>
+      filteredData.filter((e) => {
+        let res = e.is_active == hideArchive;
+        //console.log(hideArchive, sortBy);
+
+        if (sortBy === "predictive") {
+          res = !disabledItems.includes(String(e.article).toLowerCase());
+          //console.log("SDDSDD", res);
+        }
+        return res;
+      }),
+    [filteredData, sortBy, hideArchive]
+  );
+
   // derive paginated data
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = filteredData.slice(startIndex, endIndex);
+  const currentItems = filData.slice(startIndex, endIndex);
 
   // Function to handle page changes
-  
+
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -241,17 +379,35 @@ export default function InventoryDashboard() {
     if (!rows || rows.length === 0) {
       return {
         isValid: false,
-        error: "This PDF contains no data rows. Please ensure the file has a table with inventory items."
+        error:
+          "This PDF contains no data rows. Please ensure the file has a table with inventory items.",
       };
     }
     const firstRow = rows[0];
-    if (category.toUpperCase() === 'RPCSP') {
-      if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
-        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the RPCSP format." };
+    if (category.toUpperCase() === "RPCSP") {
+      if (
+        !firstRow.description &&
+        !firstRow.semi_expendable_property_no &&
+        !firstRow.unit_of_measure
+      ) {
+        return {
+          isValid: false,
+          error:
+            "Invalid PDF: This file does not have the correct columns for the RPCSP format.",
+        };
       }
-    } else if (category.toUpperCase() === 'PPE') {
-      if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
-        return { isValid: false, error: "Invalid PDF: This file does not have the correct columns for the PPE format." };
+    } else if (category.toUpperCase() === "PPE") {
+      if (
+        !firstRow.description &&
+        !firstRow.property_number_RO &&
+        !firstRow.property_number_CO &&
+        !firstRow.unit_of_measure
+      ) {
+        return {
+          isValid: false,
+          error:
+            "Invalid PDF: This file does not have the correct columns for the PPE format.",
+        };
       }
     }
     return { isValid: true };
@@ -276,20 +432,35 @@ export default function InventoryDashboard() {
       // --- FRONTEND VALIDATION ---
       // Check if the parsed data is empty
       if (!rows || rows.length === 0) {
-        setParseError("This PDF contains no data rows. Please ensure the file has a table with inventory items.");
+        setParseError(
+          "This PDF contains no data rows. Please ensure the file has a table with inventory items."
+        );
         return; // Stop here
       }
 
       // Check if the first row has the correct columns for the selected category
       const firstRow = rows[0];
-      if (category.toUpperCase() === 'RPCSP') {
-        if (!firstRow.description && !firstRow.semi_expendable_property_no && !firstRow.unit_of_measure) {
-          setParseError("Invalid PDF: This file does not have the correct columns for the RPCSP format.");
+      if (category.toUpperCase() === "RPCSP") {
+        if (
+          !firstRow.description &&
+          !firstRow.semi_expendable_property_no &&
+          !firstRow.unit_of_measure
+        ) {
+          setParseError(
+            "Invalid PDF: This file does not have the correct columns for the RPCSP format."
+          );
           return; // Stop here
         }
-      } else if (category.toUpperCase() === 'PPE') {
-        if (!firstRow.description && !firstRow.property_number_RO && !firstRow.property_number_CO && !firstRow.unit_of_measure) {
-          setParseError("Invalid PDF: This file does not have the correct columns for the PPE format.");
+      } else if (category.toUpperCase() === "PPE") {
+        if (
+          !firstRow.description &&
+          !firstRow.property_number_RO &&
+          !firstRow.property_number_CO &&
+          !firstRow.unit_of_measure
+        ) {
+          setParseError(
+            "Invalid PDF: This file does not have the correct columns for the PPE format."
+          );
           return; // Stop here
         }
       }
@@ -309,14 +480,13 @@ export default function InventoryDashboard() {
         recorded_count: Number(row.quantity_per_property_card) || 0,
         actual_count: Number(row.quantity_per_physical_count) || 0,
         location: row.remarks_whereabouts || "", // Corrected property name
-        remarks: row.remarks_whereabouts || "",  // Corrected property name
+        remarks: row.remarks_whereabouts || "", // Corrected property name
       }));
 
       setInventoryData((prev) => [...prev, ...formattedItems]);
       setShowPdfModal(false);
       setShowModal(false);
       toast.success("PDF uploaded and inventory updated!");
-
     } catch (err) {
       // This will now catch the specific error from the hook
       console.error("PDF parse failed:", err);
@@ -332,19 +502,17 @@ export default function InventoryDashboard() {
     (eq) => eq.id === selectedEquipmentIds[0]
   );
 
-  
   // opens the schedule modal for only 1 row
   const openScheduleModal = () => {
-  if (isScheduleButtonDisabled) {
-    toast.error("Please select exactly one item to schedule maintenance.");
-    return;
-  }
+    if (isScheduleButtonDisabled) {
+      toast.error("Please select exactly one item to schedule maintenance.");
+      return;
+    }
 
-  const selectedItem = selectedItems[0];
-  setScheduleModalData(selectedItem);
-  setShowScheduleModal(true);
-};
-
+    const selectedItem = selectedItems[0];
+    setScheduleModalData(selectedItem);
+    setShowScheduleModal(true);
+  };
 
   // Get the full item objects for all selected IDs
   const selectedItems = useMemo(
@@ -353,20 +521,44 @@ export default function InventoryDashboard() {
     [selectedEquipmentIds, inventoryData]
   );
 
+  const isBlacklist = useMemo(() => {
+    let returnVal = false
+    if(selectedItems.length > 0){
+      selectedItems.forEach((element) => {
+        if(archiveBlacklist.includes(element.id)){
+          returnVal = true
+        }
+      });
+    }
+    return returnVal
+  }, [selectedItems, archiveBlacklist])
+
+  //console.log("selectedItems", selectedItems)
+
+  //console.log("isBlacklist", isBlacklist)
+
   // Find the first selected item to use as a template for the modal
   const currentTemplateItem = useMemo(
-    () => selectedItems[0] || null,
+    () => selectedItems[0] ?? null,
     [selectedItems]
   );
 
   // Check if the "Predictive Maintenance" button should be disabled
   const isPredictiveButtonDisabled = useMemo(() => {
-    if (selectedItems.length === 0) {
+    if (selectedItems.length === 0 || !hideArchive) {
       return true; // Disabled if no items are selected
     }
     const firstArticle = selectedItems[0].article;
+
+    const isItemDisabled = new RegExp(disabledItems.join("|"), "i").test(
+      firstArticle
+    );
+
     // Disabled if not all selected items share the same article
-    return !selectedItems.every((item) => item.article === firstArticle);
+    return (
+      !selectedItems.every((item) => item.article === firstArticle) ||
+      isItemDisabled
+    );
   }, [selectedItems]);
 
   // open predictive modal
@@ -410,10 +602,8 @@ export default function InventoryDashboard() {
     }
   };
 
-  const isScheduleButtonDisabled = selectedItems.length !== 1;
+  const isScheduleButtonDisabled = selectedItems.length !== 1 || !hideArchive;
   const isTrashButtonDisabled = selectedItems.length === 0;
-
-
 
   // render component UI
   return (
@@ -433,7 +623,7 @@ export default function InventoryDashboard() {
           <nav className="w-full border-b mb-2 flex flex-col gap-4 py-4 px-1 sm:px-6 relative">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-full">
               {/* Search */}
-              <div className="relative w-full ">
+              <div className="relative w-full sm:w-auto flex-1">
                 <Input
                   type="text"
                   placeholder={`Search ${category} items...`}
@@ -444,41 +634,39 @@ export default function InventoryDashboard() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               </div>
               <div className="relative w-full sm:w-auto">
-
- <Button
-  size="icon"
-  disabled={selectedItems.length === 0}
-  title={
-    selectedItems.length === 0
-      ? "Select at least one item to delete"
-      : "Delete selected items"
-  }
-  onClick={handleDeleteSelectedItems}
-  className={`
-    ${selectedItems.length === 0 
-      ? "cursor-not-allowed opacity-50 bg-gray-200 text-gray-400" 
-      : "bg-red-600 hover:bg-red-700 text-white"}
+                <Button
+                  size="icon"
+                  disabled={selectedItems.length === 0 || isBlacklist}
+                  title={
+                    selectedItems.length === 0
+                      ? "Select at least one item to delete"
+                      : "Delete selected items"
+                  }
+                  onClick={hideArchive ? handleDeleteSelectedItems : handleRestoreSelectedItems}
+                  className={`
+    ${
+      selectedItems.length === 0
+        ? "cursor-not-allowed opacity-50 bg-gray-200 text-gray-400"
+        : "bg-red-800 hover:bg-red-900 text-white"
+    }
   `}
->
-  <Trash2 />
-</Button>
-
-
-
+                >
+                  <ArchiveX />
+                </Button>
               </div>
               {/* Sort Dropdown */}
               <div className="relative w-full sm:w-auto">
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-full md:w-[100px]">
-                    {/* 👇  this line shows “Sort : Name A-Z” etc. */}
                     {`${sortText}`}
                   </SelectTrigger>
 
                   <SelectContent>
-                    <SelectItem value="name:asc">Name A-Z</SelectItem>
-                    <SelectItem value="name:desc">Name Z-A</SelectItem>
-                    <SelectItem value="price:asc">Price ↑</SelectItem>
-                    <SelectItem value="price:desc">Price ↓</SelectItem>
+                    <SelectItem value="name:asc">A-Z</SelectItem>
+                    <SelectItem value="name:desc">Z-A</SelectItem>
+                    {/* <SelectItem value="price:asc">Price ↑</SelectItem>
+                    <SelectItem value="price:desc">Price ↓</SelectItem> */}
+                    <SelectItem value="predictive">PM</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -503,21 +691,20 @@ export default function InventoryDashboard() {
               </Button>
 
               <Button
-  className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
-  onClick={openScheduleModal}
-  disabled={isScheduleButtonDisabled}
-  title={
-    isScheduleButtonDisabled
-      ? selectedItems.length > 1
-        ? "Please select only one item"
-        : "Please select an item"
-      : "Schedule Maintenance"
-  }
->
-  <Calendar className="h-5 w-5 inline-block mr-2" />
-  Schedule Maintenance
-</Button>
-
+                className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
+                onClick={openScheduleModal}
+                disabled={isScheduleButtonDisabled}
+                title={
+                  isScheduleButtonDisabled
+                    ? selectedItems.length > 1
+                      ? "Please select only one item"
+                      : "Please select an item"
+                    : "Schedule Maintenance"
+                }
+              >
+                <Calendar className="h-5 w-5 inline-block mr-2" />
+                Schedule Maintenance
+              </Button>
 
               <Button
                 className="flex-1 px-2 sm:px-3 py-0.5 rounded-md font-semibold text-xs sm:text-sm whitespace-nowrap disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed text-white bg-blue-900 hover:bg-blue-950"
@@ -569,33 +756,72 @@ export default function InventoryDashboard() {
             })}
           </div>
 
-          {/* Items per page selector */}
-          <div className="flex w-full md:w-auto justify-center md:justify-end items-center gap-2">
-            <Label>Items per page:</Label>
-            <Select
-              value={String(itemsPerPage)}
-              onValueChange={(v) => setItemsPerPage(Number(v))}
+          <div className="flex flex-wrap justify-end gap-2">
+            {/* 1. Archive toggle */}
+            <Toggle
+              aria-label="Toggle bookmark"
+              size="sm"
+              variant="outline"
+              onClick={() => setHideArchive((p) => !p)}
+              className="mt-0.5 data-[state=on]:bg-blue-900 data-[state=on]:text-white data-[state=on]:*:[svg]:fill-blue-500 data-[state=on]:*:[svg]:stroke-blue-500"
             >
-              <SelectTrigger className="w-full md:w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Items per page</SelectLabel>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="30">30</SelectItem>
-                  <SelectItem value="40">40</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+              <ArchiveIcon />
+              Archived
+            </Toggle>
+            {/* 2. Items per page & Download button */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Label className="whitespace-nowrap">Items per page:</Label>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(v) => setItemsPerPage(Number(v))}
+                >
+                  <SelectTrigger className="w-20 sm:w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="30">30</SelectItem>
+                    <SelectItem value="40">40</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <a
+                href={
+                  isDueSoon
+                    ? undefined // no link when disabled
+                    : `${
+                        import.meta.env.VITE_BACKEND_URL ??
+                        "http://localhost:8000"
+                      }/api/inventory/gen?category=${category.toUpperCase()}`
+                }
+                onClick={(e) => isDueSoon && e.preventDefault()} // extra safety
+                className={cn(
+                  "inline-block", // keep layout
+                  isDueSoon && "pointer-events-none" // completely mute clicks
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Button
+                  size="sm"
+                  disabled={isDueSoon} // visual disabled state
+                  className="bg-blue-900 text-white hover:bg-blue-950 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="h-4 w-4 inline-block mr-2" />
+                  Download Report
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
 
         {/* Equipment Table */}
         <div className="max-w-[88rem] mx-auto px-4 sm:px-6">
           <div className="px-1 pt-3 pb-3 rounded-md border mt-4 mb-5">
-            {filteredData.length === 0 ? (
+            {filData.length === 0 ? (
               <p className="text-gray-500">No equipment found in {category}.</p>
             ) : category !== "Due soon" ? (
               <>
@@ -620,7 +846,6 @@ export default function InventoryDashboard() {
                           </TableHead>
                         )}
                         <TableHead className="px-2 py-1">Unit</TableHead>
-                        <TableHead className="px-2 py-1">Unit Value</TableHead>
                         <TableHead className="px-5 py-1">Actions</TableHead>
                         <TableHead className="px-2 py-1 text-center">
                           <input
@@ -685,13 +910,6 @@ export default function InventoryDashboard() {
                           <TableCell className="px-2 py-1 min-w-[96px] max-w-[120px] truncate">
                             {item.unit}
                           </TableCell>
-                          <TableCell className="px-2 py-1 min-w-[96px] max-w-[128px] truncate">
-                            ₱
-                            {Number(item.unit_value).toLocaleString("en-PH", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </TableCell>
                           <TableCell className="px-2 py-1 space-x-2 min-w-[112px] max-w-[144px]">
                             <Button
                               className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
@@ -737,6 +955,12 @@ export default function InventoryDashboard() {
                       <TableRow>
                         <TableHead className="px-2 py-1">Article</TableHead>
                         <TableHead className="px-2 py-1">Description</TableHead>
+                        <TableHead className="px-2 py-1">
+                          Property No. (RO/CO)
+                        </TableHead>
+                        <TableHead className="px-2 py-1">
+                          Semi-Expendable Property No.
+                        </TableHead>
                         <TableHead className="px-2 py-1">Type</TableHead>
                         <TableHead className="px-2 py-1">Due Date</TableHead>
                         <TableHead className="px-5 py-1">Actions</TableHead>
@@ -765,7 +989,15 @@ export default function InventoryDashboard() {
                               {item.article}
                             </TableCell>
                             <TableCell className="px-2 py-1">
-                              {item.description}
+                              {String(item.description).slice(0, 50)}
+                              {String(item.description).length > 50 && "..."}
+                            </TableCell>
+
+                            <TableCell className="px-2 py-1">
+                              {item.property_ro ?? item.property_co ?? ""}
+                            </TableCell>
+                            <TableCell className="px-2 py-1">
+                              {item.semi_expendable_property_no}
                             </TableCell>
                             <TableCell className="px-2 py-1">
                               {item.category}
@@ -902,7 +1134,7 @@ export default function InventoryDashboard() {
           }}
           // delete item
           onDelete={async (id) => {
-            if (!window.confirm("Are you sure you want to delete this item?"))
+            if (!window.confirm("Are you sure you want to remove this item?"))
               return;
             try {
               await api.delete(`/api/inventory/${id}`);

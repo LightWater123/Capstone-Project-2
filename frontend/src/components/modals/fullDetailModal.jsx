@@ -190,7 +190,7 @@ export default function ViewItemDetailModal({
               </Button>
 
               {/* remove */}
-              <Button
+              {/* <Button
                 onClick={() => onDelete(item.id)}
                 variant="ghost"
                 className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-red-800 hover:text-red-900
@@ -199,10 +199,10 @@ export default function ViewItemDetailModal({
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 Remove
-              </Button>
+              </Button> */}
 
               {/* view h */}
-              <Button
+              {/* <Button
                 onClick={() => onViewHistory(true)}
                 variant="ghost"
                 className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
@@ -211,7 +211,7 @@ export default function ViewItemDetailModal({
             after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
               >
                 View History
-              </Button>
+              </Button> */}
 
               {/* sched */}
               <Button

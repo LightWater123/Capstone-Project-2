@@ -186,11 +186,19 @@ def build_ppe_row(raw_row: List) -> Optional[Dict]:
 # Main parsing loop
 # ---------------------------------------------------------------------------
 
-def parse_pdf(path: Path, mode: str, header_rows: int = 1) -> List[Dict]:
+def parse_pdf(path: Path, mode: str, header_rows: int = 1) -> Tuple[List[Dict], str]:
     rows: List[Dict] = []
+    type = "invalid"
     with pdfplumber.open(path) as pdf:
         if not validate_pdf_format(pdf, mode):
             raise InvalidFormatError("Invalid PDF format: Missing expected columns for PPE/RPCSP.")
+        
+        first_page_text = pdf.pages[0].extract_text()
+        if first_page_text and "REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT".lower() in first_page_text.lower():
+            type = "PPE"
+        elif first_page_text and "REPORT ON THE PHYSICAL COUNT OF SEMI-EXPENDABLE PROPERTY".lower() in first_page_text.lower():
+            type = "RPCSP"
+
         
         for page in pdf.pages:
             tables = extract_tables_from_page(page)
@@ -207,7 +215,7 @@ def parse_pdf(path: Path, mode: str, header_rows: int = 1) -> List[Dict]:
                         raise ValueError(f"Unknown mode: {mode}")
                     if parsed:
                         rows.append(parsed)
-    return rows
+    return rows, type
 
 # ---------------------------------------------------------------------------
 # CLI
@@ -230,8 +238,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         sys.exit(0)
 
     try:
-        data = parse_pdf(file_path, mode, header_rows)
+        data, type = parse_pdf(file_path, mode, header_rows)
         # On success, print the data to stdout
+        data.insert(0, {"type": type})
         print(json.dumps(data, ensure_ascii=False))
         sys.exit(0) # Explicitly exit with success code
     except PDFParsingError as e:

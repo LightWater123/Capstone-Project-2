@@ -5,23 +5,26 @@ import { queryClient } from "@/App";
 
 const AuthContext = createContext(null);
 
+const queryKey = ["verifyUser"];
+
 // redirects an unauthorized user to the login trying to access a page
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(undefined);
+  const [user, setUser] = useState(
+    queryClient.getQueryData(queryKey) ?? undefined
+  );
   const Navigate = useNavigate();
 
   useEffect(() => {
     async function run() {
       if (!user) {
         const data = await queryClient.fetchQuery({
-          queryKey: ["verifyUser"],
+          queryKey: queryKey,
           queryFn: async () => {
             const res = await api.get("/api/verifyUser");
 
             return res.data;
           },
           staleTime: 15000,
-          retry: 3,
         });
         if (data.user) {
           setUser(data.user);
@@ -32,7 +35,7 @@ export default function AuthProvider({ children }) {
     }
     run().catch(() => {
       setUser(null);
-      Navigate("/");
+      Navigate("/login");
     });
   }, [user]);
 
@@ -43,7 +46,7 @@ export default function AuthProvider({ children }) {
     });
     if (response.data) {
       setUser(response.data.user);
-      queryClient.invalidateQueries({ queryKey: ["verifyUser"] });
+      queryClient.invalidateQueries({ queryKey });
       return response.data;
     } else {
       setUser(null);
@@ -51,10 +54,10 @@ export default function AuthProvider({ children }) {
     }
   };
 
-  const logout = async (user, password) => {
+  const logout = async () => {
     const response = await api.post("/api/logout");
     setUser(null);
-    queryClient.invalidateQueries({ queryKey: ["verifyUser"] });
+    queryClient.invalidateQueries({ queryKey });
 
     return null;
   };

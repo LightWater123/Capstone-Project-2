@@ -8,10 +8,12 @@ use Illuminate\Auth\Authenticatable as AuthenticableTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
-class User extends Eloquent implements Authenticatable
+class User extends Eloquent implements Authenticatable, CanResetPasswordContract
 {
-    use HasApiTokens, HasFactory, Notifiable, AuthenticableTrait;
+    use HasApiTokens, HasFactory, Notifiable, AuthenticableTrait, CanResetPassword;
 
     protected $connection = 'mongodb';
     protected $fillable = [

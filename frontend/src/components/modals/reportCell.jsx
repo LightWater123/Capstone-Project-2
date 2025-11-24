@@ -75,7 +75,7 @@ export default function ReportCell({ item, onUpdate }) {
         onBlur={(e) => saveText(e.target.value)}
       />
 
-      <label className="cursor-pointer text-xs text-blue-600 hover:underline">
+      <label className="cursor-pointer text-xs text-blue-600 hover:underline font-bold">
         {uploading ? "Uploading…" : "Attach PDF"}
         <input 
           type="file" 
@@ -89,7 +89,7 @@ export default function ReportCell({ item, onUpdate }) {
         {item.report_pdf ? (
           <span 
             onClick={handleViewPdf}
-            className="text-blue-600 hover:underline cursor-pointer"
+            className="text-blue-600 hover:underline cursor-pointer font-bold"
           >
             {loadingPdf ? "Loading PDF…" : "View PDF"}
           </span>

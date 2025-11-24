@@ -44,7 +44,7 @@ export default function Login() {
       //   password,
       // });
       await login(identifier, password).then((e) => {
-        console.log("Current user logged-in:", identifier, e);
+        //console.log("Current user logged-in:", identifier, e);
         if (e.redirect) {
           navigate(e.redirect);
         }
@@ -75,7 +75,7 @@ export default function Login() {
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="flex h-full animate-banner"
-          style={{ width: `${images.length * 100}vw` }}
+          style={{ width: `${images.length * 2 * 100}vw` }}
         >
           {[...images, ...images].map((img, i) => (
             <div
@@ -83,7 +83,7 @@ export default function Login() {
               className="w-screen h-screen flex-shrink-0"
               style={{
                 backgroundImage: `url(${img})`,
-                backgroundSize: "cover",
+                backgroundSize: "auto",
                 backgroundPosition: "center",
                 backgroundRepeat: "no-repeat",
               }}
@@ -91,8 +91,8 @@ export default function Login() {
           ))}
         </div>
       </div>
-      ={/* overlay */}
-      <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none"></div>
+      {/* overlay */}
+      <div className="absolute inset-0 bg-blue-950/80 backdrop-blur-none p-4"></div>
       {/* login form */}
       <form
         onSubmit={handleLogin}
@@ -105,7 +105,7 @@ export default function Login() {
       >
         {/* logo and title */}
         <img src={btrlogo} alt="Logo" className="mx-auto w-24 h-24" />
-        <h2 className="text-xl font-bold text-white text-center">Login</h2>
+        <h2 className="text-xl font-bold text-white text-center">Welcome Back!</h2>
 
         {/* Username */}
         <div className="flex flex-col items-start space-y-2">
@@ -177,11 +177,11 @@ export default function Login() {
           </p> */}
 
         {/* forgot password */}
-        {/* <div className="text-sm text-right -mt-2 mb-2">
+        <div className="text-sm text-right -mt-2 mb-2">
           <Link to="/forgot-password" className="text-white hover:underline">
             Forgot password?
           </Link>
-        </div> */}
+        </div>
       </form>
     </div>
   );

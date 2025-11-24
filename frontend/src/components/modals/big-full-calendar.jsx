@@ -14,6 +14,7 @@ import api from "@/api/api";
 import { v4 as uuidv4 } from "uuid";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/App";
+import { format } from "date-fns";
 
 const DnDCalendar = withDragAndDrop(ShadcnBigCalendar);
 const localizer = momentLocalizer(moment);
@@ -49,7 +50,7 @@ const LandingPage = () => {
       title: event.title,
       start: new Date(event.start_date),
       end: new Date(event.end_date),
-      color: event.color || "red",
+      color: "blue",
     }))),
       api.get("/api/maintenance/inventory/due-soon").then((r) => r.data.map((item) => ({
       id: item.id,
@@ -59,11 +60,13 @@ const LandingPage = () => {
       end: new Date(item.next_maintenance_date),
       color: "green", // red for due soon items
     }))),
-    api.get("/api/maintenance/due-for-maintenance?days=2").then((r) => r.data.data.map((item) => ({
+    api.get("/api/maintenance/due-for-maintenance?days=365").then((r) => r.data.data.map((item) => ({
       id: item.id,
       type: "maintenance-due",
       title: `Maintenance Due: ${item.asset_name}`,
       start: new Date(item.scheduled_at),
+      pickUpDate: item.pickup_date,
+      pickUpLocation: item.pickup_place,
       end: new Date(item.scheduled_at),
       color: "blue"
     })))
@@ -79,13 +82,13 @@ const LandingPage = () => {
     // setEvents([...events, newEvent]);
     setSelectedSlot(null);
 
-    console.log(data);
+    //console.log(data);
     await api
       .post("/api/events", {
         title: data.title,
         start_date: data.start,
         end_date: data.end,
-        color: data.color,
+        color: "blue",
       })
       .then(() => {
         toast.success("Added new event!");
@@ -98,6 +101,8 @@ const LandingPage = () => {
       });
 
   };
+
+  //console.log(selectedEvent)
 
   const handleDeleteEvent = async () => {
   if (!selectedEvent) return;
@@ -116,12 +121,12 @@ const LandingPage = () => {
 
   const handleEventDrop = async ({ event, start, end }) => {
   try {
-    console.log(event, start, end)
+    //console.log(event, start, end)
     const response = await api.put(`/api/events/${event.id}`, {
       title: event.title,
       start_date: start,
       end_date: end,
-      color: event.color,
+      color: "blue",
     });
 
     if (response.status === 200) {
@@ -143,7 +148,7 @@ const handleEventResize = async ({ event, start, end }) => {
       title: event.title,
       start_date: start,
       end_date: end,
-      color: event.color,
+      color: "blue",
     });
     toast.success("Event resized!");
   } catch (error) {
@@ -219,6 +224,19 @@ const handleEventResize = async ({ event, start, end }) => {
               <p>
                 <strong>End:</strong> {moment(selectedEvent.end).format("LLLL")}
               </p>
+
+              {selectedEvent.pickUpDate && (
+              <p>
+                <strong>Pick up date:</strong> {format(selectedEvent.pickUpDate, "PPP")}
+              </p>
+              )}
+
+              {selectedEvent.pickUpLocation && (
+              <p>
+                <strong>Pick up location:</strong> {selectedEvent.pickUpLocation}
+              </p>
+              )}
+              
               <Button variant="destructive" onClick={handleDeleteEvent}>
                 <Trash2 className="size-4 mr-2" />
                 Delete Event

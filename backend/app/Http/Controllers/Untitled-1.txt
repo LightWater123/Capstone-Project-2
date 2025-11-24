@@ -1,0 +1,15 @@
+{
+   "category":"RPCSP",
+   "article":"Keyboard",
+   "description":"testItem2",
+   "semi_expendable_property_no":"2019-05-02-0046-01",
+   "unit":"pc",
+   "unit_value":50000,
+   "recorded_count":1,
+   "actual_count":1,
+   "shortage_or_overage_qty":0,
+   "shortage_or_overage_val":0,
+   "location":"Within the building",
+    remarks
+condition
+}

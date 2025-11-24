@@ -29,7 +29,7 @@ class EmailController extends Controller
         $html = nl2br(e($request->message));
 
         Resend::emails()->send([
-            'from'    => 'NeoTest@agriconnects.org',
+            'from'    => 'noreply@treasuretracks.org',
             'to'      => $request->recipientEmail,
             'subject' => 'Maintenance Schedule Reminder',
             'html'    => "
@@ -46,7 +46,7 @@ class EmailController extends Controller
     // verify domain name
     public function verify(Request $request)
     {
-        $resend = Resend::domains()->verify('agriconnects.org');
+        $resend = Resend::domains()->verify('treasuretracks.org');
         return response()->json($resend);
     }
 }

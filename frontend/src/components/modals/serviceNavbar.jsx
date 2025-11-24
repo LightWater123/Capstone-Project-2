@@ -33,13 +33,13 @@ export default function Navbar() {
             Dashboard
           </Button>
 
-          <Button
+          {/* <Button
             onClick={handleSettings}
             variant="ghost"
             className="relative text-sm px-3 py-1 bg-transparent border-none after:content-[''] after:absolute after:left-1/2 after:bottom-[-4px] after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full after:-translate-x-1/2 after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
           >
             Settings
-          </Button>
+          </Button> */}
         </div>
 
         {/* LEFT — Hamburger (mobile) */}
@@ -87,7 +87,7 @@ export default function Navbar() {
 
             {isDropOpen && (
               <div className="absolute right-0 top-full mt-2 w-40 rounded-lg border bg-white shadow-lg py-1 z-40">
-                <button
+                {/* <button
                   onClick={() => {
                     setIsDropOpen(false);
                     navigate("/service/settings");
@@ -96,7 +96,7 @@ export default function Navbar() {
                 >
                   <Settings className="h-4 w-4 inline-block mr-2" />
                   Settings
-                </button>
+                </button> */}
 
                 <LogoutButton className="block w-full text-left px-4 py-2 hover:bg-gray-100" />
               </div>

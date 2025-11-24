@@ -185,7 +185,7 @@ export default function ServiceDashboard() {
         setError(null);
 
         // Use the api instance
-        const response = await api.get("/api/service/serviceReminder?days=2");
+        const response = await api.get("/api/service/serviceReminder?days=365");
 
         setDueItems(response.data.data || []);
       } catch (err) {
