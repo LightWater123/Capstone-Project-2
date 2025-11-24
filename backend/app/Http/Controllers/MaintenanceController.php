@@ -44,7 +44,7 @@ class MaintenanceController extends Controller
             'asset_name'  => $req->assetName,
             'user_email'  => $req->recipientEmail,
             'scheduled_at'=> Carbon::parse($req->scheduledAt),
-            'status'      => 'pending',
+            'status'      => 'null',
             'admin_email'     => Auth::user()->email,
         ]);
 
