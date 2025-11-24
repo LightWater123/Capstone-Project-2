@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use App\Traits\LogsAuditable;
 
 class Event extends Model
 {
+    use LogsAuditable;
     protected $connection = 'mongodb';
     protected $collection = 'events';
 

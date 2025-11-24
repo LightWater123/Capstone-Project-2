@@ -35,7 +35,6 @@ export default function AuthProvider({ children }) {
     }
     run().catch(() => {
       setUser(null);
-      Navigate("/login");
     });
   }, [user]);
 

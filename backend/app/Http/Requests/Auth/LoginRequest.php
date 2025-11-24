@@ -96,6 +96,22 @@ class LoginRequest extends FormRequest
             'user_role' => $user->role ?? 'not_set',
         ]);
 
+        // Check if the user account is verified
+        if (!$user->is_verified) {
+            $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
+            \Log::warning('Authentication failed - account not verified', [
+                'login' => $login,
+                'guard' => $this->usedGuard,
+                'session_id' => $sessionId,
+            ]);
+            
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'login' => trans('auth.account_not_verified'),
+            ]);
+        }
+
         if (! Auth::guard($this->usedGuard)->attempt($this->only('login', 'password'), $this->boolean('remember'))) {
             $sessionId = $this->hasSession() ? $this->session()->getId() : 'no_session';
             \Log::warning('Authentication failed', [

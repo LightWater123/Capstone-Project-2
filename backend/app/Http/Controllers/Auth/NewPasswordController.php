@@ -3,60 +3,97 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Http\RedirectResponse;
+use App\Models\AdminUser;
+use App\Models\ServiceUser;
+use App\Models\PasswordReset;
+use Illuminate\Auth\Events\PasswordReset as PasswordResetEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class NewPasswordController extends Controller
 {
-    /**
-     * Display the password reset view.
-     */
-    public function create(Request $request): View
-    {
-        return view('auth.reset-password', ['request' => $request]);
-    }
-
     /**
      * Handle an incoming new password request.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'token' => ['required'],
-            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        try {
+            // Log detailed cookie information
+            // \Log::info('=== COOKIE DEBUG INFO ===');
+            // \Log::info('All cookies in request: ', $request->cookies->all());
+            // \Log::info('Request headers: ', $request->headers->all());
+            // \Log::info('Request URL: ' . $request->url());
+            // \Log::info('Request method: ' . $request->method());
+            // \Log::info('Request origin: ' . $request->header('Origin'));
+            // \Log::info('Request referer: ' . $request->header('Referer'));
+            // \Log::info('=========================');
+            
+            // Get token from cookie
+            $token = $request->token;
+            \Log::info('Token from cookie: ' . ($token ? 'Found' : 'Not found'));
 
-                event(new PasswordReset($user));
+            
+            if (!$token) {
+                return response()->json([
+                    'status' => 'invalid-token',
+                    'message' => 'The password reset token is missing or has expired.',
+                ], 422);
             }
-        );
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
-        return $status == Password::PASSWORD_RESET
-                    ? redirect()->route('login')->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            // Find the valid password reset token
+            $passwordReset = PasswordReset::findValidByToken($token);
+            
+            if (!$passwordReset) {
+                return response()->json([
+                    'status' => 'invalid-token',
+                    'message' => 'The password reset token is invalid or has expired.',
+                ], 422);
+            }
+
+            // Find the admin user based on the email from the password reset token
+            $admin_user = AdminUser::where('email', $passwordReset->email)->first();
+
+            if (!$admin_user) {
+                return response()->json([
+                    'status' => 'user-not-found',
+                    'message' => 'Admin user not found.',
+                ], 404);
+            }
+
+            // Update the admin user's password
+            $admin_user->password = Hash::make($request->password);
+            $admin_user->save();
+
+            // Delete the password reset token
+            PasswordReset::deleteByEmail($passwordReset->email);
+
+            // Clear the cookie
+            $response = response()->json([
+                'status' => 'password-reset',
+                'message' => 'Password has been successfully reset.',
+                'redirect_url' => 'http://localhost:3000/login'
+            ]);
+
+            return $response->withCookie(cookie()->forget('reset-token'));
+
+        } catch (\Exception $e) {
+            Log::error('Password reset error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while resetting the password.',
+            ], 500);
+        }
     }
 }
