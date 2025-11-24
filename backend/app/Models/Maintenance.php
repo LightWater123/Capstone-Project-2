@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use App\Traits\LogsAuditable;
 
 class Maintenance extends Model
 {
+    use LogsAuditable;
     protected $table = 'maintenanceCalendar';
 
     protected $dates = ['due_date'];

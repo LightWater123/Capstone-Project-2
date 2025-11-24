@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model; // You are correctly using the official package's model
+use App\Traits\LogsAuditable;
 
 class Equipment extends Model
 {
+    use LogsAuditable;
     protected $connection = 'mongodb';
     protected $table = 'inventory';
 

@@ -279,8 +279,19 @@ class EquipmentController extends Controller
 {
     try {
         $ids = $request->input('ids'); // array of MongoDB IDs
-        $vals = ["is_active" => false];
-        Equipment::whereIn('_id', $ids)->update($vals);
+        
+        // Get the current user for audit logging
+        $guard = session('auth_guard', 'web');
+        $user = Auth::guard($guard)->user();
+        
+        // Find all equipment items to be archived
+        $equipmentItems = Equipment::whereIn('_id', $ids)->get();
+        
+        // Archive each item individually to trigger audit logging
+        foreach ($equipmentItems as $equipment) {
+            $equipment->is_active = false;
+            $equipment->save();
+        }
 
         return response()->json(['message' => 'Selected equipment deleted successfully.'], 200);
     } catch (\Exception $e) {
@@ -297,8 +308,19 @@ class EquipmentController extends Controller
 {
     try {
         $ids = $request->input('ids'); // array of MongoDB IDs
-        $vals = ["is_active" => true];
-        Equipment::whereIn('_id', $ids)->update($vals);
+        
+        // Get the current user for audit logging
+        $guard = session('auth_guard', 'web');
+        $user = Auth::guard($guard)->user();
+        
+        // Find all equipment items to be restored
+        $equipmentItems = Equipment::whereIn('_id', $ids)->get();
+        
+        // Restore each item individually to trigger audit logging
+        foreach ($equipmentItems as $equipment) {
+            $equipment->is_active = true;
+            $equipment->save();
+        }
 
         return response()->json(['message' => 'Selected equipment restored successfully.'], 200);
     } catch (\Exception $e) {

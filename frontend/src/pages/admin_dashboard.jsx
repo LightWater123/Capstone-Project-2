@@ -4,11 +4,12 @@ import { useNavigate } from "react-router-dom";
 import "../index.css";
 import BTRheader from "../components/modals/btrHeader";
 import BTRNavbar from "../components/modals/btrNavbar.jsx";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Activity } from "lucide-react";
 import CalendarModal from "../components/modals/calendar.jsx";
 import api from "../api/api";
 import { Button } from "@/components/ui/button";
 import DueSoon from "../components/modals/adminDashboardDueSoon";
+import AuditLogModal from "../components/modals/auditLogModal";
 import { useInventory } from "../hooks/useInventory";
 import { useQuery } from "@tanstack/react-query";
 
@@ -19,6 +20,7 @@ export default function AdminDashboard() {
   const handleInventoryList = () => navigate("/inventory");
 
   const [open, setOpen] = useState(false);
+  const [auditLogOpen, setAuditLogOpen] = useState(false);
 
   const {
     inventoryData: predictiveItems,
@@ -58,18 +60,29 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 gap-4 h-full lg:grid-cols-5 lg:grid-rows-6">
           {/* 1️⃣ Main Content (col-span-3, row-span-6) */}
           <div className="lg:col-span-3 lg:row-span-6 flex flex-col bg-white rounded-xl shadow-md p-5">
-            <div className="flex items-start mb-4">
-              <Button
-                onClick={handleInventoryList}
-                variant="ghost"
-                className="relative text-sm px-3 py-1 bg-transparent border-none 
-          after:content-[''] after:absolute after:left-0 after:bottom-[-1px] 
-          after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full 
-          after:transition-all after:duration-300 hover:after:w-full 
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleInventoryList}
+                  variant="ghost"
+                  className="relative text-sm px-3 py-1 bg-transparent border-none
+          after:content-[''] after:absolute after:left-0 after:bottom-[-1px]
+          after:h-[3px] after:w-0 after:bg-gray-800 after:rounded-full
+          after:transition-all after:duration-300 hover:after:w-full
           focus:outline-none"
+                >
+                  View Inventory
+                  <ChevronRight className="h-2 w-2" />
+                </Button>
+              </div>
+              <Button
+                onClick={() => setAuditLogOpen(true)}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
               >
-                View Inventory
-                <ChevronRight className="h-2 w-2" />
+                <Activity className="h-4 w-4" />
+                <span>Audit Logs</span>
               </Button>
             </div>
 
@@ -117,6 +130,11 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      
+      <AuditLogModal
+        isOpen={auditLogOpen}
+        onClose={() => setAuditLogOpen(false)}
+      />
     </div>
   );
 }

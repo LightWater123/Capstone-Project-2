@@ -19,10 +19,10 @@ export default function ForgotPassword() {
     
     try {
       // Get CSRF cookie first
-      await api.get('/sanctum/csrf-cookie', { withCredentials: true });
+      await api.get('/sanctum/csrf-cookie');
       
       // Send forgot password request
-      await api.post('/api/forgot-password', { email }, { withCredentials: true });
+      await api.post('/api/forgot-password', { email });
       setSent(true);
     } catch (err) {
       console.error('Forgot password error:', err);

@@ -22,6 +22,7 @@ import { Toaster } from "@/components/ui/sonner";
 import ServiceSettings from "./pages/service_settings";
 import ProtectedRoutes from "./auth/ProtectedRoutes";
 import RouteSession from "./pages/dashboard";
+import NotFound from "./pages/not_found";
 
 export const queryClient = new QueryClient();
 
@@ -33,11 +34,11 @@ export default function App() {
           <Routes>
             <Route path="/" element={<RouteSession />} />
             <Route path="/login" element={<Login />} />
-            <Route path="*" element={<RouteSession />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
             <Route element={<ProtectedRoutes redirectPath={"/"} />}>
               <Route path="/inventory" element={<Inventory />} />
-
               <Route path="/register/admin" element={<AdminRegister />} />
               <Route path="/register/service" element={<ServiceRegister />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -52,9 +53,9 @@ export default function App() {
               <Route path="/service/inventory" element={<ServiceInventory />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/calendar-full" element={<CalendarFullPage />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/service/settings" element={<ServiceSettings />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Toaster />
         </AuthProvider>

@@ -7,7 +7,7 @@ import btrlogo from "../assets/btrlogo.png";
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [email, setEmail]           = useState('');
+  // const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
   const [confirm, setConfirm]       = useState('');
   const [token, setToken]           = useState('');
@@ -22,12 +22,24 @@ export default function ResetPassword() {
     if (emailParam) {
       setEmail(emailParam);
     }
+    
+    // Log all cookies for debugging
+    console.log('=== FRONTEND COOKIE DEBUG ===');
+    document.cookie.split(';').forEach(cookie => {
+      console.log('Cookie:', cookie.trim());
+    });
+    console.log('============================');
   }, [searchParams]);
 
   // calls the api to reset the changed password
   const submit = async e => {
     e.preventDefault();
     setError('');
+
+    if(!token) {
+      setError("invalid token")
+      return
+    }
     
     if (password !== confirm) {
       setError('Passwords do not match');
@@ -43,12 +55,17 @@ export default function ResetPassword() {
     
     try {
       // Get CSRF cookie first
-      await api.get('/sanctum/csrf-cookie', { withCredentials: true });
+      // await api.get('/sanctum/csrf-cookie', { withCredentials: true });
+
+      if (password !== confirm) {
+        setError("Passwords do not match")
+        return
+      }
       
       // Send reset password request
       await api.post('/api/reset-password', {
-        email, token, password, password_confirmation: confirm
-      }, { withCredentials: true });
+        token, password, password_confirmation: confirm
+      });
       
       setDone(true);
       setTimeout(() => navigate('/login'), 1500);
@@ -76,7 +93,7 @@ export default function ResetPassword() {
           
           <form className="mt-8 space-y-6" onSubmit={submit}>
             <div className="space-y-4">
-              <div>
+              {/* <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email address
                 </label>
@@ -90,7 +107,7 @@ export default function ResetPassword() {
                   className="mt-1 appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                   placeholder="you@example.com"
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">

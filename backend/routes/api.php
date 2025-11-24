@@ -10,11 +10,13 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\ActivationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Http\Controllers\EventController;
+use App\Http\Middleware\EnsureUserIsVerified;
 
 // PUBLIC
 Route::post('/login',    [AuthenticatedSessionController::class, 'store'])->middleware('api.auth.session');
@@ -23,14 +25,25 @@ Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify'])->
 Route::post('/register', [RegisterController::class, 'register'])->middleware('api.auth.session');
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('api.auth.session');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('api.auth.session');
+Route::post('/validate-reset-token', [PasswordResetLinkController::class, 'showResetForm'])->middleware('api.auth.session');
+Route::get('/validate-reset-token', [PasswordResetLinkController::class, 'showResetForm'])->middleware('api.auth.session');
 
 
 // AUTHENTICATED - Admin routes
-Route::middleware(['api.auth.session', 'auth:admin'])->group(function () {
+Route::middleware(['api.auth.session', 'auth:admin', EnsureUserIsVerified::class])->group(function () {
     // user & password
     Route::get('/user', fn(Request $r) => $r->user());
     
     Route::post('/admin/change-password', [PasswordController::class, 'change']);
+    
+    // Audit log routes
+    Route::prefix('audit')->group(function () {
+        Route::get('/logs', [\App\Http\Controllers\AuditLogController::class, 'index']);
+        Route::get('/logs/{id}', [\App\Http\Controllers\AuditLogController::class, 'show']);
+        Route::get('/logs/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics']);
+        Route::get('/logs/filter-options', [\App\Http\Controllers\AuditLogController::class, 'filterOptions']);
+        Route::get('/logs/export', [\App\Http\Controllers\AuditLogController::class, 'export']);
+    });
 
     // calendar
     Route::get('/events', [EventController::class, 'index']);
@@ -66,7 +79,7 @@ Route::middleware(['api.auth.session', 'auth:admin'])->group(function () {
 });
 
 // AUTHENTICATED - Service user routes
-Route::middleware(['api.auth.session', 'auth:service'])->group(function () {
+Route::middleware(['api.auth.session', 'auth:service', EnsureUserIsVerified::class])->group(function () {
     Route::get('/service/user', fn(Request $r) => $r->user());
     Route::get('/my-messages', [MaintenanceController::class,'messages']);
     Route::put('/maintenance/{id}/done-details', [MaintenanceController::class, 'setPickupDetails']);
@@ -103,3 +116,7 @@ Route::middleware(['api.auth.session'])->group(function () {
 // EMAIL
 Route::post('/send-email', [EmailController::class, 'sendEmail']);
 Route::get('/verify',      [EmailController::class, 'verify']);
+
+// ACCOUNT ACTIVATION
+Route::get('/activate', [ActivationController::class, 'verify']);
+Route::post('/resend-activation', [ActivationController::class, 'resend']);

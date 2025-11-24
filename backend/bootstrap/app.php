@@ -37,6 +37,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'api.auth.session' => \App\Http\Middleware\StartSessionForApiAuth::class,
+            'audit.log' => \App\Http\Middleware\AuditLogMiddleware::class,
+        ]);
+        
+        // Apply audit logging middleware to API routes
+        $middleware->api(append: [
+            \App\Http\Middleware\AuditLogMiddleware::class,
         ]);
     })
     ->withProviders([

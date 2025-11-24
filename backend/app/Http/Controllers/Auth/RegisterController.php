@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use App\Models\AdminUser;
 use App\Models\ServiceUser;
+use App\Models\ActivationToken;
+use Resend\Laravel\Facades\Resend;
 
 class RegisterController extends Controller
 {
@@ -45,6 +48,7 @@ class RegisterController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'mobile_number' => $validated['mobile_number'],
+                'is_verified' => false
             ]);
             
             
@@ -67,12 +71,79 @@ class RegisterController extends Controller
                 'mobile_number' => $validated['mobile_number'],
                 'service_type' => $request->service_type,
                 'address' => $request->address,
+                'is_verified' => false
             ]);
             
             
             $user->name = $validated['name'];
         }
 
-        return response()->json(['user' => $user], 201);
+        // Generate activation token
+        $token = Str::random(60);
+        
+        // Store activation token after the user is saved to ensure _id exists
+        $user->save(); // Make sure the user is saved and has an _id
+        ActivationToken::createToken(
+            $user->email,
+            $token,
+            $validated['role'],
+            (string) $user->_id,
+            1440 // 24 hours
+        );
+        
+        // Generate activation URL
+        $activationUrl = $this->generateActivationUrl($user->email, $token, $validated['role']);
+        
+        // Send activation email
+        $this->sendActivationEmail($user, $validated['password'], $activationUrl, $validated['role']);
+        
+        return response()->json([
+            'user' => $user,
+            'message' => 'Registration successful. Please check your email to activate your account.'
+        ], 201);
+    }
+    
+    /**
+     * Generate activation URL.
+     *
+     * @param string $email
+     * @param string $token
+     * @param string $userType
+     * @return string
+     */
+    private function generateActivationUrl(string $email, string $token, string $userType): string
+    {
+        $baseUrl = config('app.url', 'http://localhost:8000');
+        return "{$baseUrl}/api/activate?email={$email}&token={$token}&user_type={$userType}";
+    }
+    
+    /**
+     * Send activation email to user.
+     *
+     * @param mixed $user
+     * @param string $password
+     * @param string $activationUrl
+     * @param string $userType
+     * @return void
+     */
+    private function sendActivationEmail($user, string $password, string $activationUrl, string $userType): void
+    {
+        Resend::emails()->send([
+            'from'    => 'noreply@treasuretracks.org',
+            'to'      => $user->email,
+            'subject' => 'Activate Your Account',
+            'html'    => "
+                <p>Hi {$user->name},</p>
+                <p>Thank you for registering with Treasure Tracks! Please click the button below to activate your account and start using our services.</p>
+                <p><strong>Username:</strong> {$user->username}</p>
+                <p><strong>Password:</strong> {$password}</p>
+                <a href=\"{$activationUrl}\" style=\"background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; display: inline-block;\">Activate Account</a>
+                <p>If the button above doesn't work, please copy and paste the following URL into your browser:</p>
+                <p>{$activationUrl}</p>
+                <p>This link will expire in 24 hours.</p>
+                <p>If you did not create an account, please ignore this email.</p>
+                <p>Best regards,<br>Treasure Tracks Team</p>
+            ",
+        ]);
     }
 }
