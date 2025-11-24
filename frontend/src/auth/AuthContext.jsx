@@ -12,7 +12,6 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(
     queryClient.getQueryData(queryKey) ?? undefined
   );
-  const Navigate = useNavigate();
 
   useEffect(() => {
     async function run() {
