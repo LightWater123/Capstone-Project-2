@@ -45,7 +45,9 @@ Route::middleware(['api.auth.session', 'auth:admin', EnsureUserIsVerified::class
     });
 
     Route::post('/register', [RegisterController::class, 'register']);
-
+    
+    // followup email to service user
+    Route::post('/send-followup-email', [EmailController::class, 'sendFollowupEmail']);
 
     // calendar
     Route::get('/events', [EventController::class, 'index']);
@@ -118,7 +120,6 @@ Route::middleware(['api.auth.session'])->group(function () {
 
 // EMAIL
 Route::post('/send-email', [EmailController::class, 'sendEmail']);
-Route::post('/send-followup-email', [EmailController::class, 'sendFollowupEmail']);
 Route::get('/verify',      [EmailController::class, 'verify']);
 
 // ACCOUNT ACTIVATION
