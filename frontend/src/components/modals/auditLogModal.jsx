@@ -87,8 +87,8 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                       </TableCell>
                     </TableRow>
                   ) : logs.length > 0 ? (
-                    logs.map((log) => (
-                      <TableRow key={log._id}>
+                    logs.map((log, k) => (
+                      <TableRow key={log.id ?? k}>
                         <TableCell>
                           {format(new Date(log.timestamp), 'MMM dd, yyyy HH:mm:ss')}
                         </TableCell>
