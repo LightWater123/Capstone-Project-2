@@ -20,26 +20,27 @@ class AuditLogController extends Controller
         $query = AuditLog::with('user');
         
         // Apply filters
-        if ($request->has('action_type')) {
+        if ($request->has('action_type') && strlen($request->input('action_type')) > 0) {
             $query->actionType($request->input('action_type'));
         }
         
-        if ($request->has('resource_type')) {
+        if ($request->has('resource_type') && strlen($request->input('resource_type')) > 0) {
             $query->resourceType($request->input('resource_type'));
         }
         
-        if ($request->has('user_id')) {
+        if ($request->has('user_id') && strlen($request->input('user_id')) > 0) {
             $query->user($request->input('user_id'));
         }
         
-        if ($request->has('start_date') && $request->has('end_date')) {
+        if ($request->has('start_date') && $request->has('end_date') &&
+            strlen($request->input('start_date')) > 0 && strlen($request->input('end_date')) > 0) {
             $query->dateRange(
                 $request->input('start_date'),
                 $request->input('end_date')
             );
         }
         
-        if ($request->has('search')) {
+        if ($request->has('search') && strlen($request->input('search')) > 0) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->searchByUsername($search)
@@ -70,6 +71,7 @@ class AuditLogController extends Controller
      */
     public function show($id)
     {
+        \Log::info(['id' => $id]);
         $log = AuditLog::with('user')->find($id);
         
         if (!$log) {
@@ -94,52 +96,104 @@ class AuditLogController extends Controller
      */
     public function statistics(Request $request)
     {
-        $query = AuditLog::query();
+        // Build the base aggregation pipeline
+        $matchStage = [];
         
         // Apply date filter if provided
-        if ($request->has('start_date') && $request->has('end_date')) {
-            $query->dateRange(
-                $request->input('start_date'),
-                $request->input('end_date')
-            );
+        if ($request->has('start_date') && $request->has('end_date') &&
+            strlen($request->input('start_date')) > 0 && strlen($request->input('end_date')) > 0) {
+            $startDate = Carbon::parse($request->input('start_date'))->startOfDay()->toDateTimeString();
+            $endDate = Carbon::parse($request->input('end_date'))->endOfDay()->toDateTimeString();
+            $matchStage['timestamp'] = ['$gte' => $startDate, '$lte' => $endDate];
         } else {
             // Default to last 30 days
-            $query->dateRange(
-                now()->subDays(30)->format('Y-m-d'),
-                now()->format('Y-m-d')
-            );
+            $startDate = now()->subDays(30)->startOfDay()->toDateTimeString();
+            $endDate = now()->endOfDay()->toDateTimeString();
+            $matchStage['timestamp'] = ['$gte' => $startDate, '$lte' => $endDate];
         }
         
         // Get action type statistics
-        $actionStats = $query->select('action_type', DB::raw('count(*) as count'))
-            ->groupBy('action_type')
-            ->get();
+        $actionStats = AuditLog::raw(function($collection) use ($matchStage) {
+            return $collection->aggregate([
+                ['$match' => $matchStage],
+                ['$group' => [
+                    '_id' => '$action_type',
+                    'count' => ['$sum' => 1]
+                ]]
+            ]);
+        });
         
         // Get resource type statistics
-        $resourceStats = $query->select('resource_type', DB::raw('count(*) as count'))
-            ->groupBy('resource_type')
-            ->get();
+        $resourceStats = AuditLog::raw(function($collection) use ($matchStage) {
+            return $collection->aggregate([
+                ['$match' => $matchStage],
+                ['$group' => [
+                    '_id' => '$resource_type',
+                    'count' => ['$sum' => 1]
+                ]]
+            ]);
+        });
         
         // Get daily activity for the last 30 days
-        $dailyActivity = $query->select(
-                DB::raw('DATE(timestamp) as date'),
-                DB::raw('count(*) as count')
-            )
-            ->groupBy('date')
-            ->orderBy('date', 'desc')
-            ->limit(30)
-            ->get();
+        $dailyActivity = AuditLog::raw(function($collection) use ($matchStage) {
+            return $collection->aggregate([
+                ['$match' => $matchStage],
+                [
+                    '$group' => [
+                        '_id' => [
+                            'year' => ['$year' => '$timestamp'],
+                            'month' => ['$month' => '$timestamp'],
+                            'day' => ['$dayOfMonth' => '$timestamp']
+                        ],
+                        'count' => ['$sum' => 1]
+                    ]
+                ],
+                [
+                    '$project' => [
+                        '_id' => 0,
+                        'date' => [
+                            '$concat' => [
+                                ['$toString' => '$_id.year'],
+                                '-',
+                                ['$toString' => '$_id.month'],
+                                '-',
+                                ['$toString' => '$_id.day']
+                            ]
+                        ],
+                        'count' => 1
+                    ]
+                ],
+                ['$sort' => ['date' => -1]],
+                ['$limit' => 30]
+            ]);
+        });
         
         // Get top users by activity
-        $topUsers = $query->select(
-                'user_id',
-                'username',
-                DB::raw('count(*) as activity_count')
-            )
-            ->groupBy('user_id', 'username')
-            ->orderBy('activity_count', 'desc')
-            ->limit(10)
-            ->get();
+        $topUsers = AuditLog::raw(function($collection) use ($matchStage) {
+            return $collection->aggregate([
+                ['$match' => $matchStage],
+                ['$group' => [
+                    '_id' => [
+                        'user_id' => '$user_id',
+                        'username' => '$username'
+                    ],
+                    'activity_count' => ['$sum' => 1]
+                ]],
+                ['$sort' => ['activity_count' => -1]],
+                ['$limit' => 10],
+                ['$project' => [
+                    '_id' => 0,
+                    'user_id' => '$_id.user_id',
+                    'username' => '$_id.username',
+                    'activity_count' => 1
+                ]]
+            ]);
+        });
+        
+        // Get total logs count
+        $totalLogs = AuditLog::raw(function($collection) use ($matchStage) {
+            return $collection->countDocuments($matchStage);
+        });
         
         return response()->json([
             'success' => true,
@@ -148,7 +202,7 @@ class AuditLogController extends Controller
                 'resource_statistics' => $resourceStats,
                 'daily_activity' => $dailyActivity,
                 'top_users' => $topUsers,
-                'total_logs' => $query->count()
+                'total_logs' => $totalLogs
             ],
             'message' => 'Audit log statistics retrieved successfully'
         ]);
@@ -165,26 +219,27 @@ class AuditLogController extends Controller
         $query = AuditLog::with('user');
         
         // Apply filters
-        if ($request->has('action_type')) {
+        if ($request->has('action_type') && strlen($request->input('action_type')) > 0) {
             $query->actionType($request->input('action_type'));
         }
         
-        if ($request->has('resource_type')) {
+        if ($request->has('resource_type') && strlen($request->input('resource_type')) > 0) {
             $query->resourceType($request->input('resource_type'));
         }
         
-        if ($request->has('user_id')) {
+        if ($request->has('user_id') && strlen($request->input('user_id')) > 0) {
             $query->user($request->input('user_id'));
         }
         
-        if ($request->has('start_date') && $request->has('end_date')) {
+        if ($request->has('start_date') && $request->has('end_date') &&
+            strlen($request->input('start_date')) > 0 && strlen($request->input('end_date')) > 0) {
             $query->dateRange(
                 $request->input('start_date'),
                 $request->input('end_date')
             );
         }
         
-        if ($request->has('search')) {
+        if ($request->has('search') && strlen($request->input('search')) > 0) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->searchByUsername($search)
@@ -217,7 +272,7 @@ class AuditLogController extends Controller
                 $log->action_type,
                 $log->resource_type,
                 $log->resource_id,
-                $log->formatted_timestamp,
+                $log->getFormattedTimestampAttribute(),
                 $log->ip_address,
                 $changes
             ];

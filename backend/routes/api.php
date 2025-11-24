@@ -22,7 +22,6 @@ use App\Http\Middleware\EnsureUserIsVerified;
 Route::post('/login',    [AuthenticatedSessionController::class, 'store'])->middleware('api.auth.session');
 Route::post('/logout',   [AuthenticatedSessionController::class, 'destroy'])->middleware('api.auth.session');
 Route::get('/verifyUser',   [AuthenticatedSessionController::class, 'verify'])->middleware('api.auth.session');
-Route::post('/register', [RegisterController::class, 'register'])->middleware('api.auth.session');
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('api.auth.session');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('api.auth.session');
 Route::post('/validate-reset-token', [PasswordResetLinkController::class, 'showResetForm'])->middleware('api.auth.session');
@@ -39,11 +38,14 @@ Route::middleware(['api.auth.session', 'auth:admin', EnsureUserIsVerified::class
     // Audit log routes
     Route::prefix('audit')->group(function () {
         Route::get('/logs', [\App\Http\Controllers\AuditLogController::class, 'index']);
-        Route::get('/logs/{id}', [\App\Http\Controllers\AuditLogController::class, 'show']);
         Route::get('/logs/statistics', [\App\Http\Controllers\AuditLogController::class, 'statistics']);
         Route::get('/logs/filter-options', [\App\Http\Controllers\AuditLogController::class, 'filterOptions']);
         Route::get('/logs/export', [\App\Http\Controllers\AuditLogController::class, 'export']);
+        Route::get('/logs/{id}', [\App\Http\Controllers\AuditLogController::class, 'show'])->where('id', '[a-fA-F0-9]{24}');
     });
+
+    Route::post('/register', [RegisterController::class, 'register']);
+
 
     // calendar
     Route::get('/events', [EventController::class, 'index']);

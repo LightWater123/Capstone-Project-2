@@ -160,7 +160,8 @@ class AuditLog extends Model
      */
     public function getFormattedActionTypeAttribute()
     {
-        return ucfirst(strtolower(str_replace('_', ' ', $this->action_type)));
+        $actionType = is_string($this->action_type) ? $this->action_type : '';
+        return ucfirst(strtolower(str_replace('_', ' ', $actionType)));
     }
     
     /**

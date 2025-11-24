@@ -63,10 +63,10 @@ export function useInventory(category) {
       if(aItem > bItem) return -1
       return 0
     })
-  } else if(sortBy === "price:asc") {
-    sortedData.sort((a,b) => (b.unit_value || 0) - (a.unit_value || 0))
-  } else if (sortBy === "price:desc") {
-    sortedData.sort((a,b) => (a.unit_value || 0) - (b.unit_value || 0))
+  } else if(sortBy === "date:asc") {
+    sortedData.sort((a,b) => (a.created_at ? new Date(a.created_at).getTime() : 0) - (b.created_at ? new Date(b.created_at).getTime() : 0))
+  } else if (sortBy === "date:desc") {
+    sortedData.sort((a,b) => (b.created_at ? new Date(b.created_at).getTime() : 0) - (a.created_at ? new Date(a.created_at).getTime() : 0))
 
   }
 

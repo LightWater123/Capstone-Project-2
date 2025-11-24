@@ -210,6 +210,8 @@ class AuditLogMiddleware
             $type = 'Admin';
         } elseif (strpos($uri, 'api/service') !== false) {
             $type = 'Service';
+        } elseif (strpos($uri, 'api/register') !== false) {
+            $type = 'Account';
         } else {
             $type = 'Unknown';
         }
