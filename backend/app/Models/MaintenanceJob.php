@@ -16,8 +16,9 @@ class MaintenanceJob extends Model
         'user_email',
         'scheduled_at',
         'status',
+        'condition',
         'report_pdf',
-        'remarks',      
+        'remarks',
 
         'admin_email',
         'pickup_date',

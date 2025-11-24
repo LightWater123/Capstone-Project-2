@@ -18,8 +18,19 @@ export function useMaintenance() {
     }
   };
 
+  const fetchOverdue = async () => {
+    try {
+      const res = await axios.get("/api/maintenance/overdue");
+      return res.data.data;
+    } catch (err) {
+      console.error("Overdue fetch failed:", err);
+      return [];
+    }
+  };
+
   return {
     maintenanceSchedules,
-    fetchSchedules
+    fetchSchedules,
+    fetchOverdue
   };
 }

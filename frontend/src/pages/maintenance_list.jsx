@@ -6,9 +6,12 @@ import BTRNavbar from '../components/modals/btrNavbar.jsx';
 import { useMonitorMaintenance } from '../hooks/useMonitorMaintenance.js';
 import { usePredictiveMaintenance } from '../hooks/usePredictiveMaintenance.js';
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import api from "../api/api";
+import { useServiceInventory } from "@/hooks/useServiceInventory";
 
-export default function MaintenanceList() {
+export default function MaintenanceList({ updateCondition }) {
   const navigate = useNavigate();
   const [openId, setOpenId] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,7 +26,8 @@ export default function MaintenanceList() {
     setSearchQuery,
     loading,
     error,
-    setSortBy
+    setSortBy,
+    refetch
   } = useMonitorMaintenance();
 
   //const { maintenanceDates } = usePredictiveMaintenance();   // predictive data
@@ -125,11 +129,56 @@ export default function MaintenanceList() {
                               ? 'bg-green-100 text-green-800'
                               : s.status === 'in-progress'
                               ? 'bg-blue-100 text-blue-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                              : s.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {s.status}
+                          {s.status || 'Not set'}
                         </span>
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <span className="text-gray-500">Condition:</span>
+                      <p>
+                        <Select
+                          value={s.condition || 'null'}
+                          onValueChange={async (value) => {
+                            try {
+                              // Update only the condition, not the status
+                              if (updateCondition) {
+                                await updateCondition(s.id, value);
+                              } else {
+                                // Fallback to direct API call if updateCondition is not provided
+                                await api.patch(`/api/maintenance-jobs/${s.id}/condition`, { condition: value });
+                              }
+                              toast.success(`Condition updated to ${value}`);
+                              // Refetch the schedules to update the UI
+                              refetch();
+                              
+                              // Invalidate service inventory queries to ensure real-time update
+                              const queryClient = window.queryClient || window.__TAURI_QUERY_CLIENT__;
+                              if (queryClient) {
+                                queryClient.invalidateQueries({ queryKey: ['service-inventory', 'maintenance'] });
+                                queryClient.invalidateQueries({ queryKey: ['service-inventory', 'overdue'] });
+                                queryClient.invalidateQueries({ queryKey: ['service-inventory', 'archive'] });
+                              }
+                            } catch (error) {
+                              console.error("Failed to update condition:", error);
+                              toast.error("Failed to update condition");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="null">Null</SelectItem>
+                            <SelectItem value="picked-up">Picked-up</SelectItem>
+                            <SelectItem value="overdue">Overdue</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </p>
                     </div>
 

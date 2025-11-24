@@ -28,6 +28,40 @@
       }
     );
 
+    // Fetch overdue items using TanStack Query with 10-second refetch interval
+    const { data: overdueItems = [], refetch: refetchOverdue } = useQuery(
+      {
+        queryKey: ["service-inventory", "overdue"],
+        queryFn: async () => {
+          try {
+            // Fetch items with overdue status OR overdue condition
+            const [statusOverdue, conditionOverdue] = await Promise.all([
+              axios.get("/api/service/inventory?status=overdue"),
+              axios.get("/api/service/inventory?condition=overdue")
+            ]);
+            
+            // Combine results and remove duplicates
+            const statusItems = statusOverdue.data || [];
+            const conditionItems = conditionOverdue.data || [];
+            const allItems = [...statusItems, ...conditionItems];
+            
+            // Remove duplicates based on id
+            const uniqueItems = allItems.filter((item, index, self) =>
+              index === self.findIndex((t) => t.id === item.id)
+            );
+            
+            return uniqueItems;
+          } catch (err) {
+            console.error("Overdue items fetch failed:", err);
+            return [];
+          }
+        },
+        refetchOnMount: "always",
+        refetchInterval: 10000, // 10 seconds refetch interval
+        refetchIntervalInBackground: false,
+      }
+    );
+
     // Fetch archived items using TanStack Query with 10-second refetch interval
     const { data: archivedItems = [], refetch: refetchArchived } = useQuery({
       queryKey: ["service-inventory", "archive"],
@@ -78,6 +112,27 @@
           )
         );
 
+        // Update cache for overdue items
+        if (newStatus === 'overdue') {
+          queryClient.setQueryData(["service-inventory", "overdue"], (prev) => {
+            const existingItem = prev.find(item => item.id === jobId);
+            if (existingItem) {
+              return prev.map(item =>
+                item.id === jobId ? { ...item, status: newStatus } : item
+              );
+            } else {
+              // Add to overdue if not already there
+              const maintenanceItem = queryClient.getQueryData(["service-inventory", "maintenance"])?.find(item => item.id === jobId);
+              return maintenanceItem ? [...prev, { ...maintenanceItem, status: newStatus }] : prev;
+            }
+          });
+        } else {
+          // Remove from overdue if status changes from overdue
+          queryClient.setQueryData(["service-inventory", "overdue"], (prev) =>
+            prev.filter(item => item.id !== jobId)
+          );
+        }
+
         // Update cache for archived items
         queryClient.setQueryData(["service-inventory", "archive"], (prev) =>
           prev.map((item) =>
@@ -87,9 +142,61 @@
           )
         );
 
+        // Invalidate queries to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "maintenance"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "overdue"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "archive"] });
+
         return true;
       } catch (err) {
         console.error("Status update failed:", err);
+        return false;
+      }
+    };
+
+    // Update maintenance condition
+    const updateCondition = async (jobId, newCondition) => {
+      try {
+        await axios.patch(`/api/maintenance-jobs/${jobId}/condition`, {
+          condition: newCondition,
+        });
+
+        // Update cache for maintenance items
+        queryClient.setQueryData(["service-inventory", "maintenance"], (prev) =>
+          prev.map((item) =>
+            item.id === jobId ? { ...item, condition: newCondition } : item
+          )
+        );
+
+        // Update cache for overdue items if condition is overdue
+        if (newCondition === 'overdue') {
+          queryClient.setQueryData(["service-inventory", "overdue"], (prev) => {
+            const existingItem = prev.find(item => item.id === jobId);
+            if (existingItem) {
+              return prev.map(item =>
+                item.id === jobId ? { ...item, condition: newCondition } : item
+              );
+            } else {
+              // Add to overdue if not already there
+              const maintenanceItem = queryClient.getQueryData(["service-inventory", "maintenance"])?.find(item => item.id === jobId);
+              return maintenanceItem ? [...prev, { ...maintenanceItem, condition: newCondition }] : prev;
+            }
+          });
+        } else {
+          // Remove from overdue if condition changes from overdue
+          queryClient.setQueryData(["service-inventory", "overdue"], (prev) =>
+            prev.filter(item => item.id !== jobId)
+          );
+        }
+
+        // Invalidate queries to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "maintenance"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "overdue"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "archive"] });
+
+        return true;
+      } catch (err) {
+        console.error("Condition update failed:", err);
         return false;
       }
     };
@@ -144,10 +251,13 @@
       filteredMaintenanceItems,
       archivedItems,
       filteredArchiveItems,
+      overdueItems,
       maintenanceDetails,
       refetchMaintenance,
       refetchArchived,
+      refetchOverdue,
       updateStatus,
+      updateCondition,
       fetchMaintenanceDetails,
       setSearchQuery,
       submitDoneDetails,

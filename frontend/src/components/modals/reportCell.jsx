@@ -66,14 +66,14 @@ export default function ReportCell({ item, onUpdate }) {
   /* -------- UI -------- */
   return (
     <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
-      <textarea
+      {/* <textarea
         className="w-full text-xs border rounded p-2 resize-none"
         rows={2}
         placeholder="Type report…"
         value={remarks}
         onChange={(e) => setRemarks(e.target.value)}
         onBlur={(e) => saveText(e.target.value)}
-      />
+      /> */}
 
       <label className="cursor-pointer text-xs text-blue-600 hover:underline font-bold">
         {uploading ? "Uploading…" : "Attach PDF"}
@@ -81,7 +81,7 @@ export default function ReportCell({ item, onUpdate }) {
           type="file" 
           accept=".pdf" 
           className="hidden" 
-          onChange={uploadPdf} // This now correctly references the function above
+          onChange={uploadPdf}
         />
       </label>
 
