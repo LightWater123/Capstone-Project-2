@@ -123,12 +123,6 @@ const StatusDropdown = ({
             Null
           </button>
           <button
-            onClick={() => handleStatusChange("pending")}
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            Pending
-          </button>
-          <button
             onClick={() => handleStatusChange("in-progress")}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >

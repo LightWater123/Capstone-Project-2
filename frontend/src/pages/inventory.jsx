@@ -177,6 +177,14 @@ export default function InventoryDashboard() {
     }
   })
 
+  const {data: allMaintenanceSchedules = []} = useQuery({
+    queryKey: ["maintenance", "all"],
+    queryFn: async () => {
+      const res = await api.get("/api/maintenance/schedule")
+      return res.data
+    }
+  })
+
   const archiveBlacklist = useMemo(()=> schedules.map(e => e.asset_id), [schedules])
   //console.log("archiveBlacklist", archiveBlacklist)
 
@@ -289,11 +297,45 @@ export default function InventoryDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
+  const [overdueData, setOverdueData] = useState([]);
+
+  // Fetch overdue maintenance data when overdue category is selected
+  useEffect(() => {
+    if (isOverdue && allMaintenanceSchedules && allMaintenanceSchedules.length > 0) {
+      // Filter overdue items from all maintenance schedules
+      const overdueItems = allMaintenanceSchedules.filter(item => {
+        const scheduledDate = new Date(item.scheduled_at);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return scheduledDate < today;
+      });
+      
+      // Convert to inventory-like format
+      const formattedData = overdueItems.map(item => ({
+        id: item._id,
+        article: item.asset_name,
+        description: item.asset_name,
+        category: "Maintenance",
+        property_ro: "",
+        property_co: "",
+        semi_expendable_property_no: "",
+        unit: "pc",
+        next_maintenance_date: item.scheduled_at,
+        overdue_days: Math.floor((new Date() - new Date(item.scheduled_at)) / (1000 * 60 * 60 * 24))
+      }));
+      
+      setOverdueData(formattedData);
+    } else {
+      // Clear overdue data when not in overdue category or when no data is available
+      setOverdueData([]);
+    }
+  }, [isOverdue, allMaintenanceSchedules?.length]);
+
   const filData = useMemo(
     () => {
       if (isOverdue) {
-        // For overdue category, we need to fetch overdue maintenance data
-        return [];
+        // For overdue category, return the fetched overdue data
+        return overdueData;
       }
       
       return filteredData.filter((e) => {
@@ -307,38 +349,8 @@ export default function InventoryDashboard() {
         return res;
       });
     },
-    [filteredData, sortBy, hideArchive, isOverdue]
+    [filteredData, sortBy, hideArchive, isOverdue, overdueData]
   );
-
-  // Fetch overdue maintenance data when overdue category is selected
-  useEffect(() => {
-    if (isOverdue) {
-      const fetchOverdueData = async () => {
-        try {
-          const overdueData = await fetchOverdue();
-          // Convert overdue maintenance data to inventory-like format
-          const formattedData = overdueData.map(item => ({
-            id: item._id,
-            article: item.asset_name,
-            description: item.asset_name, // Using asset name as description since we don't have more details
-            category: "Maintenance",
-            property_ro: "",
-            property_co: "",
-            semi_expendable_property_no: "",
-            unit: "pc",
-            next_maintenance_date: item.scheduled_at,
-            overdue_days: item.overdue_days
-          }));
-          setInventoryData(formattedData);
-        } catch (error) {
-          console.error("Failed to fetch overdue data:", error);
-          toast.error("Failed to load overdue maintenance items");
-        }
-      };
-
-      fetchOverdueData();
-    }
-  }, [isOverdue, fetchOverdue, setInventoryData]);
 
   // derive paginated data
   const totalPages = Math.ceil(filData.length / itemsPerPage);
@@ -861,7 +873,7 @@ export default function InventoryDashboard() {
         <div className="max-w-[88rem] mx-auto px-4 sm:px-6">
           <div className="px-1 pt-3 pb-3 rounded-md border mt-4 mb-5">
             {filData.length === 0 ? (
-              <p className="text-gray-500">No equipment found in {category}.</p>
+              <p className="text-gray-500">No {category.toLowerCase()} maintenance items found.</p>
             ) : category !== "Due soon" && category !== "Overdue" ? (
               <>
                 <div className="overflow-x-auto w-full">
@@ -992,21 +1004,9 @@ export default function InventoryDashboard() {
                 <Table className="w-full table-auto">
                   <TableHeader className="bg-black-100">
                     <TableRow>
-                      <TableHead className="px-2 py-1">Article</TableHead>
-                      <TableHead className="px-2 py-1">Description</TableHead>
+                      <TableHead className="px-2 py-1">Equipment</TableHead>
                       <TableHead className="px-2 py-1">
-                        Property No. (RO/CO)
-                      </TableHead>
-                      <TableHead className="px-2 py-1">
-                        Semi-Expendable Property No.
-                      </TableHead>
-                      <TableHead className="px-2 py-1">Type</TableHead>
-                      <TableHead className="px-2 py-1">
-                        {category === "Due soon" ? "Due Date" : "Overdue Days"}
-                      </TableHead>
-                      <TableHead className="px-5 py-1">Actions</TableHead>
-                      <TableHead className="px-2 py-1 text-center">
-                        Select
+                        {category === "Due soon" ? "Due Date" : "Scheduled Date"}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1028,73 +1028,20 @@ export default function InventoryDashboard() {
                           return overdueB - overdueA; // most overdue first
                         }
                       })
-                      .map((item) => (
+                      .map((item, k) => (
                         <TableRow
-                          key={item.id}
+                          key={item.id ?? k}
                           className="hover:bg-gray-100 transition"
                         >
                           <TableCell className="px-2 py-1">
                             {item.article}
                           </TableCell>
                           <TableCell className="px-2 py-1">
-                            {String(item.description).slice(0, 50)}
-                            {String(item.description).length > 50 && "..."}
-                          </TableCell>
-
-                          <TableCell className="px-2 py-1">
-                            {item.property_ro ?? item.property_co ?? ""}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {item.semi_expendable_property_no}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {item.category}
-                          </TableCell>
-                          <TableCell className="px-2 py-1">
-                            {category === "Due soon" ? (
-                              item.next_maintenance_date ? (
-                                new Date(
-                                  item.next_maintenance_date
-                                ).toLocaleDateString()
-                              ) : (
-                                <span className="text-gray-400 italic">—</span>
-                              )
+                            {item.next_maintenance_date ? (
+                              new Date(item.next_maintenance_date).toLocaleDateString()
                             ) : (
-                              <span className={item.overdue_days > 0 ? "text-red-600 font-semibold" : "text-gray-400"}>
-                                {item.overdue_days ? `${item.overdue_days} days` : "—"}
-                              </span>
+                              <span className="text-gray-400 italic">—</span>
                             )}
-                          </TableCell>
-                          <TableCell className="px-2 py-1 text-center space-x-2">
-                            <Button
-                              className="relative inline-flex items-center text-sm font-medium px-3 py-1 bg-transparent border-none text-blue-900 hover:text-blue-950
-            after:content-[''] after:absolute after:left-1/2 after:bottom-[-2px]
-            after:h-[3px] after:w-0 after:bg-blue-950 after:rounded-full after:-translate-x-1/2
-            after:transition-all after:duration-300 hover:after:w-full focus:outline-none"
-                              onClick={() => {
-                                setSelectedDetailItem(item);
-                                setShowDetailModal(true);
-                              }}
-                              variant="ghost"
-                            >
-                              View Full Detail
-                              <ChevronRight className="h-5 w-5 inline-block" />
-                            </Button>
-                          </TableCell>
-                          <TableCell className="px-2 py-1 text-center">
-                            <input
-                              type="checkbox"
-                              checked={selectedEquipmentIds.includes(item.id)}
-                              onChange={(e) => {
-                                setSelectedEquipmentIds((prev) =>
-                                  e.target.checked
-                                    ? [...prev, item.id]
-                                    : prev.filter((id) => id !== item.id)
-                                );
-                              }}
-                              className="accent-blue-900 w-4 h-4"
-                              title="Select for Maintenance"
-                            />
                           </TableCell>
                         </TableRow>
                       ))}
