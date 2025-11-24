@@ -96,6 +96,7 @@ Route::middleware(['api.auth.session', 'auth:service', EnsureUserIsVerified::cla
 Route::middleware(['api.auth.session'])->group(function () {
     Route::patch('/maintenance-jobs/{job}/status', [MaintenanceController::class, 'updateStatus']);
     Route::patch('/maintenance-jobs/{job}/condition', [MaintenanceController::class, 'updateCondition']);
+    Route::delete('/maintenance-jobs/{job}', [MaintenanceController::class, 'destroy']);
 });
 
 // PUBLIC - No authentication required
@@ -115,6 +116,7 @@ Route::middleware(['api.auth.session'])->group(function () {
 
 // EMAIL
 Route::post('/send-email', [EmailController::class, 'sendEmail']);
+Route::post('/send-followup-email', [EmailController::class, 'sendFollowupEmail']);
 Route::get('/verify',      [EmailController::class, 'verify']);
 
 // ACCOUNT ACTIVATION

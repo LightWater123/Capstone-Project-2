@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import api from "../api/api";
 import { useServiceInventory } from "@/hooks/useServiceInventory";
+import OverdueModal from "../components/modals/overdueModal.jsx";
 
 export default function MaintenanceList({ updateCondition }) {
   const navigate = useNavigate();
   const [openId, setOpenId] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const assetId = searchParams.get("id");
+  const [overdueModal, setOverdueModal] = useState(null);
 
   /* -------------------------------------------------- */
   /*  Hooks                                             */
@@ -42,6 +44,43 @@ export default function MaintenanceList({ updateCondition }) {
   const formatDate = (d) => (d ? new Date(d).toLocaleString() : 'Not scheduled');
 
   const toggle = (id) => setOpenId((prev) => (prev === id ? null : id));
+  
+  const handleOverdueAction = async (action, job) => {
+    if (action === 'update') {
+      try {
+        // Send followup email
+        await api.post('/api/send-followup-email', {
+          maintenanceJobId: job.id,
+          assetName: job.asset_name,
+          scheduledAt: job.scheduled_at,
+          userEmail: job.user_email
+        });
+        toast.success(`Followup email sent for ${job.asset_name}`);
+        refetch();
+      } catch (error) {
+        console.error("Failed to send followup email:", error);
+        toast.error("Failed to send followup email");
+      }
+    } else if (action === 'cancel') {
+      try {
+        // Cancel maintenance and remove from service inventory
+        await api.delete(`/api/maintenance-jobs/${job.id}`);
+        toast.success(`Maintenance for ${job.asset_name} has been cancelled`);
+        refetch();
+        
+        // Invalidate service inventory queries to ensure real-time update
+        const queryClient = window.queryClient || window.__TAURI_QUERY_CLIENT__;
+        if (queryClient) {
+          queryClient.invalidateQueries({ queryKey: ['service-inventory', 'maintenance'] });
+          queryClient.invalidateQueries({ queryKey: ['service-inventory', 'overdue'] });
+          queryClient.invalidateQueries({ queryKey: ['service-inventory', 'archive'] });
+        }
+      } catch (error) {
+        console.error("Failed to cancel maintenance:", error);
+        toast.error("Failed to cancel maintenance");
+      }
+    }
+  };
 
   useEffect(() => {
     if (!assetId) return;
@@ -146,6 +185,12 @@ export default function MaintenanceList({ updateCondition }) {
                           value={s.condition || 'null'}
                           onValueChange={async (value) => {
                             try {
+                              // If setting to overdue, show the modal instead of directly updating
+                              if (value === 'overdue') {
+                                setOverdueModal(s);
+                                return;
+                              }
+                              
                               // Update only the condition, not the status
                               if (updateCondition) {
                                 await updateCondition(s.id, value);
@@ -221,6 +266,16 @@ export default function MaintenanceList({ updateCondition }) {
               </div>
             ))}
           </div>
+        )}
+
+        {/* Overdue Modal */}
+        {overdueModal && (
+          <OverdueModal
+            maintenanceJob={overdueModal}
+            onClose={() => setOverdueModal(null)}
+            onUpdateMaintenance={handleOverdueAction.bind(null, 'update')}
+            onCancelMaintenance={handleOverdueAction.bind(null, 'cancel')}
+          />
         )}
       </div>
     </div>

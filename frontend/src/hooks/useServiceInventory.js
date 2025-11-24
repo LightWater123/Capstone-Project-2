@@ -206,7 +206,7 @@
       try {
         await axios.put(`/api/maintenance/${jobId}/done-details`, payload);
 
-        // optional: instantly update local cache so UI reflects “done”
+        // optional: instantly update local cache so UI reflects "done"
         queryClient.setQueryData(["service-inventory", "maintenance"], (prev) =>
           prev.map((item) =>
             item.id === jobId ? { ...item, status: "done", ...payload } : item
@@ -215,6 +215,38 @@
         return true;
       } catch (err) {
         console.error("submitDoneDetails failed:", err);
+        return false;
+      }
+    };
+
+    // cancel/delete maintenance job
+    const cancelMaintenance = async (jobId) => {
+      try {
+        await axios.delete(`/api/maintenance-jobs/${jobId}`);
+
+        // Remove from maintenance items cache
+        queryClient.setQueryData(["service-inventory", "maintenance"], (prev) =>
+          prev.filter((item) => item.id !== jobId)
+        );
+
+        // Remove from overdue items cache
+        queryClient.setQueryData(["service-inventory", "overdue"], (prev) =>
+          prev.filter((item) => item.id !== jobId)
+        );
+
+        // Remove from archived items cache
+        queryClient.setQueryData(["service-inventory", "archive"], (prev) =>
+          prev.filter((item) => item.job?.id !== jobId)
+        );
+
+        // Invalidate queries to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "maintenance"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "overdue"] });
+        queryClient.invalidateQueries({ queryKey: ["service-inventory", "archive"] });
+
+        return true;
+      } catch (err) {
+        console.error("cancelMaintenance failed:", err);
         return false;
       }
     };
@@ -261,5 +293,6 @@
       fetchMaintenanceDetails,
       setSearchQuery,
       submitDoneDetails,
+      cancelMaintenance,
     };
   }

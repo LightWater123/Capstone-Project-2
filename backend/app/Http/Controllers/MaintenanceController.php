@@ -522,4 +522,31 @@ class MaintenanceController extends Controller
             ->header('Content-Disposition', 'inline; filename="report.pdf"');
     }
 
+    /**
+     * Cancel/delete a maintenance job and remove from service inventory
+     */
+    public function destroy($id)
+    {
+        $job = MaintenanceJob::findOrFail($id);
+        
+        // Optional: Check if user is authorized to delete this job
+        $user = auth('admin')->user() ?? auth('service')->user();
+        
+        if (!$user) {
+            abort(401, 'Session required');
+        }
+        
+        $isAdmin = $user->role === 'admin';
+        $isAssigned = $job->user_email === $user->email;
+        
+        if (!$isAdmin && !$isAssigned) {
+            abort(403, 'Unauthorized to delete this maintenance job');
+        }
+
+        // Delete the maintenance job
+        $job->delete();
+        
+        return response()->json(['message' => 'Maintenance job canceled and removed']);
+    }
+
 }
