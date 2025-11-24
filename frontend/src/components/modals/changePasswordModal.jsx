@@ -14,7 +14,7 @@ export default function ChangePasswordModal({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: "", type: "" });
 
-  // ✅ Track password visibility for each input separately
+  // Track password visibility for each input separately
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
