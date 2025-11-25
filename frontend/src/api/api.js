@@ -1,3 +1,5 @@
+import { queryClient } from '@/App';
+import { useAuth } from '@/auth/AuthContext';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -30,18 +32,27 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
+      const verifyResponse = queryClient.fetchQuery({
+        queryKey: ["verifyUser"],
+        queryFn: async () => {
+          const res = await api.get("/api/verifyUser");
+          return res.data;
+        },
+        staleTime: 15000,
+      });
+
+      console.log(verifyResponse)
       try {
         // Try to verify the session
-        const verifyResponse = await api.get('/api/verifyUser');
         
-        if (verifyResponse.data?.user) {
+        if (verifyResponse?.user) {
           // Session is still valid, retry the original request
           return api(originalRequest);
-        }
+        } 
+        return Promise.reject(verifyResponse.error)
       } catch (verifyError) {
         // Session verification failed, redirect to login
         // Use window.location for navigation outside of React components
-        window.location.href = '/login';
         return Promise.reject(verifyError);
       }
     }

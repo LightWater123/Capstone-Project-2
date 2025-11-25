@@ -13,10 +13,11 @@ export default function AuthProvider({ children }) {
     queryClient.getQueryData(queryKey) ?? undefined
   );
 
+
   useEffect(() => {
     async function run() {
       if (!user) {
-        const data = await queryClient.fetchQuery({
+        queryClient.fetchQuery({
           queryKey: queryKey,
           queryFn: async () => {
             const res = await api.get("/api/verifyUser");
@@ -24,12 +25,7 @@ export default function AuthProvider({ children }) {
             return res.data;
           },
           staleTime: 15000,
-        });
-        if (data.user) {
-          setUser(data.user);
-        } else {
-          throw new Error("no user data");
-        }
+        }).then((e) => setUser(e.user)).catch(() => setUser(null));
       }
     }
     run().catch(() => {
