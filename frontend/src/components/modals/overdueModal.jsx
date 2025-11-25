@@ -8,9 +8,11 @@ export default function OverdueModal({
   onCancelMaintenance 
 }) {
   const [loading, setLoading] = useState(false);
+  const [type, setType] = useState();
 
   const handleUpdateMaintenance = async () => {
     setLoading(true);
+    setType("update")
     try {
       // Call the API to update maintenance via email
       await onUpdateMaintenance(maintenanceJob);
@@ -24,6 +26,7 @@ export default function OverdueModal({
 
   const handleCancelMaintenance = async () => {
     setLoading(true);
+    setType("cancel")
     try {
       // Call the API to cancel maintenance
       await onCancelMaintenance(maintenanceJob);
@@ -57,7 +60,7 @@ export default function OverdueModal({
             disabled={loading}
             className="bg-blue-900 hover:bg-blue-950 text-white"
           >
-            {loading ? "Sending..." : "Update service maintenance via email"}
+            {loading && type === "update" ? "Sending..." : "Update service maintenance via email"}
           </Button>
           
           <Button 
@@ -66,7 +69,7 @@ export default function OverdueModal({
             variant="outline"
             className="border-red-300 text-red-700 hover:bg-red-50"
           >
-            {loading ? "Canceling..." : "Cancel maintenance"}
+            {loading && type === "cancel" ? "Canceling..." : "Cancel maintenance"}
           </Button>
           <span className="text-destructive">
             *Canceling this will also cancel the overdue maintenance service.

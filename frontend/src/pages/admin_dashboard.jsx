@@ -12,6 +12,7 @@ import DueSoon from "../components/modals/adminDashboardDueSoon";
 import AuditLogModal from "../components/modals/auditLogModal";
 import { useInventory } from "../hooks/useInventory";
 import { useQuery } from "@tanstack/react-query";
+import { useRecentAuditLogsCount } from "../hooks/useAuditLogs";
 
 import { v4 } from "uuid";
 
@@ -21,6 +22,9 @@ export default function AdminDashboard() {
 
   const [open, setOpen] = useState(false);
   const [auditLogOpen, setAuditLogOpen] = useState(false);
+  
+  // Get recent audit logs count for notification badge
+  const { data: auditLogsCount = 0 } = useRecentAuditLogsCount();
 
   const {
     inventoryData: predictiveItems,
@@ -79,10 +83,15 @@ export default function AdminDashboard() {
                 onClick={() => setAuditLogOpen(true)}
                 variant="outline"
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 relative"
               >
                 <Activity className="h-4 w-4" />
                 <span>Audit Logs</span>
+                {auditLogsCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {auditLogsCount}
+                  </span>
+                )}
               </Button>
             </div>
 

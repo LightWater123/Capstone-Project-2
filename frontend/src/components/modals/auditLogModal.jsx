@@ -1,52 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import api from '@/api/api';
+import { useAuditLogs, updateAuditLogsStorage } from '@/hooks/useAuditLogs';
 
 const AuditLogModal = ({ isOpen, onClose }) => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalLogs, setTotalLogs] = useState(0);
   const [filters, setFilters] = useState({
     per_page: 10
   });
 
-  // Fetch audit logs
-  const fetchAuditLogs = async (page = 1) => {
-    setLoading(true);
-    try {
-      const params = {
-        page,
-        per_page: filters.per_page
-      };
-      
-      const response = await api.get('/api/audit/logs', { params });
-      
-      if (response.data.success) {
-        setLogs(response.data.data.data);
-        setTotalPages(response.data.data.last_page);
-        setCurrentPage(response.data.data.current_page);
-        setTotalLogs(response.data.data.total);
-      }
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use TanStack Query for fetching audit logs
+  const { data, isLoading, refetch, isFetching } = useAuditLogs(currentPage, filters.per_page);
 
+  // Extract data from query response
+  const logs = data?.data || [];
+  const totalPages = data?.lastPage || 1;
+  const totalLogs = data?.total || 0;
 
-  // Initialize data
+  // Initialize data when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetchAuditLogs();
+      setCurrentPage(1);
+      refetch();
+      // resetAuditLogsCounter();
+      // Update storage with current audit log data
+      updateAuditLogsStorage();
     }
-  }, [isOpen]);
+  }, [isOpen, refetch]);
+
+  // Refetch data when currentPage changes
+  useEffect(() => {
+    if (isOpen) {
+      refetch();
+    }
+  }, [currentPage, refetch, isOpen]);
 
 
   // Format action type for display
@@ -79,7 +69,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ? (
+                  {isLoading || isFetching ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8">
                         <Loader2 className="h-8 w-8 animate-spin mx-auto" />
@@ -128,7 +118,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                       {/* First Page Button */}
                       <PaginationItem>
                         <PaginationLink
-                          onClick={() => fetchAuditLogs(1)}
+                          onClick={() => setCurrentPage(1)}
                           disabled={currentPage === 1}
                           className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
                         >
@@ -139,7 +129,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                       {/* Previous Page Button */}
                       <PaginationItem>
                         <PaginationPrevious
-                          onClick={() => fetchAuditLogs(currentPage - 1)}
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                           disabled={currentPage === 1}
                           className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
                         />
@@ -151,7 +141,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                         return (
                           <PaginationItem key={page}>
                             <PaginationLink
-                              onClick={() => fetchAuditLogs(page)}
+                              onClick={() => setCurrentPage(page)}
                               isActive={currentPage === page}
                             >
                               {page}
@@ -163,7 +153,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                       {/* Next Page Button */}
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() => fetchAuditLogs(currentPage + 1)}
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                           disabled={currentPage === totalPages}
                           className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
                         />
@@ -172,7 +162,7 @@ const AuditLogModal = ({ isOpen, onClose }) => {
                       {/* Last Page Button */}
                       <PaginationItem>
                         <PaginationLink
-                          onClick={() => fetchAuditLogs(totalPages)}
+                          onClick={() => setCurrentPage(totalPages)}
                           disabled={currentPage === totalPages}
                           className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
                         >
