@@ -124,7 +124,8 @@ class PasswordResetLinkController extends Controller
             }
 
             // Create a response that redirects to the frontend with the reset token as a cookie
-            $response = redirect()->to('http://localhost:3000/reset-password?token=' . $request->token);
+            $baseUrl = config('app.frontend', 'http://localhost:3000');
+            $response = redirect()->to("{$baseUrl}/reset-password?token=" . $request->token);
             
             // Add the reset token as an HTTP cookie
             $response->withCookie(cookie()->make('reset-token', $request->token, 60, null, null, false, true, false, 'strict')); // 60 minutes expiration

@@ -79,10 +79,12 @@ class NewPasswordController extends Controller
             PasswordReset::deleteByEmail($passwordReset->email);
 
             // Clear the cookie
+            $baseUrl = config('app.frontend', 'http://localhost:3000');
+
             $response = response()->json([
                 'status' => 'password-reset',
                 'message' => 'Password has been successfully reset.',
-                'redirect_url' => 'http://localhost:3000/login'
+                'redirect_url' => "{$baseUrl}/login"
             ]);
 
             return $response->withCookie(cookie()->forget('reset-token'));

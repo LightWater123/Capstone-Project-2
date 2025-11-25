@@ -59,8 +59,8 @@ class ActivationController extends Controller
 
         // Delete the activation token
         $activationToken->delete();
-
-        return redirect()->away('http://localhost:3000/login');
+        $baseUrl = config('app.frontend', 'http://localhost:3000');
+        return redirect()->away("{$baseUrl}/login");
     }
 
     /**
