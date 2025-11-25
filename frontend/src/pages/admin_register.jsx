@@ -121,6 +121,16 @@ export default function AdminRegister() {
                 <Input
                   name="name"
                   placeholder="Name"
+                  onKeyDown={(e) => {
+                    if (
+                      !/^[a-zA-Z\s]$/i.test(e.key) &&
+                      !e.ctrlKey &&
+                      !e.metaKey &&
+                      e.key.length === 1
+                    ) {
+                      e.preventDefault()
+                    }
+                  }}
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border rounded "
