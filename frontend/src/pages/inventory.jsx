@@ -174,7 +174,8 @@ export default function InventoryDashboard() {
     queryFn: async () => {
       const res = await api.get("/api/maintenance/not-done-schedule")
       return res.data
-    }
+    },
+    refetchInterval: 10000
   })
 
   const {data: allMaintenanceSchedules = []} = useQuery({
@@ -182,7 +183,8 @@ export default function InventoryDashboard() {
     queryFn: async () => {
       const res = await api.get("/api/maintenance/schedule")
       return res.data
-    }
+    },
+    refetchInterval: 10000
   })
 
   const archiveBlacklist = useMemo(()=> schedules.map(e => e.asset_id), [schedules])
@@ -297,21 +299,16 @@ export default function InventoryDashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  const [overdueData, setOverdueData] = useState([]);
+  // const [overdueData, setOverdueData] = useState([]);
 
-  // Fetch overdue maintenance data when overdue category is selected
-  useEffect(() => {
-    if (isOverdue && allMaintenanceSchedules && allMaintenanceSchedules.length > 0) {
-      // Filter overdue items from all maintenance schedules
-      const overdueItems = allMaintenanceSchedules.filter(item => {
+  const overdueData = useMemo(() => {
+    if(!allMaintenanceSchedules) return []
+    return allMaintenanceSchedules.filter((item) => {
         const scheduledDate = new Date(item.scheduled_at);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return scheduledDate < today;
-      });
-      
-      // Convert to inventory-like format
-      const formattedData = overdueItems.map(item => ({
+      }).map(item => ({
         id: item._id,
         article: item.asset_name,
         description: item.asset_name,
@@ -322,14 +319,8 @@ export default function InventoryDashboard() {
         unit: "pc",
         next_maintenance_date: item.scheduled_at,
         overdue_days: Math.floor((new Date() - new Date(item.scheduled_at)) / (1000 * 60 * 60 * 24))
-      }));
-      
-      setOverdueData(formattedData);
-    } else {
-      // Clear overdue data when not in overdue category or when no data is available
-      setOverdueData([]);
-    }
-  }, [isOverdue, allMaintenanceSchedules?.length]);
+      }))
+  }, [allMaintenanceSchedules])
 
   const filData = useMemo(
     () => {

@@ -68,6 +68,9 @@ export default function OverdueModal({
           >
             {loading ? "Canceling..." : "Cancel maintenance"}
           </Button>
+          <span className="text-destructive">
+            *Canceling this will also cancel the overdue maintenance service.
+          </span> 
         </div>
 
         <div className="flex justify-end gap-2 pt-4 border-t">

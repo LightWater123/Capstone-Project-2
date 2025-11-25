@@ -5,8 +5,16 @@ import BTRheader from "../components/modals/btrHeader";
 import Navbar from "../components/modals/serviceNavbar.jsx";
 import Calendar from "../components/modals/serviceCalendar.jsx";
 import { ChevronRight } from "lucide-react";
-import { Wrench } from "lucide-react";  
+import { Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import api from "../api/api"; // Added
 import { useServiceInventory } from "@/hooks/useServiceInventory";
 import ReportCell from "../components/modals/reportCell.jsx";
@@ -26,6 +34,11 @@ const StatusDropdown = ({
   const [dropdownPosition, setDropdownPosition] = useState({ left: 0, top: 0 });
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    newStatus: null,
+    itemId: null,
+  });
 
   const handleStatusChange = async (newStatus) => {
     if (newStatus === "done") {
@@ -33,14 +46,29 @@ const StatusDropdown = ({
       setDoneModal(itemId);               // open modal instead
       return;
     }
-    // else keep old flow
-    setStatus(newStatus);
+    
+    // Show confirmation dialog for status changes
+    setConfirmDialog({
+      isOpen: true,
+      newStatus: newStatus,
+      itemId: itemId,
+    });
     setIsOpen(false);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    const { newStatus, itemId } = confirmDialog;
+    setStatus(newStatus);
+    setConfirmDialog({ isOpen: false, newStatus: null, itemId: null });
     await updateStatus(itemId, newStatus).then(() => {
       refetchArchived();
       refetchMaintenance();
       refetchOverdue();
     });
+  };
+
+  const handleCancelStatusChange = () => {
+    setConfirmDialog({ isOpen: false, newStatus: null, itemId: null });
   };
 
   const getStatusColor = (status) => {
@@ -136,6 +164,26 @@ const StatusDropdown = ({
           </button>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog.isOpen} onOpenChange={handleCancelStatusChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Status Change</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to change the status to "{confirmDialog.newStatus}"?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelStatusChange}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmStatusChange}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
